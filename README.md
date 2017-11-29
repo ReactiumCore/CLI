@@ -1,6 +1,9 @@
 # Atomic Reactor CLI
 A command-line interface for generating Atomic Reactor elements.
 
+# Install
+```npm install -g atomic-reactor-cli```
+
 # Commands
 ```
   Usage: arcli [options] [command]
