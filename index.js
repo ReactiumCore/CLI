@@ -24,8 +24,8 @@ const dirname         = __dirname;
 const base           = path.resolve(process.cwd());
 const config         = require(__dirname + "/config.json");
 const params         = Object.assign({}, {...config}, {base: base, package: pkg, dirname: dirname});
-const toolkit        = require('./lib/Toolkit')(params);
-const actinium       = require('./lib/Actinium')(params);
+const toolkit        = require('./lib/toolkit')(params);
+const actinium       = require('./lib/actinium')(params);
 
 
 /**
