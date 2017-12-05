@@ -2,6 +2,11 @@
   "actinium": {
     "install": "https://github.com/Atomic-Reactor/Actinium/archive/master.zip"
   },
+  "reactium": {
+    "components": "/src/app/components",
+    "templates": "[dirname]/lib/reactium/templates",
+    "install": "https://github.com/Atomic-Reactor/Reactium/archive/master.zip"
+  },
   "toolkit": {
     "src": "src",
     "theme": "default",

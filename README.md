@@ -35,5 +35,7 @@ A command-line interface for generating Atomic Reactor elements.
     kit:cleanse                     Removes all materials, views, and styles
     kit:infuse <toolkit> [options]  Add a UI toolkit to the project
     kit:defuse <toolkit> [options]  Remove a UI toolkit from the project
+    re:install [options]            Installs Reactium in the current directory
+    re:gen [options] <type>         Generates a new react component <type>: function | class | actions | types | reducers | services | route
 
 ```

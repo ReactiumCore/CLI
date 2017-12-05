@@ -26,6 +26,7 @@ const config         = require(__dirname + "/config.json");
 const params         = Object.assign({}, {...config}, {base: base, package: pkg, dirname: dirname});
 const toolkit        = require('./lib/toolkit')(params);
 const actinium       = require('./lib/actinium')(params);
+const reactium       = require('./lib/reactium')(params);
 
 
 /**
@@ -56,8 +57,8 @@ program.command('set <type>')
 })
 .on('--help', () => {
     log('  Examples:');
-    log('    $ arcli set actinium -k install -v "https://github.com/camdagr8/jam/archive/master.zip"');
-    log('    $ arcli set toolkit -k theme -v "my theme"');
+    log('    $ arcli set actinium --key install --value "https://github.com/camdagr8/jam/archive/master.zip"');
+    log('    $ arcli set toolkit --key theme --value "my theme"');
     log('');
 });
 
@@ -179,6 +180,33 @@ program.command('kit:defuse <toolkit>')
 .description('Remove a UI toolkit from the project')
 .action(toolkit.defuse)
 .on('--help', toolkit.help.defuse);
+
+
+/**
+ * -----------------------------------------------------------------------------
+ * Reactium Commands
+ * -----------------------------------------------------------------------------
+ */
+program.command('re:install')
+.description('Installs Reactium in the current directory: ' + base)
+.option('-o, --overwrite [overwrite]', 'overwrite the install path')
+.action(reactium.install)
+.on('--help', reactium.help.install);
+
+program.command('re:gen <type>')
+.description('Generates a new react component <type>: ' + reactium.types.join(' | '))
+.option('-n, --name <name>', 'the name of the component.')
+.option('-o, --overwrite [overwrite]', 'overwrite if the component already exists.')
+.option('-p, --path [path]', 'absolute path to where the component is created. Default ~/src/app/components.')
+.option('-c, --component [component]', 'the parent component when creating a child component.')
+.option('--no-actions [actions]', 'exclude the actions.js file.')
+.option('--no-types [types]', 'exclude the actionsTypes.js file.')
+.option('--no-reducers [reducers]', 'exclude the reducers.js file.')
+.option('--no-services [services]', 'exclude the services.js file.')
+.option('--no-routes [routes]', 'exclude the routes.js file.')
+.action(reactium.generate)
+.on('--help', reactium.help.generate);
+
 
 /**
  * -----------------------------------------------------------------------------

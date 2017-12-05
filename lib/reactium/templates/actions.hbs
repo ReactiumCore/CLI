@@ -1,0 +1,10 @@
+import { actionTypes } from 'appdir/app';
+import { services } from 'appdir/app';
+
+export default {
+    {{id}}: {
+        mount: (data) => (dispatch) => {
+            dispatch({type: actionTypes.{{ID_UPPER}}_MOUNT, data: data});
+        },
+    }
+};

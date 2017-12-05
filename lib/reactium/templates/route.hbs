@@ -1,0 +1,9 @@
+import {{name}} from './index';
+import { actions } from 'appdir/app';
+
+export default {
+    path: '{{route}}',
+    exact: true,
+    component: {{name}},
+    load: params => actions.{{id}}.mount(params),
+};
