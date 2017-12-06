@@ -1,6 +1,6 @@
 {
   "name": "atomic-reactor-cli",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "A command-line interface for the Atomic Reactor framework.",
   "main": "index.js",
   "scripts": {
@@ -26,18 +26,19 @@
     "fs-extra": "^2.1.2",
     "git": "^0.1.5",
     "gulp": "^3.9.1",
+    "handlebars": "^4.0.11",
     "js-beautify": "^1.6.11",
     "moment": "^2.18.1",
     "mongodb": "^2.2.25",
     "mongodb-backup": "^1.6.9",
     "mongodb-restore": "^1.6.2",
+    "open": "0.0.5",
     "ora": "^1.2.0",
     "progress": "^2.0.0",
     "prompt": "^1.0.0",
     "request": "^2.81.0",
     "slugify": "^1.1.0",
-    "underscore": "^1.8.3",
-    "handlebars": "^4.0.11"
+    "underscore": "^1.8.3"
   },
   "engines": {
     "node": "7.8.0",
