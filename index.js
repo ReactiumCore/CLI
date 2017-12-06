@@ -205,6 +205,7 @@ program.command('re:gen <type>')
 .option('--no-reducers [reducers]', 'exclude the reducers.js file.')
 .option('--no-services [services]', 'exclude the services.js file.')
 .option('--no-routes [routes]', 'exclude the routes.js file.')
+.option('--no-state [state]', 'exclude the state.js file.')
 .action(reactium.generate)
 .on('--help', reactium.help.generate);
 
