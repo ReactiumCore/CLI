@@ -193,18 +193,20 @@ program.command('re:install')
 .action(reactium.install)
 .on('--help', reactium.help.install);
 
+
 program.command('re:gen <type>')
 .description('Generates a new react component <type>: ' + reactium.types.join(' | '))
 .option('-n, --name <name>', 'the name of the component.')
 .option('-o, --overwrite [overwrite]', 'overwrite if the component already exists.')
 .option('-p, --path [path]', 'absolute path to where the component is created. Default ~/src/app/components.')
 .option('-c, --component [component]', 'the parent component when creating a child component.')
-.option('--open [open]', 'open the new file(s) in the default application')
+.option('-r, --route [route]', 'the route to associate with the component.')
+.option('--open [open]', 'open the new file(s) in the default application.')
 .option('--no-actions [actions]', 'exclude the actions.js file.')
 .option('--no-types [types]', 'exclude the actionsTypes.js file.')
 .option('--no-reducers [reducers]', 'exclude the reducers.js file.')
 .option('--no-services [services]', 'exclude the services.js file.')
-.option('--no-route [route]', 'exclude the route.js file.')
+.option('--no-router [router]', 'exclude the route.js file.')
 .option('--no-state [state]', 'exclude the state.js file.')
 .action(reactium.generate)
 .on('--help', reactium.help.generate);
