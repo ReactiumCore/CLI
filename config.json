@@ -13,7 +13,7 @@
     }
   },
   "toolkit": {
-    "src": "src",
+    "src": "/src",
     "theme": "default",
     "install": "https://github.com/Atomic-Reactor/Toolkit/archive/master.zip",
     "infusions": [
