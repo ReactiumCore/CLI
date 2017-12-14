@@ -147,13 +147,13 @@ program.command('kit:gen <type>')
 .on('--help', toolkit.help.generate);
 
 program.command('kit:launch')
-.description('Launch Butter and listen for changes')
+.description('Launch Toolkit and listen for changes')
 .option('-p, --port [port]', 'the server port')
 .action(toolkit.launch)
 .on('--help', toolkit.help.launch);
 
 program.command('kit:build')
-.description('Build Butter')
+.description('Build Toolkit')
 .action(toolkit.build)
 .on('--help', toolkit.help.build);
 
