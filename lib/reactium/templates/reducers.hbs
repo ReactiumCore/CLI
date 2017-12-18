@@ -7,10 +7,8 @@ export default (state = {}, action) => {
     switch (action.type) {
 
         case actionTypes.{{ID_UPPER}}_MOUNT:
-
             newState = Object.assign({}, state, {...action.data});
             return newState;
-            break;
 
         default:
             return state;

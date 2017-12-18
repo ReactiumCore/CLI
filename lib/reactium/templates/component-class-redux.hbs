@@ -18,14 +18,13 @@ const mapStateToProps = (state, props) => {
     return Object.assign({}, state['{{name}}'], props);
 };
 
-const mapDispatchToProps = (dispatch, props) => ({
+const mapDispatchToProps = (dispatch) => ({
     mount: () => dispatch(actions.{{name}}.mount()),
 });
 
 class {{name}} extends Component {
     constructor(props) {
         super(props);
-
         this.state = Object.assign({}, this.props);
     }
 
@@ -42,7 +41,7 @@ class {{name}} extends Component {
     render() {
         return (
             <div>
-            COMPONENT
+                COMPONENT
             </div>
         );
     }
