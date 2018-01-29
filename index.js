@@ -26,7 +26,7 @@ const config         = require(__dirname + "/config.json");
 const gconfig        = require(base + "/gulp.config.js");
 const params         = Object.assign({}, config, {base: base, package: pkg, dirname: dirname, gulp: gconfig});
 const toolkit        = require('./lib/toolkit')(params);
-const toolkit2       = require('./lib/toolkit-2')(params);
+//const toolkit2       = require('./lib/toolkit-2')(params);
 const actinium       = require('./lib/actinium')(params);
 const reactium       = require('./lib/reactium')(params);
 
@@ -148,7 +148,7 @@ program.command('kit:gen <type>')
 .action(toolkit.generate)
 .on('--help', toolkit.help.generate);
 
-program.command('kit2:gen <type>')
+/*program.command('kit2:gen <type>')
 .description('Generates the specified toolkit 2.0 element <type>: ' + toolkit2.types.join(' | '))
 .option('-n, --name      <name>',  'the name of the element')
 .option('-g, --group     <group>', 'the group to add the element to')
@@ -159,7 +159,7 @@ program.command('kit2:gen <type>')
 .option('-o, --overwrite [overwrite]', 'overwrite existing files')
 .option('--dna           [dna]', 'the DNA-ID for the element')
 .action(toolkit2.generate)
-.on('--help', toolkit2.help.generate);
+.on('--help', toolkit2.help.generate);*/
 
 program.command('kit:launch')
 .description('Launch Toolkit and listen for changes')
