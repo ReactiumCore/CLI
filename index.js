@@ -23,8 +23,10 @@ const beautify    = require('js-beautify').js_beautify;
 const dirname         = __dirname;
 const base           = path.resolve(process.cwd());
 const config         = require(__dirname + "/config.json");
-const params         = Object.assign({}, config, {base: base, package: pkg, dirname: dirname});
+const gconfig        = require(base + "/gulp.config.js");
+const params         = Object.assign({}, config, {base: base, package: pkg, dirname: dirname, gulp: gconfig});
 const toolkit        = require('./lib/toolkit')(params);
+const toolkit2       = require('./lib/toolkit-2')(params);
 const actinium       = require('./lib/actinium')(params);
 const reactium       = require('./lib/reactium')(params);
 
@@ -145,6 +147,19 @@ program.command('kit:gen <type>')
 .option('-l, --lib     [lib]',   'the library directory to add the element to')
 .action(toolkit.generate)
 .on('--help', toolkit.help.generate);
+
+program.command('kit2:gen <type>')
+.description('Generates the specified toolkit 2.0 element <type>: ' + toolkit2.types.join(' | '))
+.option('-n, --name      <name>',  'the name of the element')
+.option('-g, --group     <group>', 'the group to add the element to')
+.option('-s, --style     [style]', 'create a style sheet')
+.option('-s, --demo      [demo]', 'create a demo.html file')
+.option('-j, --js        [js]', 'create a script.js file')
+.option('-t, --title     [title]', 'the display title of the element')
+.option('-o, --overwrite [overwrite]', 'overwrite existing files')
+.option('--dna           [dna]', 'the DNA-ID for the element')
+.action(toolkit2.generate)
+.on('--help', toolkit2.help.generate);
 
 program.command('kit:launch')
 .description('Launch Toolkit and listen for changes')
