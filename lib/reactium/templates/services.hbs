@@ -1,5 +1,4 @@
 import axios from 'axios';
-import Parse from 'appdir/api';
 import { restHeaders } from "appdir/app";
 
 
@@ -8,12 +7,6 @@ const fetch = () => {
     return axios.get(`/some/rest/route`, {headers: hdr}).then(({data}) => data);
 };
 
-const fetchParse = () => {
-    let hdr = restHeaders();
-    return Parse.Cloud.run('some-function');
-};
-
 export default {
     fetch,
-    fetchParse,
 };
