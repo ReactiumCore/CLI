@@ -12,6 +12,16 @@
       "ext": "scss"
     }
   },
+  "reactium2": {
+    "components": "/src/app/components",
+    "templates": "[dirname]/lib/reactium2.x/templates",
+    "install": "https://github.com/Atomic-Reactor/Reactium-SSR/archive/master.zip",
+    "style": {
+      "entries": "/src/assets/style/style.scss",
+      "dest": "/src/assets/style/scss",
+      "ext": "scss"
+    }
+  },
   "toolkit": {
     "src": "/src",
     "theme": "default",

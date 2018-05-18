@@ -14,6 +14,7 @@ const _           = require('underscore');
 const program     = require('commander');
 const pkg         = require('./package.json');
 const beautify    = require('js-beautify').js_beautify;
+const semver      = require('semver');
 
 /**
  * -----------------------------------------------------------------------------
@@ -22,6 +23,7 @@ const beautify    = require('js-beautify').js_beautify;
  */
 const dirname         = __dirname;
 const base           = path.resolve(process.cwd());
+const targetPackage  = require(base + "/package.json");
 const config         = require(__dirname + "/config.json");
 //const gconfig        = require(base + "/gulp.config.js");
 const params         = Object.assign({}, config, {base: base, package: pkg, dirname: dirname});
@@ -29,6 +31,7 @@ const toolkit        = require('./lib/toolkit')(params);
 //const toolkit2       = require('./lib/toolkit-2')(params);
 const actinium       = require('./lib/actinium')(params);
 const reactium       = require('./lib/reactium')(params);
+const reactium2       = require('./lib/reactium2.x')(params);
 
 
 /**
@@ -209,6 +212,12 @@ program.command('re:install')
 .on('--help', reactium.help.install);
 
 
+program.command('re2:install')
+.description('Installs Reactium in the current directory: ' + base)
+.option('-o, --overwrite [overwrite]', 'overwrite the install path')
+.action(reactium2.install)
+.on('--help', reactium2.help.install);
+
 program.command('re:gen <type>')
 .description('Generates a new react component <type>: ' + reactium.types.join(' | '))
 .option('-n, --name <name>', 'the name of the component.')
@@ -223,7 +232,12 @@ program.command('re:gen <type>')
 .option('--no-services [services]', 'exclude the services.js file.')
 .option('--no-route [route]', 'exclude the route.js file.')
 .option('--no-state [state]', 'exclude the state.js file.')
-.action(reactium.generate)
+.action((..._) => {
+    if (semver.satisfies(semver.coerce(targetPackage.version), '2.x')) {
+        return reactium2.generate(..._);
+    }
+    reactium.generate(..._);
+})
 .on('--help', reactium.help.generate);
 
 
