@@ -15,7 +15,8 @@ const program     = require('commander');
 const pkg         = require('./package.json');
 const beautify    = require('js-beautify').js_beautify;
 const semver      = require('semver');
-
+const log         = console.log.bind(console);
+const chalk       = require('chalk');
 /**
  * -----------------------------------------------------------------------------
  * Constants
@@ -23,9 +24,8 @@ const semver      = require('semver');
  */
 const dirname         = __dirname;
 const base           = path.resolve(process.cwd());
-const targetPackage  = require(base + "/package.json");
-const config         = require(__dirname + "/config.json");
 //const gconfig        = require(base + "/gulp.config.js");
+const config         = require(__dirname + "/config.json");
 const params         = Object.assign({}, config, {base: base, package: pkg, dirname: dirname});
 const toolkit        = require('./lib/toolkit')(params);
 //const toolkit2       = require('./lib/toolkit-2')(params);
@@ -33,6 +33,13 @@ const actinium       = require('./lib/actinium')(params);
 const reactium       = require('./lib/reactium')(params);
 const reactium2       = require('./lib/reactium2.x')(params);
 
+/**
+ * Read the current target project package
+ */
+let targetPackage = {};
+try {
+    targetPackage  = require(base + "/package.json");
+} catch(error) {}
 
 /**
  * -----------------------------------------------------------------------------
@@ -40,7 +47,6 @@ const reactium2       = require('./lib/reactium2.x')(params);
  * -----------------------------------------------------------------------------
  */
 program.version(pkg.version);
-
 
 /**
  * -----------------------------------------------------------------------------
@@ -233,6 +239,11 @@ program.command('re:gen <type>')
 .option('--no-route [route]', 'exclude the route.js file.')
 .option('--no-state [state]', 'exclude the state.js file.')
 .action((..._) => {
+    if (!('version' in targetPackage)) {
+        log(chalk.red('error: No package.json in current directory.'));
+        process.exit();
+    }
+
     if (semver.satisfies(semver.coerce(targetPackage.version), '2.x')) {
         return reactium2.generate(..._);
     }
