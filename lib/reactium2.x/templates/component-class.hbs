@@ -30,7 +30,7 @@ export default class {{name}} extends Component {
     componentWillReceiveProps(nextProps) {
         this.setState(prevState => ({
             ...prevState,
-            nextProps,
+            ...nextProps,
         }));
     }
 
