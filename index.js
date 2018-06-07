@@ -2,7 +2,6 @@
 
 'use strict';
 
-
 /**
  * -----------------------------------------------------------------------------
  * Imports
@@ -30,16 +29,8 @@ const params         = Object.assign({}, config, {base: base, package: pkg, dirn
 const toolkit        = require('./lib/toolkit')(params);
 //const toolkit2       = require('./lib/toolkit-2')(params);
 const actinium       = require('./lib/actinium')(params);
-const reactium       = require('./lib/reactium')(params);
 const reactium2       = require('./lib/reactium2.x')(params);
-
-/**
- * Read the current target project package
- */
-let targetPackage = {};
-try {
-    targetPackage  = require(base + "/package.json");
-} catch(error) {}
+const reactium1       = require('./lib/reactium1.x')(params);
 
 /**
  * -----------------------------------------------------------------------------
@@ -205,7 +196,6 @@ program.command('kit:defuse <toolkit>')
 .action(toolkit.defuse)
 .on('--help', toolkit.help.defuse);
 
-
 /**
  * -----------------------------------------------------------------------------
  * Reactium Commands
@@ -214,18 +204,17 @@ program.command('kit:defuse <toolkit>')
 program.command('re:install')
 .description('Installs Reactium in the current directory: ' + base)
 .option('-o, --overwrite [overwrite]', 'overwrite the install path')
-.action(reactium.install)
-.on('--help', reactium.help.install);
-
-
-program.command('re2:install')
-.description('Installs Reactium in the current directory: ' + base)
-.option('-o, --overwrite [overwrite]', 'overwrite the install path')
 .action(reactium2.install)
 .on('--help', reactium2.help.install);
 
+program.command('re1:install')
+.description('Installs Reactium in the current directory: ' + base)
+.option('-o, --overwrite [overwrite]', 'overwrite the install path')
+.action(reactium1.install)
+.on('--help', reactium1.help.install);
+
 program.command('re:gen <type>')
-.description('Generates a new react component <type>: ' + reactium.types.join(' | '))
+.description('Generates a new react component <type>: ' + reactium2.types.join(' | '))
 .option('-n, --name <name>', 'the name of the component.')
 .option('-o, --overwrite [overwrite]', 'overwrite if the component already exists.')
 .option('-p, --path [path]', 'relative path to `~/src/app/components/` directory where the component is created. Default `~/src/app/components/[name]`.')
@@ -239,17 +228,17 @@ program.command('re:gen <type>')
 .option('--no-route [route]', 'exclude the route.js file.')
 .option('--no-state [state]', 'exclude the state.js file.')
 .action((..._) => {
-    if (!('version' in targetPackage)) {
-        log(chalk.red('error: No package.json in current directory.'));
-        process.exit();
-    }
+    let coreConfig = {};
+    try {
+        coreConfig  = require(base + "/.core/reactium-config.js");
+    } catch(error) {}
 
-    if (semver.satisfies(semver.coerce(targetPackage.version), '2.x')) {
+    if ('version' in coreConfig && semver.satisfies(semver.coerce(coreConfig.version), '2.x')) {
         return reactium2.generate(..._);
     }
-    reactium.generate(..._);
+    reactium1.generate(..._);
 })
-.on('--help', reactium.help.generate);
+.on('--help', reactium2.help.generate);
 
 
 /**
