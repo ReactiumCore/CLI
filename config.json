@@ -4,8 +4,8 @@
   },
   "reactium": {
     "components": "/src/app/components",
-    "templates": "[dirname]/lib/reactium/templates",
-    "install": "https://github.com/Atomic-Reactor/Reactium/archive/master.zip",
+    "templates": "[dirname]/lib/reactium1.x/templates",
+    "install": "https://github.com/Atomic-Reactor/Reactium-Legacy/archive/master.zip",
     "style": {
       "entries": "/src/assets/style/style.scss",
       "dest": "/src/assets/style/scss",
@@ -18,7 +18,7 @@
   "reactium2": {
     "components": "/src/app/components",
     "templates": "[dirname]/lib/reactium2.x/templates",
-    "install": "https://github.com/Atomic-Reactor/Reactium-SSR/archive/master.zip",
+    "install": "https://github.com/Atomic-Reactor/Reactium/archive/master.zip",
     "style": {
       "entries": "/src/assets/style/style.scss",
       "dest": "/src/assets/style/scss",
