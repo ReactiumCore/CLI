@@ -22,16 +22,17 @@ const chalk       = require('chalk');
  * Constants
  * -----------------------------------------------------------------------------
  */
-const dirname         = __dirname;
-const base           = path.resolve(process.cwd());
-//const gconfig        = require(base + "/gulp.config.js");
-const config         = require(__dirname + "/config.json");
-const params         = Object.assign({}, config, {base: base, package: pkg, dirname: dirname});
-const toolkit        = require('./lib/toolkit')(params);
-//const toolkit2       = require('./lib/toolkit-2')(params);
-const actinium       = require('./lib/actinium')(params);
-const reactium       = require('./lib/reactium')(params);
-const reactium2       = require('./lib/reactium2.x')(params);
+const dirname     = __dirname;
+const base        = path.resolve(process.cwd());
+//const gconfig   = require(base + "/gulp.config.js");
+const config      = require(__dirname + "/config.json");
+const params      = Object.assign({}, config, {base: base, package: pkg, dirname: dirname});
+const toolkit     = require('./lib/toolkit')(params);
+//const toolkit2  = require('./lib/toolkit-2')(params);
+const actinium    = require('./lib/actinium')(params);
+const reactium    = require('./lib/reactium')(params);
+const reactium2   = require('./lib/reactium2.x')(params);
+const reactiumKit = require('./lib/reactium-kit')(params);
 
 /**
  * Read the current target project package
@@ -250,6 +251,21 @@ program.command('re:gen <type>')
     reactium.generate(..._);
 })
 .on('--help', reactium.help.generate);
+
+program.command('re:kit <type>')
+.description(`Generate Reactium Toolkit element <type> ${reactiumKit.types.join(' | ')}`)
+.option('-i, --id <id>', 'the id of the element.')
+.option('-n, --name <name>', 'the display name of the element.')
+.option('-g, --group <group>', 'the menu group id.')
+.option('-o, --overwrite [overwrite]', 'overwrite if the element already exists.')
+.option('--index [index]', 'the menu order index.')
+.action(reactiumKit.generate);
+
+
+
+
+
+
 
 
 /**
