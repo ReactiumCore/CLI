@@ -17,6 +17,7 @@ const beautify    = require('js-beautify').js_beautify;
 const semver      = require('semver');
 const log         = console.log.bind(console);
 const chalk       = require('chalk');
+
 /**
  * -----------------------------------------------------------------------------
  * Constants
@@ -24,13 +25,11 @@ const chalk       = require('chalk');
  */
 const dirname     = __dirname;
 const base        = path.resolve(process.cwd());
-//const gconfig   = require(base + "/gulp.config.js");
 const config      = require(__dirname + "/config.json");
 const params      = Object.assign({}, config, {base: base, package: pkg, dirname: dirname});
 const toolkit     = require('./lib/toolkit')(params);
-//const toolkit2  = require('./lib/toolkit-2')(params);
 const actinium    = require('./lib/actinium')(params);
-const reactium    = require('./lib/reactium')(params);
+const reactium1   = require('./lib/reactium1.x')(params);
 const reactium2   = require('./lib/reactium2.x')(params);
 const reactiumKit = require('./lib/reactium-kit')(params);
 
@@ -158,19 +157,6 @@ program.command('kit:gen <type>')
 .action(toolkit.generate)
 .on('--help', toolkit.help.generate);
 
-/*program.command('kit2:gen <type>')
-.description('Generates the specified toolkit 2.0 element <type>: ' + toolkit2.types.join(' | '))
-.option('-n, --name      <name>',  'the name of the element')
-.option('-g, --group     <group>', 'the group to add the element to')
-.option('-s, --style     [style]', 'create a style sheet')
-.option('-s, --demo      [demo]', 'create a demo.html file')
-.option('-j, --js        [js]', 'create a script.js file')
-.option('-t, --title     [title]', 'the display title of the element')
-.option('-o, --overwrite [overwrite]', 'overwrite existing files')
-.option('--dna           [dna]', 'the DNA-ID for the element')
-.action(toolkit2.generate)
-.on('--help', toolkit2.help.generate);*/
-
 program.command('kit:launch')
 .description('Launch Toolkit and listen for changes')
 .option('-p, --port [port]', 'the server port')
@@ -206,7 +192,6 @@ program.command('kit:defuse <toolkit>')
 .action(toolkit.defuse)
 .on('--help', toolkit.help.defuse);
 
-
 /**
  * -----------------------------------------------------------------------------
  * Reactium Commands
@@ -215,18 +200,17 @@ program.command('kit:defuse <toolkit>')
 program.command('re:install')
 .description('Installs Reactium in the current directory: ' + base)
 .option('-o, --overwrite [overwrite]', 'overwrite the install path')
-.action(reactium.install)
-.on('--help', reactium.help.install);
-
-
-program.command('re2:install')
-.description('Installs Reactium in the current directory: ' + base)
-.option('-o, --overwrite [overwrite]', 'overwrite the install path')
 .action(reactium2.install)
 .on('--help', reactium2.help.install);
 
+program.command('re1:install')
+.description('Installs Reactium in the current directory: ' + base)
+.option('-o, --overwrite [overwrite]', 'overwrite the install path')
+.action(reactium1.install)
+.on('--help', reactium1.help.install);
+
 program.command('re:gen <type>')
-.description('Generates a new react component <type>: ' + reactium.types.join(' | '))
+.description('Generates a new react component <type>: ' + reactium2.types.join(' | '))
 .option('-n, --name <name>', 'the name of the component.')
 .option('-o, --overwrite [overwrite]', 'overwrite if the component already exists.')
 .option('-p, --path [path]', 'relative path to `~/src/app/components/` directory where the component is created. Default `~/src/app/components/[name]`.')
@@ -240,17 +224,17 @@ program.command('re:gen <type>')
 .option('--no-route [route]', 'exclude the route.js file.')
 .option('--no-state [state]', 'exclude the state.js file.')
 .action((..._) => {
-    if (!('version' in targetPackage)) {
-        log(chalk.red('error: No package.json in current directory.'));
-        process.exit();
-    }
+    let coreConfig = {};
+    try {
+        coreConfig  = require(base + "/.core/reactium-config.js");
+    } catch(error) {}
 
-    if (semver.satisfies(semver.coerce(targetPackage.version), '2.x')) {
+    if ('version' in coreConfig && semver.satisfies(semver.coerce(coreConfig.version), '2.x')) {
         return reactium2.generate(..._);
     }
-    reactium.generate(..._);
+    reactium1.generate(..._);
 })
-.on('--help', reactium.help.generate);
+.on('--help', reactium2.help.generate);
 
 program.command('re:kit <type>')
 .description(`Generate Reactium Toolkit element <type> ${reactiumKit.types.join(' | ')}`)
@@ -260,12 +244,6 @@ program.command('re:kit <type>')
 .option('-o, --overwrite [overwrite]', 'overwrite if the element already exists.')
 .option('--index [index]', 'the menu order index.')
 .action(reactiumKit.generate);
-
-
-
-
-
-
 
 
 /**
