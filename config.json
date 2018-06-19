@@ -10,6 +10,9 @@
       "entries": "/src/assets/style/style.scss",
       "dest": "/src/assets/style/scss",
       "ext": "scss"
+    },
+    "toolkit": {
+      "templates": "[dirname]/lib/reactium-kit/templates"
     }
   },
   "reactium2": {
@@ -27,18 +30,14 @@
     "theme": "default",
     "install": "https://github.com/Atomic-Reactor/Toolkit/archive/master.zip",
     "infusions": [
-      {"name": "bootstrap-4",  "url": "https://github.com/camdagr8/brkfst-pkg-bootstrap-4/archive/master.zip"},
-      {"name": "foundation-6", "url": "https://github.com/camdagr8/brkfst-pkg-foundation-6/archive/master.zip"}
-    ]
-  },
-  "toolkit-2": {
-    "src": "/src",
-    "theme": "/src/toolkit/assets/styles/themes/default",
-    "js": "/src/toolkit/assets/js",
-    "install": "https://github.com/Atomic-Reactor/Toolkit/archive/master.zip",
-    "infusions": [
-      {"name": "bootstrap-4",  "url": "https://github.com/camdagr8/brkfst-pkg-bootstrap-4/archive/master.zip"},
-      {"name": "foundation-6", "url": "https://github.com/camdagr8/brkfst-pkg-foundation-6/archive/master.zip"}
+      {
+        "name": "bootstrap-4",
+        "url": "https://github.com/camdagr8/brkfst-pkg-bootstrap-4/archive/master.zip"
+      },
+      {
+        "name": "foundation-6",
+        "url": "https://github.com/camdagr8/brkfst-pkg-foundation-6/archive/master.zip"
+      }
     ]
   }
 }
