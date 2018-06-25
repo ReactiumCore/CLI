@@ -238,11 +238,12 @@ program.command('re:gen <type>')
 
 program.command('re:kit <type>')
 .description(`Generate Reactium Toolkit element <type> ${reactiumKit.types.join(' | ')}`)
-.option('-i, --id <id>', 'the id of the element.')
+.option('--id <id>', 'the id of the element.')
+.option('-i, --index [index]', 'the menu order index.')
 .option('-n, --name <name>', 'the display name of the element.')
 .option('-g, --group <group>', 'the menu group id.')
 .option('-o, --overwrite [overwrite]', 'overwrite if the element already exists.')
-.option('--index [index]', 'the menu order index.')
+.option('-h, --hidden [hidden]', 'whether to display the element in the menu.')
 .action(reactiumKit.generate);
 
 
