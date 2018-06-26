@@ -237,15 +237,22 @@ program.command('re:gen <type>')
 .on('--help', reactium2.help.generate);
 
 program.command('re:kit <type>')
-.description(`Generate Reactium Toolkit element <type> ${reactiumKit.types.join(' | ')}`)
+.description(`Generate Toolkit element <type> ${reactiumKit.types.join(' | ')}`)
 .option('--id <id>', 'the id of the element.')
-.option('-i, --index [index]', 'the menu order index.')
 .option('-n, --name <name>', 'the display name of the element.')
 .option('-g, --group <group>', 'the menu group id.')
+.option('-i, --index [index]', 'the menu order index.')
 .option('-o, --overwrite [overwrite]', 'overwrite if the element already exists.')
 .option('-h, --hidden [hidden]', 'whether to display the element in the menu.')
 .action(reactiumKit.generate);
 
+program.command('re:theme <action>')
+.description(`Create, remove, or update a Toolkit theme <action>: add | remove | update`)
+.option('-i, --index [index]', 'the menu order index.')
+.option('-n, --name <name>', 'the display name of the theme.')
+.option('-f, --file <file>', 'the path to the theme style sheet relative to the `src` directory. Example: /assets/style/style.scss.')
+.option('-s, --selected [selected]', 'designate the theme as the default.')
+.action(reactiumKit.themes);
 
 /**
  * -----------------------------------------------------------------------------
