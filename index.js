@@ -210,7 +210,7 @@ program.command('re1:install')
 .on('--help', reactium1.help.install);
 
 program.command('re:gen <type>')
-.description('Generates a new react component <type>: ' + reactium2.types.join(' | '))
+.description('Generates a new react component. <type>: ' + reactium2.types.join(' | '))
 .option('-n, --name <name>', 'the name of the component.')
 .option('-o, --overwrite [overwrite]', 'overwrite if the component already exists.')
 .option('-p, --path [path]', 'relative path to `~/src/app/components/` directory where the component is created. Default `~/src/app/components/[name]`.')
@@ -237,7 +237,7 @@ program.command('re:gen <type>')
 .on('--help', reactium2.help.generate);
 
 program.command('re:kit <type>')
-.description(`Generate Design System element <type> ${reactiumKit.types.join(' | ')}`)
+.description(`Generate Design System element. <type>: ${reactiumKit.types.join(' | ')}`)
 .option('--id <id>', 'the id of the element.')
 .option('-n, --name <name>', 'the display name of the element.')
 .option('-g, --group <group>', 'the menu group id.')
@@ -248,12 +248,21 @@ program.command('re:kit <type>')
 .action(reactiumKit.generate);
 
 program.command('re:theme <action>')
-.description(`Create, remove, or update a Design System theme <action>: add | remove | update`)
+.description(`Create, remove, or update a Design System theme. <action>: add | remove | update`)
 .option('-i, --index [index]', 'the menu order index.')
 .option('-n, --name <name>', 'the display name of the theme.')
 .option('-f, --file <file>', 'the path to the theme style sheet relative to the `src` directory. Example: /assets/style/style.scss.')
 .option('-s, --selected [selected]', 'designate the theme as the default.')
 .action(reactiumKit.themes);
+
+program.command('re:remove <type>')
+.description(`Remove a component, toolkit element, or group. <type>: group | element | component`)
+.option('-i, --id [id]', 'if the <type> is `element` or `group`, the toolkit manifest property id.')
+.option('-g, --group [group]', 'if the <type> is `element`, group is required.')
+.option('-p, --path [path]', 'if the <type> is `component`, specify the path relative to the Reactium > `src` directory. Example: /app/components/Test')
+.option('-d, --delete [delete]', 'permanently delete component files.')
+.action(reactiumKit.remove);
+
 
 /**
  * -----------------------------------------------------------------------------

@@ -15,7 +15,9 @@ import React, { Component, Fragment } from 'react';
 
 class {{name}} extends Component {
 
-    static dependencies() { return module.children; }
+    static dependencies() {
+        return (typeof module !== 'undefined') ? module.children : [];
+    }
 
     constructor(props) {
         super(props);
