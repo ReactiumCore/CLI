@@ -260,6 +260,7 @@ program.command('re:remove <type>')
 .option('-g, --group [group]', 'if the <type> is `element`, group is required.')
 .option('-p, --path [path]', 'if the <type> is `component`, specify the path relative to the Reactium > `src` directory. Example: /app/components/Test')
 .option('-d, --delete [delete]', 'permanently delete component files.')
+.option('-n, --name <name>', 'the display name of the element.')
 .action(reactiumKit.remove);
 
 
