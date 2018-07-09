@@ -255,7 +255,7 @@ program.command('re:theme <action>')
 .action(reactiumKit.themes);
 
 program.command('re:remove <type>')
-.description(`Remove a component, toolkit element, or group. <type>: group | element | component`)
+.description(`Remove a component, toolkit element, or group. <type>: group | element | component | purge`)
 .option('-i, --id [id]', 'if the <type> is `element` or `group`, the toolkit manifest property id.')
 .option('-g, --group [group]', 'if the <type> is `element`, group is required.')
 .option('-p, --path [path]', 'if the <type> is `component`, specify the path relative to the Reactium > `src` directory. Example: /app/components/Test')
