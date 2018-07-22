@@ -263,6 +263,10 @@ program.command('re:remove <type>')
 .option('-n, --name <name>', 'the display name of the element.')
 .action(reactiumKit.remove);
 
+program.command('re:update')
+.description(`Update Reactium Core to lastest version.`)
+.action(reactium2.update);
+
 
 /**
  * -----------------------------------------------------------------------------
