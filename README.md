@@ -28,7 +28,7 @@ Commands:
 
 ## Commands
 
-### <config>
+### `<config>`
 Set or change configuration options.
 
 #### Usage
@@ -47,7 +47,7 @@ Use dot notation to access deeper keys in the config object.
 
 ##### --value
 The config object value.
-You can set array values by puttin a space between each value.
+You can set array values by putting a space between each value.
 
 ```
 $ arcli config --key 'toolkit.types' --value 'atom molecule organism template link page'
@@ -90,7 +90,7 @@ $ arcli config --key 'toolkit.types' --value 'atom molecule organism template li
 ```
 
 
-### <commander>
+### `<commander>`
 Create custom ARCLI commands.
 
 #### Usage
@@ -137,14 +137,14 @@ $ arcli commander --command fubar --destination 'cwd/fubar'
 
 You can create a command that accepts parameters as well:
 ```
-$ arcli commander --command 'fubar <test>'
+$ arcli commander --command 'fubar test'
 ```
 _Creates a command that would be run by entering the following: `arcli fubar test`_
 
 
 ## Reactium Commands
 
-### <reactium> <install>
+### `<reactium> <install>`
 Downloads and installs Reactium into the current working directory. If the directory is not empty, you will be prompted to overwrite it or cancel the operation.
 
 #### Usage
@@ -158,7 +158,7 @@ $ arcli reactium install
 Overwrite the current working directory if it's not empty.
 
 
-### <reactium> <update>
+### `<reactium> <update>`
 Downloads and installs Reactium `.core` and updates to the `package.json` into the current working directory.
 The current version of your project will be backed up to the `.BACKUP` directory before update.
 
@@ -167,7 +167,7 @@ The current version of your project will be backed up to the `.BACKUP` directory
 $ arcli reactium update
 ```
 
-### <component>
+### `<component>`
 Create or replace a Reactium component.
 
 #### Usage
@@ -201,6 +201,9 @@ Create a Redux Class component.
 
 _`--redux` must be specified for any of the redux includes to apply._
 
+##### --redux-all
+Include all Redux related files. 
+
 ##### --actions
 Include Redux `actions.js` file.
 
@@ -219,7 +222,7 @@ Include `_style.scss` file and import into a parent stylesheet.
 
 
 
-### <rename>
+### `<rename>`
 Rename a Reactium component.
 
 #### Usage
@@ -245,7 +248,7 @@ Each file is backed up in the `~/.BACKUP` directory.
 
 > _You can use the shortcut `components/`, `common-ui/`, or `cwd/` when specifying the directory._
 
-### <style>
+### `<style>`
 Create a Reactium or Toolkit stylesheet.
 
 #### Usage
@@ -271,14 +274,55 @@ Overwrite an existing version of the stylesheet.
 ## Toolkit Commands
 
 
-### <element> <create|update|remove>
+### `<element> <create|update|remove>`
+Manage toolkit elements.
 
+#### Usage
+```
+$ arcli element create
+
+$ arcli element update
+
+$arcli element remove
+```
+_If no flags are specified, you will be prompted to input corresponding values._
+
+#### Flags:
+--id, --name, --group, --label, --menu-order, --stylesheet, --documentation, --code, --dna
+
+##### --id
+The element ID. Used when indexing the element in the toolkit manifest file.
+
+##### --name
+The element name. Used when importing the element into other components.
+
+##### --group
+The group the element is apart of.
+Groups are how the toolkit menu structures elements.
+
+##### --label
+The menu link text.
+
+##### --menu-order
+The menu link index relative to other elements in the group.
+
+##### --stylesheet
+Add a stylesheet for the element.
+
+##### --documentation
+Create a readme for the element and display it in the toolkit.
+
+##### --code
+Show the Code View for the element.
+
+##### --dna
+Show the DNA info for the element.
 
 
 ## Actinium Commands
 
 
-### <actinium> <install>
+### `<actinium> <install>`
 Downloads and installs Actinium into the current working directory. If the directory is not empty, you will be prompted to overwrite it or cancel the operation.
 
 #### Usage
@@ -293,9 +337,54 @@ $ arcli actinium install
 Overwrite the current working directory if it's not empty.
 
 
-### <cloud>
+### `<cloud>`
+Actinium uses The [Parse Platform](https://parseplatform.org/) and this command helps in creating new Parse.Cloud functions.
+
+#### Usage
+```
+$ arcli cloud
+```
+
+#### Flags:
+--destination, --collection, --definitions, --beforeFind, --beforeDelete, --beforeSave, --afterSave, --afterDelete, --overwrite
+
+##### --destination
+Parent directory of the Cloud Function.
+_Actinium looks in the `~/src/app/cloud` directory for .js files and loads them as cloud functions.
+_You can use the `cloud/` shortcut when specifying the destination. Example: `$ arcli element --destination 'cloud/my/function` will put the cloud function in the `~/src/app/cloud/my/function` directory._
+
+##### --collection
+The database collection for before/after hooks.
+
+```
+// Use the Parse.User collection
+$ arcli element --collection '_User'
+```
+
+##### --definition
+Parse.Cloud.define() definitions.
+```
+$ arcli element --definitions 'userSave userDelete'
+```
+> _Note: you can specify multiple definitions by putting a space between values._
+
+##### --beforeFind
+Include Parse.Cloud.beforeFind(COLLECTION) function.
+
+##### --beforeDelete
+Include Parse.Cloud.beforeDelete(COLLECTION) function.
+
+##### --beforeSave
+Include Parse.Cloud.beforeSave(COLLECTION) function.
+
+##### --afterDelete
+Include Parse.Cloud.afterDelete(COLLECTION) function.
+
+##### --afterSave
+Include Parse.Cloud.afterSave(COLLECTIO) function.
 
 
+> _See the [Parse Cloud Guide](https://docs.parseplatform.org/cloudcode/guide/) for more information on Cloud functions._
 
 
 
