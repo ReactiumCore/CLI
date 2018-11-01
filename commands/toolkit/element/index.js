@@ -205,7 +205,7 @@ const NAME = 'element [action]';
  * @see https://www.npmjs.com/package/commander#automated---help
  * @since 2.0.0
  */
-const DESC = 'Manage toolkit elements.';
+const DESC = 'Toolkit:  Manage toolkit elements. Available actions: create | updated | remove.';
 
 
 /**
@@ -223,15 +223,20 @@ const CANCELED = 'Element action canceled!';
  * @since 2.0.0
  */
 const HELP = () => {
-    console.log('');
-    console.log('Actions:');
-    console.log('');
-    console.log('Create a new toolkit element:');
-    console.log('  arcli element create');
-    console.log('');
-    console.log('Remove a toolkit element:');
-    console.log('  arcli element remove');
-    console.log('');
+const output = `
+
+Actions:
+  <create> - Create a new toolkit element:
+    $ arcli element create
+
+  <update> - Update a toolkit manifest entry:
+    $ arcli element update
+
+  <remove> - Remove a toolkit element:
+    $ arcli element remove
+
+`;
+console.log(output);
 };
 
 
@@ -968,6 +973,7 @@ const ACTION = ({ action, opt, props }) => {
                 ACTION_REMOVE({ opt, props });
                 break;
 
+            case 'create':
             default:
                 ACTION_CREATE({ opt, props });
         }

@@ -29,7 +29,7 @@ const NAME = 'actinium <install>';
  * @see https://www.npmjs.com/package/commander#automated---help
  * @since 2.0.0
  */
-const DESC = 'Install Actinium';
+const DESC = 'Actinium: Download and install.';
 
 
 /**

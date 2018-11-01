@@ -30,7 +30,7 @@ const NAME = 'reactium <update>';
  * @see https://www.npmjs.com/package/commander#automated---help
  * @since 2.0.0
  */
-const DESC = 'Update Reactium';
+const DESC = 'Reactium: Update core.';
 
 
 /**

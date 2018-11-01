@@ -24,6 +24,7 @@ prompt.delimiter = config.prompt.delimiter;
 
 // Initialize the CLI
 program.version(ver, '-v, --version');
+program.usage('<command> [options]');
 
 // Find commands
 const dirs  = config.commands || [];

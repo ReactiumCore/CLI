@@ -55,7 +55,7 @@ const NAME = 'rename';
  * @see https://www.npmjs.com/package/commander#automated---help
  * @since 2.0.0
  */
-const DESC = 'Rename a component';
+const DESC = 'Reactium: Rename a component.';
 
 
 /**
@@ -135,7 +135,7 @@ const SEARCH = ({ props, params }) => {
         if (search.length < 1) {
             prompt.stop();
             error('Cannot find component directory');
-            reject({message: 'no component', code: 500 });
+            reject({ message: 'no component', code: 500 });
         }
 
         const selections = search.map((type, index) => {
@@ -246,7 +246,17 @@ const SCHEMA = () => {
                 pattern:/[a-zA-Z]/,
                 message: ' New name is required',
                 description: chalk.white('New Name:'),
-            }
+            },
+            replace: {
+                description: `${chalk.white('Replace in other files?')} ${chalk.cyan('(Y/N):')}`,
+                required: true,
+                pattern: /^y|n|Y|N/,
+                message: ` `,
+                default: 'n',
+                before: (val) => {
+                    return (String(val).toLowerCase() === 'y');
+                }
+            },
         }
     }
 };
@@ -291,19 +301,21 @@ const ACTION = ({ opt, props }) => {
             input['directory'] = directory;
 
             const params = CONFORM({ input, props });
+            const { replace } = params;
 
             message(`Rename component with the following options:`);
+
             const preflight = { ...params };
+            const files = testflight({ params, props });
 
             console.log(prettier.format(
                 JSON.stringify(preflight),
                 { parser: 'json-stringify' }
             ));
 
-            const files = testflight({ params, props });
             params['files'] = files;
 
-            if (files.length > 0) {
+            if (files.length > 0 && replace) {
                 const len = String(files.length).length;
                 const found = files.map((file, index) => {
                     index += 1;
@@ -311,9 +323,10 @@ const ACTION = ({ opt, props }) => {
                     return `  ${i} ${file}`;
                 }).join('\n');
 
-                message(`The following files will be updated:`);
-
+                message('The following files will be updated:');
                 console.log(found, '\n');
+            } else {
+                params['replace'] = false;
             }
 
             return CONFIRM({ props, params });
@@ -343,6 +356,7 @@ const COMMAND = ({ program, props }) => program.command(NAME)
     .option('-f, --from [from]', "Component's current name.")
     .option('-t, --to [to]', "Component's new name.")
     .option('-d, --directory [directory]', "Component's parent directory.")
+    .option('-r, --replace [replace]', "Replace the component name in other files.")
     .on('--help', HELP);
 
 

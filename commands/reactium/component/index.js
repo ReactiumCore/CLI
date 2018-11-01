@@ -100,7 +100,7 @@ const NAME = 'component';
  * @see https://www.npmjs.com/package/commander#automated---help
  * @since 2.0.0
  */
-const DESC = 'Creates or replaces a Reactium Component';
+const DESC = 'Reactium: Create or replace a component.';
 
 
 /**
@@ -284,7 +284,7 @@ const SCHEMA = ({ props }) => {
         return `\n\t    ${chalk.cyan(`${index+1}.`)} ${chalk.white(type)}`;
     }).join('');
 
-    const defaultDirectory = path.normalize('/src/app/components');
+    const defaultDirectory = path.normalize('components/');
 
     const styleList = topLevelStyles({ props });
     const styleLen = String(styleList.length).length;
@@ -557,13 +557,12 @@ const COMMAND = ({ program, props }) => {
         .description(DESC)
         .action(opt => ACTION({ opt, props }))
         .option('-r, --redux-all [reduxAll]', 'Include all Redux files.')
-        .option('-i, --ID [ID]', 'Component ID.')
         .option('-n, --name [name]', 'Component name.')
         .option('-d, --destination [destination]', 'Component parent directory.')
         .option('-o, --overwrite [overwrite]', 'Overwrite existing component.')
         .option('-t, --type [type]', `Component type: ${types.join(' | ')}.`)
         .option('--route [route]', 'Include route.js file.')
-        .option('--redux [redux]', 'Create Redux component.')
+        .option('--redux [redux]', 'Create Redux Class component.')
         .option('--actions [actions]', 'Include Redux actions.js file.')
         .option('--actionTypes [actionTypes]', 'Include Redux actionTypes.js file.')
         .option('--reducers [reducers]', 'Include Redux reducers.js file.')

@@ -29,7 +29,7 @@ const NAME = 'reactium <install>';
  * @see https://www.npmjs.com/package/commander#automated---help
  * @since 2.0.0
  */
-const DESC = 'Install Reactium';
+const DESC = 'Reactium: Download and install.';
 
 
 /**

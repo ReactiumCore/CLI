@@ -22,6 +22,7 @@ const formatDestination = (val, props) => {
 
     val = path.normalize(val);
     val = String(val).replace(/^~\/|^\/cwd\/|^cwd\//i, `${cwd}/.cli/commands/`);
+    val = String(val).replace(/^\/app\/|^app\//i, `${cwd}/.core/.cli/commands/`);
     val = String(val).replace(/^\/root\/|^root\//i, `${root}/commands/`);
     val = path.normalize(val);
 
@@ -45,7 +46,7 @@ const NAME = 'commander';
  * @see https://www.npmjs.com/package/commander#automated---help
  * @since 2.0.0
  */
-const DESC = 'Create a CLI function';
+const DESC = 'ARCLI:    Create a CLI function.';
 
 
 /**
@@ -176,7 +177,7 @@ const SCHEMA = ({ props }) => {
                     return (String(val).toLowerCase() === 'y');
                 }
             },
-            COMMAND: {
+            command: {
                 type: 'string',
                 description: chalk.white(`Command:`),
                 message: 'Command is a required parameter',

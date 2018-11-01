@@ -40,7 +40,7 @@ const NAME = 'config';
  * @see https://www.npmjs.com/package/commander#automated---help
  * @since 2.0.0
  */
-const DESC = 'Set config.json key:value pairs';
+const DESC = 'ARCLI:    Set ARCLI key:value pairs.';
 
 
 /**

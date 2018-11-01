@@ -18,10 +18,16 @@ const pad                = require(`${mod}/lib/pad`);
 const { error, message } = require(`${mod}/lib/messenger`);
 
 
-const formatDestination = (val, props) => path.normalize(val).replace(
-    /^~\/|^\/cwd\/|^cwd\//i,
-    `${props.cwd}/`
-);
+const formatDestination = (val, props) => {
+    const { cwd } = props;
+
+    val = path.normalize(val);
+    val = String(val).replace(/^~\/|^\/cwd\/|^cwd\/|^cwd$/i, `${cwd}/`);
+    val = String(val).replace(/^\/components\/|^components\/|^components$/i, `${cwd}/src/app/components/`);
+    val = String(val).replace(/^\/common-ui\/|^common-ui\/|^common-ui$/i, `${cwd}/src/app/components/common-ui/`);
+
+    return path.normalize(val);
+};
 
 const formatFilename = (val) => {
     const ext  = val.substr(-5);
@@ -71,7 +77,7 @@ const NAME = 'style';
  * @see https://www.npmjs.com/package/commander#automated---help
  * @since 2.0.0
  */
-const DESC = 'Create a style sheet';
+const DESC = 'Reactium: Create a style sheet.';
 
 
 /**

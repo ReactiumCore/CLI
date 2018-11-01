@@ -78,7 +78,7 @@ const NAME = 'cloud';
  * @see https://www.npmjs.com/package/commander#automated---help
  * @since 2.0.0
  */
-const DESC = 'Creates a new Parse.Cloud function';
+const DESC = 'Actinium: Create a new Parse.Cloud function file.';
 
 
 /**

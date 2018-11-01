@@ -13,6 +13,12 @@ const actions = require('./actions')(spinner);
 module.exports = ({ params, props }) => {
     spinner.start();
 
+    const { replace } = params;
+
+    if (replace !== true) {
+        delete actions.content;
+    }
+
     return ActionSequence({
         actions,
         options: { params, props }
