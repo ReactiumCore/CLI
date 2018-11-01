@@ -1,43 +1,33 @@
 {
-  "actinium": {
-    "install": "https://github.com/Atomic-Reactor/Actinium/archive/master.zip"
+  "prompt": {
+    "delimiter": "",
+    "prefix": "[ARCLI] > ",
+    "prefixColor": "cyan"
   },
+  "commands": [
+    "[root]/commands",
+    "[cwd]/.core/.cli/commands",
+    "[cwd]/.cli/commands"
+  ],
   "reactium": {
-    "components": "/src/app/components",
-    "templates": "[dirname]/lib/reactium1.x/templates",
-    "install": "https://github.com/Atomic-Reactor/Reactium-Legacy/archive/master.zip",
-    "style": {
-      "entries": "/src/assets/style/style.scss",
-      "dest": "/src/assets/style/scss",
-      "ext": "scss"
-    },
-    "toolkit": {
-      "templates": "[dirname]/lib/reactium-kit/templates"
-    }
+    "repo": "https://github.com/Atomic-Reactor/Reactium/archive/master.zip",
+    "types": [
+      "functional",
+      "class",
+      "hook"
+    ]
   },
-  "reactium2": {
-    "components": "/src/app/components",
-    "templates": "[dirname]/lib/reactium2.x/templates",
-    "install": "https://github.com/Atomic-Reactor/Reactium/archive/master.zip",
-    "style": {
-      "entries": "/src/assets/style/style.scss",
-      "dest": "/src/assets/style/scss",
-      "ext": "scss"
-    }
+  "actinium": {
+    "repo": "https://github.com/Atomic-Reactor/Actinium-2.0/archive/master.zip"
   },
   "toolkit": {
-    "src": "/src",
-    "theme": "default",
-    "install": "https://github.com/Atomic-Reactor/Toolkit/archive/master.zip",
-    "infusions": [
-      {
-        "name": "bootstrap-4",
-        "url": "https://github.com/camdagr8/brkfst-pkg-bootstrap-4/archive/master.zip"
-      },
-      {
-        "name": "foundation-6",
-        "url": "https://github.com/camdagr8/brkfst-pkg-foundation-6/archive/master.zip"
-      }
+    "types": [
+      "atom",
+      "molecule",
+      "organism",
+      "template",
+      "link"
     ]
-  }
+  },
+  "updated": 1540382853918
 }

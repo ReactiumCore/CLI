@@ -1,58 +1,49 @@
 {
   "name": "atomic-reactor-cli",
-  "version": "1.2.34",
-  "description": "A command-line interface for the Atomic Reactor framework.",
-  "main": "index.js",
+  "version": "2.0.1",
+  "description": "A CLI for creating Atomic Reactor Awesomeness",
+  "main": "arcli.js",
   "scripts": {
-    "test": "node index.js"
+    "test": "run-s test:*",
+    "test:reactium-install": "mocha ./test/reactium-install.spec.js",
+    "test:config-set": "mocha ./test/config-set.spec.js",
+    "test:reactium-update": "mocha ./test/reactium-update.spec.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Atomic-Reactor/CLI.git"
-  },
-  "author": "Cam Tullos <cam@tullos.ninja> (http://cam.tullos.ninja)",
+  "author": "Cam Tullos <cam@tullos.ninja>",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/Atomic-Reactor/CLI/issues"
+  "engines": {
+    "node": ">=8.11.4",
+    "npm": ">=6.4.1"
   },
-  "homepage": "https://github.com/Atomic-Reactor/CLI#readme",
+  "bin": {
+    "arcli": "arcli.js"
+  },
   "dependencies": {
-    "Promise": "^1.0.5",
-    "abbrev": "^1.1.1",
-    "ajv": "^6.5.2",
-    "bcryptjs": "^2.4.3",
+    "action-sequence": "^1.0.3",
     "camelcase": "^5.0.0",
     "chalk": "^1.1.3",
     "cli-spinners": "^1.0.0",
     "commander": "^2.16.0",
-    "decompress": "^4.0.0",
+    "decamelize": "^2.0.0",
+    "decompress": "^4.2.0",
+    "folder-zipper": "^1.0.0",
     "fs-extra": "^2.1.2",
-    "git": "^0.1.5",
-    "gulp": "^4.0.0",
+    "fs-readdir-recursive": "^1.1.0",
+    "globby": "^8.0.1",
     "handlebars": "^4.0.11",
-    "humanize-string": "^1.0.2",
-    "js-beautify": "^1.6.11",
     "moment": "^2.18.1",
-    "mongodb": "^3.1.0",
-    "mongodb-backup": "^1.6.9",
-    "mongodb-restore": "^1.6.2",
     "object-path": "^0.11.4",
     "ora": "^1.2.0",
-    "pluralize": "^7.0.0",
-    "progress": "^2.0.0",
+    "prettier": "^1.14.3",
     "prompt": "^1.0.0",
-    "request": "^2.81.0",
-    "semver": "^5.5.0",
+    "request": "^2.88.0",
+    "semver": "^5.6.0",
     "slugify": "^1.1.0",
-    "trash": "^4.3.0",
-    "underscore": "^1.8.3",
-    "zip-folder": "^1.0.0"
+    "underscore": "^1.9.1"
   },
-  "engines": {
-    "node": ">=8.9.0",
-    "npm": ">=5.0.0"
-  },
-  "bin": {
-    "arcli": "./index.js"
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "mocha": "^5.2.0",
+    "npm-run-all": "^4.1.3"
   }
 }
