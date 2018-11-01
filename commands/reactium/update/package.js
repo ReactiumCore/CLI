@@ -110,7 +110,7 @@ module.exports = props => {
     // Write the new package.json file.
     let pkgCont = prettier.format(
         JSON.stringify(pkg),
-        {parser: 'json-stringify'}
+        { parser: 'json-stringify' }
     );
 
     return pkgCont;

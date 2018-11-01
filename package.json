@@ -1,6 +1,6 @@
 {
   "name": "atomic-reactor-cli",
-  "version": "2.0.6",
+  "version": "2.0.9",
   "description": "A CLI for creating Atomic Reactor Awesomeness",
   "main": "arcli.js",
   "scripts": {
@@ -15,9 +15,23 @@
     "node": ">=8.11.4",
     "npm": ">=6.4.1"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Atomic-Reactor/CLI.git"
+  },
   "bin": {
     "arcli": "arcli.js"
   },
+  "keywords": [
+    "actinium",
+    "react",
+    "reactium",
+    "redux",
+    "framework",
+    "javascript",
+    "ddd",
+    "cli"
+  ],
   "dependencies": {
     "action-sequence": "^1.0.3",
     "camelcase": "^5.0.0",

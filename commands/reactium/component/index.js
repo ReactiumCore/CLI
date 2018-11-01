@@ -264,7 +264,7 @@ const HELP = () => {
     console.log('');
     console.log('Example:');
     console.log('');
-    console.log('  arcli component --type class --redux --no-route');
+    console.log('  arcli component --type class --redux --route');
     console.log('  arcli component --type function');
     console.log('');
 };

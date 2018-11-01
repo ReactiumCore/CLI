@@ -1,5 +1,6 @@
 
 # Atomic Reactor CLI
+A CLI for creating Atomic Reactor Awesomeness!
 
 ```
 Usage: arcli <command> [options]
@@ -283,7 +284,7 @@ $ arcli element create
 
 $ arcli element update
 
-$arcli element remove
+$ arcli element remove
 ```
 _If no flags are specified, you will be prompted to input corresponding values._
 
