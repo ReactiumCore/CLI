@@ -202,7 +202,7 @@ Create a Redux Class component.
 _`--redux` must be specified for any of the redux includes to apply._
 
 ##### --redux-all
-Include all Redux related files. 
+Include all Redux related files.
 
 ##### --actions
 Include Redux `actions.js` file.
@@ -381,7 +381,7 @@ Include Parse.Cloud.beforeSave(COLLECTION) function.
 Include Parse.Cloud.afterDelete(COLLECTION) function.
 
 ##### --afterSave
-Include Parse.Cloud.afterSave(COLLECTIO) function.
+Include Parse.Cloud.afterSave(COLLECTION) function.
 
 
 > _See the [Parse Cloud Guide](https://docs.parseplatform.org/cloudcode/guide/) for more information on Cloud functions._
