@@ -149,6 +149,10 @@ const SCHEMA = ({ props }) => {
 
     return {
         properties: {
+            command: {
+                type: 'string',
+                description: chalk.white(`Command:`),
+            },
             destination: {
                 description: chalk.white('Destination:'),
                 message: 'Destination is a required parameter. Example: ~/mycommand',
@@ -157,6 +161,7 @@ const SCHEMA = ({ props }) => {
             overwrite: {
                 required: true,
                 pattern: /^y|n|Y|N/,
+                message: ' ',
                 description: chalk.white('Overwrite existing command?: (Y/N)'),
                 ask: () => {
                     try {
@@ -177,11 +182,6 @@ const SCHEMA = ({ props }) => {
                     return (String(val).toLowerCase() === 'y');
                 }
             },
-            command: {
-                type: 'string',
-                description: chalk.white(`Command:`),
-                message: 'Command is a required parameter',
-            },
         }
     }
 };
@@ -200,11 +200,16 @@ const ACTION = ({ opt, props }) => {
 
     const { cwd, prompt } = props;
 
-    const ovr = {};
     const schema = SCHEMA({ props });
-    Object.keys(schema.properties).forEach((key) => {
-        if (opt[key]) { ovr[key] = opt[key]; }
-    });
+
+    const ovr = Object.keys(schema.properties)
+    .reduce((obj, key) => {
+        let val = opt[key];
+        val = (typeof val === 'function') ? null : val;
+        if (val) { obj[key] = val; }
+        return obj;
+    }, {});
+
 
     prompt.override = ovr;
     prompt.start();

@@ -83,10 +83,10 @@ module.exports = (spinner) => {
 
         manifest: ({ action, params, props }) => {
             const { cwd } = props;
-            const { element, group, ID, menuOrder = null } = params.new;
+            const { element, group, ID, menuOrder } = params.new;
             const { ID:prevID } = params.prev;
 
-            const manifest = require('../manifest')(props);
+            const manifest = require('../../manifest')(props);
             const index    = path.normalize(`${cwd}/src/app/toolkit/index.js`);
 
             if (prevID !== ID) {
@@ -118,6 +118,14 @@ module.exports = (spinner) => {
             )).replace(
                 /\"require(.*?)\.default\"/gim,
                 'require$1.default'
+            )
+            .replace(
+                /\\"/g,
+                '"'
+            )
+            .replace(
+                /\\'/g,
+                "'"
             );
 
             content = prettier(

@@ -13,7 +13,7 @@ const decamelize = require('decamelize');
 const mod        = path.dirname(require.main.filename);
 const pad        = require(`${mod}/lib/pad`);
 const listItem   = require(`${mod}/lib/listItem`);
-const manifest   = require('./manifest');
+const manifest   = require('../manifest');
 
 const m = {};
 
@@ -87,15 +87,12 @@ const mapElement = ({ output, input, props }) => {
 };
 
 const mapOverrides = ({ schema, opt }) => {
-    const ovr = {};
-
-    Object.keys(schema.properties).forEach((key) => {
+    return Object.keys(schema.properties).reduce((obj, key) => {
         let val = opt[key];
-        if (typeof val === 'function') { val = null; }
-        if (val) { ovr[key] = val; }
-    });
-
-    return ovr;
+        val = (typeof val === 'function') ? null : val;
+        if (val) { obj[key] = val; }
+        return obj;
+    }, {});
 };
 
 const mapStyleSheet = ({ output, input, props }) => {
@@ -147,16 +144,13 @@ const overwritable = (prompt) => {
 const removable = (prompt) => op.get(prompt, 'override.remove', false);
 
 const groupBefore = ({ val, groups, defaultGroup = 'uncategorized' }) => {
-    if (!isNaN(val)) {
-        val = Number(String(val)) - 1;
-
-        if (val >= groups.length || val < 0) {
-            return defaultGroup;
-        } else {
+    try {
+        if (!isNaN(val)) {
+            val = Number(String(val)) - 1;
             return groups[val];
         }
-    } else {
-        return formatID(val);
+    } catch (err) {
+        return null;
     }
 }
 
@@ -716,7 +710,7 @@ const ACTION_CREATE = ({ opt, props }) => {
 
     const { cwd, prompt } = props;
 
-    const { id, menuOrder, overwrite, remove } = opt;
+    const { id, menuOrder, overwrite } = opt;
 
     const schema = SCHEMA_CREATE({ props });
 
@@ -1014,4 +1008,7 @@ module.exports = {
     CONFORM,
     COMMAND,
     NAME,
+    formatMenuOrder,
+    formatID,
+    mapOverrides,
 };

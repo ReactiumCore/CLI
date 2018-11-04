@@ -153,13 +153,15 @@ const ACTION = ({ opt, props }) => {
 
     const { cwd, prompt } = props;
 
-    const ovr = {};
     const schema = SCHEMA({ props });
-    Object.keys(schema.properties).forEach((key) => {
-        if (opt[key]) { ovr[key] = opt[key]; }
-    });
 
-    const { overwrite } = opt;
+    const ovr = Object.keys(schema.properties)
+    .reduce((obj, key) => {
+        let val = opt[key];
+        val = (typeof val === 'function') ? null : val;
+        if (val) { obj[key] = val; }
+        return obj;
+    }, {});
 
 
     prompt.override = ovr;

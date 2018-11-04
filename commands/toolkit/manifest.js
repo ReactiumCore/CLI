@@ -17,15 +17,26 @@ module.exports = (props) => {
 
     try {
         const file = scan[0];
-        const filecontent = String(fs.readFileSync(file)).replace(
+        const filecontent = String(fs.readFileSync(file))
+        .replace(
             /require(.*?)\.default/gim,
             '`require$1.default`'
-        ).replace(
+        )
+        .replace(
             /require(.*?)\n\s+\.default/gi,
             '`require$1.default`'
+        )
+        .replace(
+            /\\"/g,
+            '"'
+        )
+        .replace(
+            /\\'/g,
+            "'"
         );
 
         const tmp = path.normalize(`${cwd}/src/app/toolkit/.tmp/toolkit.js`);
+
         fs.ensureFileSync(tmp);
         fs.writeFileSync(tmp, filecontent);
 

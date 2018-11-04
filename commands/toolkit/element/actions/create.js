@@ -107,9 +107,9 @@ module.exports = (spinner) => {
 
         manifest: ({ action, params, props }) => {
             const { cwd } = props;
-            const { element, group, ID, menuOrder = null } = params;
+            const { element, group, ID, menuOrder } = params;
 
-            const manifest = require('../manifest')(props);
+            const manifest = require('../../manifest')(props);
             const index    = path.normalize(`${cwd}/src/app/toolkit/index.js`);
 
             if (!isNaN(menuOrder)) {
@@ -134,9 +134,18 @@ module.exports = (spinner) => {
             let content = String(prettier(
                 JSON.stringify(manifest),
                 { parser: 'json-stringify' }
-            )).replace(
+            ))
+            .replace(
                 /\"require(.*?)\.default\"/gim,
                 'require$1.default'
+            )
+            .replace(
+                /\\"/g,
+                '"'
+            )
+            .replace(
+                /\\'/g,
+                "'"
             );
 
             content = prettier(
