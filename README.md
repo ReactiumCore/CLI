@@ -74,8 +74,7 @@ $ arcli config --key 'toolkit.types' --value 'atom molecule organism template li
     "repo": "https://github.com/Atomic-Reactor/Reactium/archive/master.zip",
     "types": [
       "functional",
-      "class",
-      "hook"
+      "class"
     ]
   },
   "actinium": {
