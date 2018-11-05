@@ -38,6 +38,7 @@ Set or change configuration options.
 ```
 $ arcli config --key 'reactium.repo' --value 'https://github.com/Atomic-Reactor/Reactium/archive/develop.zip'
 ```
+
 _The above would set the Reactium install package to the `develop` branch._
 
 
@@ -100,6 +101,7 @@ Create custom ARCLI commands.
 ```
 $ arcli commander
 ```
+
 > _You will be prompted for a destination and command name_
 
 
@@ -110,23 +112,29 @@ $ arcli commander
 Path where the command is saved.
 
 If you're creating a project specific command, use the shortcut: `cwd/` when specifying the destination.
+
 > _This is the recommended location for custom commands._
 ```
 $ arcli commander --destination 'cwd/my/function'
 ```
+
 _The boilerplate code for a new ARCLI function will be created in the `~/.cli/commands/my/function` directory._
 
 
 If you're creating an application specific command, use the shortcut `app/` when specifying the destination.
+
 > Beware: _Application specific commands are only suggested if you're contributing to the application and want those commands pushed out to future versions. For instance if you want to create a new Reactium or Actinium core command and plan on submitting a pull request for your new feature. Otherwise, they will be overwritten when you update your version of Reactium or Actinium._
 ```
 $ arcli commander -d 'app/my/function'
 ```
+
 _The boilerplate code for a new ARCLI function will be created in the `~/.core/.cli/commands/my/function` directory._
 
 
 If you're creating a new ARCLI command, use the shortcut `root/` when specifying the destination.
+
 > Beware: _Root commands are only suggested if you're contributing to ARCLI and plan on submitting a pull request for your new feature. Otherwise, they will be overwritten whenever you update your version of ARCLI._
+
 ```
 $ arcli commander -d 'root/my/function'
 ```
@@ -139,18 +147,22 @@ $ arcli commander --command fubar --destination 'cwd/fubar'
 ```
 
 You can create a command that accepts parameters as well:
+
 ```
 $ arcli commander --command 'fubar test'
 ```
+
 _Creates a command that would be run by entering the following: `arcli fubar test`_
 
 
 ## Reactium Commands
 
 ### `<reactium> <install>`
+
 Downloads and installs Reactium into the current working directory. If the directory is not empty, you will be prompted to overwrite it or cancel the operation.
 
 #### Usage
+
 ```
 $ arcli reactium install
 ```
@@ -187,6 +199,7 @@ The component name. Used when importing the component.
 ##### -d, --destination
 Path of the component's parent directory.
 If you're creating a component named `Fubar` and specify `components/` as the `--destination`, the component will be saved to:
+
 ```
 ~/project/src/app/components/Fubar
 ```
@@ -223,12 +236,11 @@ Include `services.js` file for creating adhoc service calls.
 Include `_style.scss` file and import into a parent stylesheet.
 
 
-
-
 ### `<rename>`
 Rename a Reactium component.
 
 #### Usage
+
 ```
 $ arcli rename --from 'FooBar' --to 'Fubar' --replace
 ```
@@ -288,6 +300,7 @@ $ arcli element update
 
 $ arcli element remove
 ```
+
 _If no flags are specified, you will be prompted to input corresponding values._
 
 #### Flags:
@@ -323,7 +336,7 @@ Show the DNA info for the element.
 
 
 ### `<group> <create|update|remove>`
-Manage toolkit groups. Use this command to move things around in the toolkit manifest. 
+Manage toolkit groups. Use this command to move things around in the toolkit manifest.
 
 #### Usage
 
@@ -378,8 +391,9 @@ $ arcli cloud
 
 ##### --destination
 Parent directory of the Cloud Function.
-_Actinium looks in the `~/src/app/cloud` directory for .js files and loads them as cloud functions.
-_You can use the `cloud/` shortcut when specifying the destination. Example: `$ arcli element --destination 'cloud/my/function` will put the cloud function in the `~/src/app/cloud/my/function` directory._
+
+> _Actinium looks in the `~/src/app/cloud` directory for .js files and loads them as cloud functions._
+> _You can use the `cloud/` shortcut when specifying the destination. Example: `$ arcli element --destination 'cloud/my/function` will put the cloud function in the `~/src/app/cloud/my/function` directory._
 
 ##### --collection
 The database collection for before/after hooks.
@@ -394,6 +408,7 @@ Parse.Cloud.define() definitions.
 ```
 $ arcli element --definitions 'userSave userDelete'
 ```
+
 > _Note: you can specify multiple definitions by putting a space between values._
 
 ##### --beforeFind
@@ -415,10 +430,5 @@ Include Parse.Cloud.afterSave(COLLECTION) function.
 > _See the [Parse Cloud Guide](https://docs.parseplatform.org/cloudcode/guide/) for more information on Cloud functions._
 
 
-
-
-
-
-
-_Powered by_
+_Masterfully Powered By:_
 ![](https://image.ibb.co/ee2WaG/atomic_reactor.png)
