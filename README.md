@@ -18,12 +18,14 @@ Commands:
 
   component [options]           Reactium: Create or replace a component.
   reactium <install> [options]  Reactium: Download and install.
+  reactium <update> [options]   Reactium: Update core.
   rename [options]              Reactium: Rename a component.
   style [options]               Reactium: Create a style sheet.
-  reactium <update> [options]   Reactium: Update core.
 
-  element [options] [action]    Toolkit:  Manage toolkit elements.
+  element [action] [options]    Toolkit:  Manage toolkit elements.
                                           Available actions: create | updated | remove.
+  group [action] [options]      Toolkit:  Manage toolkit groups.
+                                          Available actions: create | updated | remove.  
 ```
 
 
@@ -318,6 +320,31 @@ Show the Code View for the element.
 
 ##### --dna
 Show the DNA info for the element.
+
+
+### `<group> <create|update|remove>`
+Manage toolkit groups. Use this command to move things around in the toolkit manifest. 
+
+#### Usage
+
+```
+$ arcli group create
+```
+
+#### Flags:
+--id, --menu-order, --label, --overwrite
+
+##### --id
+The group id.
+
+##### --menu-order
+The toolkit manifest index.
+
+##### --label
+The menu item text label.
+
+##### --overwrite
+Overwrite the group object,
 
 
 ## Actinium Commands
