@@ -304,7 +304,7 @@ const SCHEMA = ({ props }) => {
             },
             destination: {
                 description: chalk.white('Destination:'),
-                default: `~${defaultDirectory}`,
+                default: defaultDirectory,
                 required: true,
                 message: ' Input component destination',
             },
