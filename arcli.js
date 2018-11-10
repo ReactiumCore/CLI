@@ -18,6 +18,21 @@ const cwd         = path.resolve(process.cwd());
 // Build the props object
 const props     = { cwd, root: __dirname, prompt, config };
 
+// Get application config
+const appConfigFile = path.normalize(`${cwd}/.core/.cli/config.json`);
+if (fs.existsSync(appConfigFile)) {
+    const appConfig = require(appConfigFile);
+    props.config = Object.assign(props.config, appConfig);
+}
+
+// Get project config
+const projConfigFile = path.normalize(`${cwd}/.cli/config.json`);
+if (fs.existsSync(projConfigFile)) {
+    const projConfig = require(projConfigFile);
+    props.config = Object.assign(props.config, projConfig);
+}
+
+
 // Configure prompt
 prompt.message   = chalk[config.prompt.prefixColor](config.prompt.prefix);
 prompt.delimiter = config.prompt.delimiter;
