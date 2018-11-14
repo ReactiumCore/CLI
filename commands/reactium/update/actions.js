@@ -5,6 +5,7 @@ const op         = require('object-path');
 const request    = require('request');
 const decompress = require('decompress');
 const zip        = require('folder-zipper');
+const pkg        = require('./package');
 
 module.exports = (spinner) => {
     const message = (text) => {
@@ -58,14 +59,19 @@ module.exports = (spinner) => {
             const coreDir       = path.normalize(`${cwd}/.core`);
             const packageFile   = path.normalize(`${cwd}/package.json`);
             const backupDir     = path.normalize(`${cwd}/.BACKUP/update`);
+            const gulpFile      = path.normalize(`${cwd}/gulpfile.js`);
             const coreBackup    = path.normalize(`${backupDir}/${now}.core.zip`);
             const packageBackup = path.normalize(`${backupDir}/${now}.package.json`);
+            const gulpBackup    = path.normalize(`${backupDir}/${now}.gulpfile.js`);
 
             // Create the backup directory
             fs.ensureDirSync(backupDir);
 
             // Backup the package.json file
             fs.copySync(packageFile, packageBackup);
+
+            // Backup the gulpfile.js
+            fs.copySync(gulpFile, gulpBackup);
 
             // Backup the ~/.core directory
             return zip(coreDir, coreBackup).then(() => {
@@ -95,9 +101,38 @@ module.exports = (spinner) => {
             });
         },
 
+        babel: ({ params, props, action }) => {
+            const { cwd } = props;
+
+            // babel.config.js file
+            const babelFilePath = path.normalize(`${cwd}/babel.config.js`);
+
+            if (!fs.existsSync(babelFilePath)) {
+                const templateFilePath = path.normalize(`${__dirname}/template/babel.config.js`);
+                const template = fs.readFileSync(templateFilePath);
+
+                fs.writeFileSync(babelFilePath, template);
+            }
+
+            return Promise.resolve({ action, status: 200 });
+        },
+
+        gulpfile: ({ params, props, action }) => {
+            const { cwd } = props;
+
+            // gulpfile.js file
+            const gulpFilePath = path.normalize(`${cwd}/gulpfile.js`);
+            const templateFilePath = path.normalize(`${__dirname}/template/gulpfile.js`);
+            const template = fs.readFileSync(templateFilePath);
+
+            fs.writeFileSync(gulpFilePath, template);
+
+            return Promise.resolve({ action, status: 200 });
+        },
+
         package: ({ params, props, action }) => {
             const { cwd } = props;
-            const { package } = params;
+            const package = pkg(props, path.normalize(`${cwd}/tmp/update/.core/reactium-config.js`));
 
             message('updating package.json...');
 

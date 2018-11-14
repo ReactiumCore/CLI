@@ -2,11 +2,12 @@ const path     = require('path');
 const prettier = require('prettier');
 const op       = require('object-path');
 
-module.exports = props => {
+module.exports = (props, reactiumConfigFile) => {
     const { cwd } = props;
 
+    reactiumConfigFile       = reactiumConfigFile || path.normalize(`${cwd}/.core/reactium-config`);
+
     const packageFile        = path.normalize(`${cwd}/package.json`);
-    const reactiumConfigFile = path.normalize(`${cwd}/.core/reactium-config`);
 
     let pkg, reactiumConfig;
 
@@ -16,6 +17,9 @@ module.exports = props => {
     } catch (err) {
         reactiumConfig = {};
     }
+
+    // Get the current .core version
+    const { version } = reactiumConfig;
 
     // Get the cwd package.json
     try {
@@ -106,6 +110,10 @@ module.exports = props => {
 
     // Update dependencies object
     pkg['dependencies'] = dependencies;
+
+    // Remove babel config
+    delete pkg.babel;
+
 
     // Write the new package.json file.
     let pkgCont = prettier.format(

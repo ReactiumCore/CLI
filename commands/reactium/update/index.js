@@ -169,27 +169,11 @@ const ACTION = ({ action, opt, props }) => {
             return;
         }
 
-        message(`Reactium ${chalk.cyan('~/.core')} will be updated in the current directory: ${chalk.cyan(cwd)} with the following changes to the ${chalk.cyan('package.json')}:`);
-        const pkg = pkgCont(props);
-        console.log(pkg);
+        console.log('');
 
-        CONFIRM({ props, params }).then(confirmed => {
-            if (confirmed) {
-                params['confirm'] = confirmed;
-                params['package'] = pkg;
-
-                console.log('');
-
-                generator({ params, props }).then(success => {
-                    message(`Run: ${chalk.cyan('$ npm install')} before launching the development environment.`);
-                });
-            } else {
-                prompt.stop();
-                message(CANCELED);
-            }
-        }).catch(() => {
-            prompt.stop();
-            message(CANCELED);
+        params.confirm = true;
+        generator({ params, props }).then(success => {
+            message(`Run: ${chalk.cyan('$ npm install')} before launching the development environment.`);
         });
     });
 };
