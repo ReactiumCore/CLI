@@ -14,7 +14,22 @@ module.exports = (spinner) => {
     };
 
     return {
-        empty: ({ action, params }) => {
+        empty: ({ action, params, props }) => {
+            const { cwd } = props;
+            const { toolkit, demo } = params;
+
+            const toolkitPaths = path.normalize(`${cwd}/src/app/toolkit`);
+
+            const demoPaths = [
+                path.normalize(`${cwd}/src/app/components/Demo`),
+                path.normalize(`${cwd}/src/app/components/common-ui/form`),
+                path.normalize(`${cwd}/src/app/components/common-ui/Icon`),
+            ];
+
+            if (demo) {
+                demoPaths.forEach(p => fs.removeSync(p));
+            }
+
 
             message(`Emptying ${chalk.cyan('Reactium')}...`);
 
