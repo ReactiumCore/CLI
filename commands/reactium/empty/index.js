@@ -4,11 +4,10 @@
  * -----------------------------------------------------------------------------
  */
 
-const fs                 = require('fs-extra');
-const path               = require('path');
 const chalk              = require('chalk');
 const generator          = require('./generator');
-const op                 = require('object-path');
+const prettier           = require('prettier');
+const path               = require('path');
 const mod                = path.dirname(require.main.filename);
 const { error, message } = require(`${mod}/lib/messenger`);
 
@@ -16,11 +15,11 @@ const { error, message } = require(`${mod}/lib/messenger`);
 /**
  * NAME String
  * @description Constant defined as the command name. Value passed to the commander.command() function.
- * @example $ arcli re:install --overwrite
+ * @example $ arcli reactium empty
  * @see https://www.npmjs.com/package/commander#command-specific-options
  * @since 2.0.0
  */
-const NAME = 'reactium <install>';
+const NAME = 'reactium:empty';
 
 
 /**
@@ -30,7 +29,7 @@ const NAME = 'reactium <install>';
  * @see https://www.npmjs.com/package/commander#automated---help
  * @since 2.0.0
  */
-const DESC = 'Reactium: Download and install.';
+const DESC = 'Remove Reactium demo pages, components, and toolkit.';
 
 
 /**
@@ -38,29 +37,7 @@ const DESC = 'Reactium: Download and install.';
  * @description Message sent when the command is canceled
  * @since 2.0.0
  */
-const CANCELED = 'Reactium install canceled!';
-
-
-/**
- * conform(input:Object) Function
- * @description Reduces the input object.
- * @param input Object The key value pairs to reduce.
- * @since 2.0.0
- */
-const CONFORM = (input) => {
-
-    let output = {};
-
-    Object.entries(input).forEach(([key, val]) => {
-        switch (key) {
-            default:
-                output[key] = val;
-                break;
-        }
-    });
-
-    return output;
-};
+const CANCELED = 'Reactium empty canceled!';
 
 
 /**
@@ -79,20 +56,51 @@ const CONFIRM = ({ props, params }) => {
                     type: 'string',
                     required: true,
                     pattern: /^y|n|Y|N/,
+                    message: ` `,
                     before: (val) => {
                         return (String(val).toLowerCase() === 'y');
                     }
                 }
             }
-        }, (err, { confirmed }) => {
-            if (err || !confirmed) {
-                reject();
+        }, (error, input) => {
+            let confirmed;
+
+            try {
+                confirmed = input.confirmed;
+            } catch (err) {
+                confirmed = false;
+            }
+
+            if (error || confirmed === false) {
+                reject(error);
             } else {
-                params['confirmed'] = confirmed;
-                resolve(params);
+                resolve(confirmed);
             }
         });
     });
+};
+
+
+/**
+ * conform(input:Object) Function
+ * @description Reduces the input object.
+ * @param input Object The key value pairs to reduce.
+ * @since 2.0.0
+ */
+const CONFORM = ({ input, props }) => {
+    const { cwd } = props;
+
+    let output = {};
+
+    Object.entries(input).forEach(([key, val]) => {
+        switch(key) {
+            default:
+                output[key] = val;
+                break;
+        }
+    });
+
+    return output;
 };
 
 
@@ -104,26 +112,33 @@ const CONFIRM = ({ props, params }) => {
  */
 const HELP = () => {
     console.log('');
-    console.log('Beware:');
+    console.log('Usage:');
     console.log('');
-    console.log('  Installation will overwrite existing files');
+    console.log(' Keep the default toolkit:');
+    console.log('  $ arcli reactium empty --no-toolkit');
+    console.log('');
+    console.log(' Keep the demo site:');
+    console.log('  $ arcli reactium empty --no-demo');
     console.log('');
 };
 
 
 /**
- * SCHEMA Object
+ * SCHEMA Function
  * @description used to describe the input for the prompt function.
  * @see https://www.npmjs.com/package/prompt
  * @since 2.0.0
  */
-const SCHEMA = {
-    properties: {
-        overwrite: {
-            description: `${chalk.white('The current directory is not empty. Overwrite?')} ${chalk.cyan('(Y/N):')}`,
-            before: (val) => {
-                return (String(val).toLowerCase() === 'y');
-            }
+const SCHEMA = ({ props }) => {
+    const { cwd, prompt } = props;
+
+    return {
+        properties: {
+            // sample: {
+            //     description: chalk.white('Sample:'),
+            //     required: true,
+            //     default: true,
+            // },
         }
     }
 };
@@ -137,30 +152,24 @@ const SCHEMA = {
  * @param props Object The CLI props passed from the calling class `orcli.js`.
  * @since 2.0.0
  */
-const ACTION = ({ action, opt, props }) => {
-    if (action !== 'install') { return; }
-
+const ACTION = ({ opt, props }) => {
     console.log('');
 
     const { cwd, prompt } = props;
 
-    // Check the cwd and see if it's empty
-    const isEmpty = fs.readdirSync(cwd).length < 1;
+    const schema = SCHEMA({ props });
 
-    if (isEmpty) {
-        opt.overwrite = true;
-    }
+    const ovr = ['demo', 'toolkit'].reduce((obj, key) => {
+        let val = opt[key];
+        val = (typeof val === 'function') ? null : val;
+        if (val) { obj[key] = val; }
+        return obj;
+    }, {});
 
-    const ovr = {};
-    Object.keys(SCHEMA.properties).forEach((key) => {
-        if (opt[key]) { ovr[key] = opt[key]; }
-    });
-
-    const empty = op.get(opt, 'empty');
 
     prompt.override = ovr;
     prompt.start();
-    prompt.get(SCHEMA, (err, input) => {
+    prompt.get(schema, (err, input) => {
         // Keep this conditional as the first line in this function.
         // Why? because you will get a js error if you try to set or use anything related to the input object.
         if (err) {
@@ -169,30 +178,14 @@ const ACTION = ({ action, opt, props }) => {
             return;
         }
 
-        const params = { ...CONFORM(input), empty };
-        const { overwrite } = params;
+        const params = { ...CONFORM({ input, props }), ...ovr };
 
-        // Exit if overwrite or confirm !== true
-        if (!overwrite) {
-            prompt.stop();
-            message(CANCELED);
-            return;
-        }
-
-        message(`Reactium will be installed in the current directory: ${chalk.cyan(cwd)}`);
-
-        CONFIRM({ props, params }).then(params => {
-            const { confirmed } = params;
-            if (confirmed) {
+        CONFIRM({ props, params }).then(() => {
+            console.log('');
+            generator({ params, props }).then(success => {
                 console.log('');
-                generator({ params, props }).then(success => {
-                    message(`Run: ${chalk.cyan('$ npm install && npm run local')} to launch the development environment`);
-                });
-            } else {
-                prompt.stop();
-                message(CANCELED);
-            }
-        }).catch(() => {
+            });
+        }).catch(err => {
             prompt.stop();
             message(CANCELED);
         });
@@ -204,14 +197,12 @@ const ACTION = ({ action, opt, props }) => {
  * COMMAND Function
  * @description Function that executes program.command()
  */
-const COMMAND = ({ program, props }) => {
-    return program.command(NAME)
-        .description(DESC)
-        .action((action, opt) => ACTION({ action, opt, props }))
-        .option('-o, --overwrite [overwrite]', 'Overwrite the current directory.')
-        .option('-e, --empty [empty]', 'Install/Update without demo site and components.')
-        .on('--help', HELP);
-};
+const COMMAND = ({ program, props }) => program.command(NAME)
+    .description(DESC)
+    .action(opt => ACTION({ opt, props }))
+    .option('-D, --no-demo [demo]', 'Keep the demo site and components.')
+    .option('-T, --no-toolkit [toolkit]', 'Keep the default toolkit elements.')
+    .on('--help', HELP);
 
 
 /**
