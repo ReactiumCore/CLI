@@ -17,7 +17,7 @@ Commands:
   actinium [options] <install>  Actinium: Download and install.
 
   component [options]           Reactium: Create or replace a component.
-  empty                         Reactium: Removes the default demo, styles, toolkit elements, and assets. 
+  empty                         Reactium: Removes the default demo, styles, toolkit elements, and assets.
   reactium <install> [options]  Reactium: Download and install.
   reactium <update> [options]   Reactium: Update core.
   rename [options]              Reactium: Rename a component.
@@ -172,6 +172,9 @@ $ arcli reactium install
 ##### -o, --overwrite
 Overwrite the current working directory if it's not empty.
 
+##### -e, --empty
+Install Reactium without the default demo pages, components, and toolkit.
+
 
 ### `<reactium> <update>`
 Downloads and installs Reactium `.core` and updates to the `package.json` into the current working directory.
@@ -181,6 +184,32 @@ The current version of your project will be backed up to the `.BACKUP` directory
 ```
 $ arcli reactium update
 ```
+
+### `<empty>`
+Removes the default demo, styles, toolkit elements, and assets.
+
+#### Usage
+
+```
+$ arcli empty --no-demo
+```
+
+##### -D, --no-demo
+Keep the default demo site and components.
+
+##### -T, --no-toolkit
+Keep the default toolkit elements.
+
+##### -S, --no-style
+Do not empty the ~/src/assets/style/style.scss file.
+
+##### -F, --no-font
+Do not empty the ~/src/assets/fonts directory.
+
+##### -I, --no-images
+Do not empty the ~/src/assets/images directory.
+
+
 
 ### `<component>`
 Create or replace a Reactium component.
