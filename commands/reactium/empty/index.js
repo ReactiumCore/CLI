@@ -19,7 +19,7 @@ const { error, message } = require(`${mod}/lib/messenger`);
  * @see https://www.npmjs.com/package/commander#command-specific-options
  * @since 2.0.0
  */
-const NAME = 'reactium:empty';
+const NAME = 'empty';
 
 
 /**
