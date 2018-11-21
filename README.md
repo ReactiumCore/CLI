@@ -17,6 +17,7 @@ Commands:
   actinium [options] <install>  Actinium: Download and install.
 
   component [options]           Reactium: Create or replace a component.
+  empty                         Reactium: Removes the default demo, styles, toolkit elements, and assets. 
   reactium <install> [options]  Reactium: Download and install.
   reactium <update> [options]   Reactium: Update core.
   rename [options]              Reactium: Rename a component.
