@@ -14,29 +14,86 @@ module.exports = (spinner) => {
     };
 
     return {
-        empty: ({ action, params, props }) => {
-            const { cwd } = props;
-            const { toolkit, demo } = params;
+        style: ({ action, params, props }) => {
+            const { style } = params;
 
-            const toolkitPaths = path.normalize(`${cwd}/src/app/toolkit`);
+            if (style) {
+                const { cwd } = props;
 
-            const demoPaths = [
-                path.normalize(`${cwd}/src/app/components/Demo`),
-                path.normalize(`${cwd}/src/app/components/common-ui/form`),
-                path.normalize(`${cwd}/src/app/components/common-ui/Icon`),
-            ];
+                const styleFile = path.normalize(`${cwd}/src/assets/style/style.scss`);
 
-            if (demo) {
-                demoPaths.forEach(p => fs.removeSync(p));
+                fs.writeFileSync(styleFile, '\n// Styles\n\n');
             }
 
+            return Promise.resolve({ action, status: 200 });
+        },
+        manifest: ({ action, params, props }) => {
+            const { toolkit } = params;
 
-            message(`Emptying ${chalk.cyan('Reactium')}...`);
+            if (toolkit) {
+                message(`Updating ${chalk.cyan('toolkit manifest')}...`);
 
-            return new Promise((resolve, reject) => {
+                const { cwd } = props;
 
-                resolve({ action, status: 200 });
-            });
+                const manifestFile = path.normalize(`${cwd}/src/app/toolkit/index.js`);
+
+                let cont = fs.readFileSync(manifestFile);
+                    cont = String(cont).replace(/menu: {((.|\n|\r)*)},/, 'menu: {},');
+
+                fs.writeFileSync(manifestFile, cont);
+            }
+
+            return Promise.resolve({ action, status: 200 });
+        },
+        empty: ({ action, params, props }) => {
+
+            const { cwd } = props;
+            const { demo, font, images, toolkit } = params;
+
+            if (font) {
+                message(`Removing ${chalk.cyan('font assets')}...`);
+
+                const fontExcludes = [];
+                const fontPath = path.normalize(`${cwd}/src/assets/fonts`);
+
+                fs.readdirSync(fontPath)
+                .filter(file => Boolean(!fontExcludes.includes(file)))
+                .forEach(file => fs.removeSync(path.normalize(`${fontPath}/${file}`)));
+            }
+
+            if (images) {
+                message(`Removing ${chalk.cyan('image assets')}...`);
+
+                const imageExcludes = ['atomic-reactor-logo.svg'];
+                const imagePath = path.normalize(`${cwd}/src/assets/images`);
+
+                fs.readdirSync(imagePath)
+                .filter(file => Boolean(!imageExcludes.includes(file)))
+                .forEach(file => fs.removeSync(path.normalize(`${imagePath}/${file}`)));
+            }
+
+            if (demo) {
+                message(`Removing ${chalk.cyan('demo components')}...`);
+
+                const demoPaths = [
+                    path.normalize(`${cwd}/src/app/components/Demo`),
+                    path.normalize(`${cwd}/src/app/components/common-ui/form`),
+                    path.normalize(`${cwd}/src/app/components/common-ui/Icon`),
+                ].forEach(p => fs.removeSync(p));
+            }
+
+            if (toolkit) {
+                message(`Removing ${chalk.cyan('toolkit elements')}...`);
+
+                const toolkitPath = path.normalize(`${cwd}/src/app/toolkit`);
+                const toolkitExclude = ['index.js', 'overview'];
+
+                fs.readdirSync(toolkitPath)
+                .filter(file => Boolean(!toolkitExclude.includes(file)))
+                .forEach(file => fs.removeSync(path.normalize(`${toolkitPath}/${file}`)));
+            }
+
+            return Promise.resolve({ action, status: 200 });
         },
     };
 };

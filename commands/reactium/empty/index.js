@@ -52,7 +52,7 @@ const CONFIRM = ({ props, params }) => {
         prompt.get({
             properties: {
                 confirmed: {
-                    description: `${chalk.white('Proceed?')} ${chalk.cyan('(Y/N):')}`,
+                    description: `${chalk.white('This is a destructive operation. Are you sure?')} ${chalk.cyan('(Y/N):')}`,
                     type: 'string',
                     required: true,
                     pattern: /^y|n|Y|N/,
@@ -159,13 +159,18 @@ const ACTION = ({ opt, props }) => {
 
     const schema = SCHEMA({ props });
 
-    const ovr = ['demo', 'toolkit'].reduce((obj, key) => {
+    const ovr = [
+        'demo',
+        'font',
+        'images',
+        'style',
+        'toolkit'
+    ].reduce((obj, key) => {
         let val = opt[key];
         val = (typeof val === 'function') ? null : val;
         if (val) { obj[key] = val; }
         return obj;
     }, {});
-
 
     prompt.override = ovr;
     prompt.start();
@@ -202,6 +207,9 @@ const COMMAND = ({ program, props }) => program.command(NAME)
     .action(opt => ACTION({ opt, props }))
     .option('-D, --no-demo [demo]', 'Keep the demo site and components.')
     .option('-T, --no-toolkit [toolkit]', 'Keep the default toolkit elements.')
+    .option('-S, --no-style [style]', 'Do not empty the ~/src/assets/style/style.scss file.')
+    .option('-F, --no-font [font]', 'Do not empty the ~/src/assets/fonts directory.')
+    .option('-I, --no-images [images]', 'Do not empty the ~/src/assets/images directory.')
     .on('--help', HELP);
 
 

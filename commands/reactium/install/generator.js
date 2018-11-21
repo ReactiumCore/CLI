@@ -8,10 +8,25 @@ const spinner = ora({
     color   : 'cyan'
 });
 
-const actions = require('./actions')(spinner);
+
 
 module.exports = ({ params, props }) => {
     spinner.start('Reactium installing...');
+
+    const { empty } = params;
+
+    let actions = require('./actions')(spinner);
+
+    if (empty) {
+        params['demo'] = true;
+        params['font'] = true;
+        params['images'] = true;
+        params['style'] = true;
+        params['toolkit'] = true;
+
+        const emptyActions = require('../empty/actions')(spinner);
+        actions = { ...actions, ...emptyActions };
+    }
 
     return ActionSequence({
         actions,
