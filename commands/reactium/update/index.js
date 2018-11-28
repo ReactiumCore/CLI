@@ -9,6 +9,7 @@ const path               = require('path');
 const chalk              = require('chalk');
 const generator          = require('./generator');
 const pkgCont            = require('./package');
+const op                 = require('object-path');
 const mod                = path.dirname(require.main.filename);
 const { error, message } = require(`${mod}/lib/messenger`);
 
@@ -88,7 +89,8 @@ const CONFIRM = ({ props, params }) => {
             if (err || !confirmed) {
                 reject();
             } else {
-                resolve(confirmed);
+                params['confirmed'] = true;
+                resolve(params);
             }
         });
     });
@@ -160,6 +162,11 @@ const ACTION = ({ action, opt, props }) => {
         }
 
         const params = CONFORM(input);
+
+        if (op.get(opt, 'core') === true) {
+            params['core'] = true;
+        }
+
         const { overwrite } = params;
 
         // Exit if overwrite or confirm !== true
@@ -171,7 +178,6 @@ const ACTION = ({ action, opt, props }) => {
 
         console.log('');
 
-        params.confirm = true;
         generator({ params, props }).then(success => {
             message(`Run: ${chalk.cyan('$ npm install')} before launching the development environment.`);
         });
@@ -188,6 +194,7 @@ const COMMAND = ({ program, props }) => program.command(NAME)
     .action((action, opt) => ACTION({ action, opt, props }))
     .option('-o, --overwrite [overwrite]', 'Overwrite the current directory.')
     .option('-e, --empty [empty]', 'Install/Update without demo site and components.')
+    .option('-c, --core [core]', 'Update the Reactium core only.')
     .on('--help', HELP);
 
 

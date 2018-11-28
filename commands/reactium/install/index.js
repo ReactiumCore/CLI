@@ -210,6 +210,7 @@ const COMMAND = ({ program, props }) => {
         .action((action, opt) => ACTION({ action, opt, props }))
         .option('-o, --overwrite [overwrite]', 'Overwrite the current directory.')
         .option('-e, --empty [empty]', 'Install/Update without demo site and components.')
+        .option('-c, --core [core]', 'Update the Reactium core only.')
         .on('--help', HELP);
 };
 
