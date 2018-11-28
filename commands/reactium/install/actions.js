@@ -43,6 +43,18 @@ module.exports = (spinner) => {
             });
         },
 
+        prettier: ({ params, props, action }) => {
+            message('updating prettier ignore...');
+
+            const { cwd } = props;
+            const prettierFile = path.normalize(`${cwd}/.prettierignore`);
+            const  cont = fs.readFileSync(prettierFile);
+
+            fs.writeFileSync(prettierFile, `.core\n${cont}`);
+
+            return Promise.resolve({ action, status: 200 });
+        },
+
         cleanup: ({ params, props, action }) => {
             const { config, cwd } = props;
 
