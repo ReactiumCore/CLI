@@ -186,7 +186,7 @@ const ACTION = ({ opt, props }) => {
 
     const { cwd, prompt } = props;
     const schema = SCHEMA({ props });
-    const ovr = FLAGS_TO_PARAMS({ opts });
+    const ovr = FLAGS_TO_PARAMS({ opt });
 
     prompt.override = ovr;
     prompt.start();
