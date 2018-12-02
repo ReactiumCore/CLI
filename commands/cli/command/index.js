@@ -127,13 +127,32 @@ const CONFORM = ({ input, props }) => {
  * @see https://www.npmjs.com/package/commander#automated---help
  * @since 2.0.0
  */
-const HELP = () => {
-    console.log('');
-    console.log('Example:');
-    console.log('');
-    console.log(`  arcli commander --command 'fubar' --destination '~/fubar'`);
-    console.log('');
-};
+const HELP = () => console.log(`
+Shortcuts:
+  When creating a command, there are 3 --destination shortcuts available:
+  ${chalk.cyan('cwd/')} | ${chalk.cyan('app/')} | ${chalk.cyan('root/')}
+
+    ${chalk.cyan('cwd/')}
+      Creates a command in the ${chalk.cyan('~/project-root/.cli')} directory:
+        $ arcli commander --command 'fubar' --destination '${chalk.cyan('cwd/')}fubar'
+
+        ${chalk.cyan('* Note:')} commands created in the project-root are specific to the current project.
+
+    ${chalk.cyan('app/')}
+      Creates a command in the ${chalk.cyan('~/project-root/.core/.cli')} directory:
+        $ arcli commander --command 'fubar' --destination '${chalk.cyan('app/')}fubar'
+
+        ${chalk.cyan('* Note:')} commands created in the app directory are specific to the current project and version of the framework Reactium or Actinium.
+          Should you update the framework core, your commands will be overwritten.
+          It is recommended to only place commands in the app directory if you are contributing to Reactium or Actinium core.
+
+    ${chalk.cyan('root/')}
+      Creates a command in the ${chalk.cyan('~/home/.arcli/commands')} directory:
+        $ arcli commander --command 'fubar' --destination '${chalk.cyan('root/')}fubar'
+
+        ${chalk.cyan('* Note:')} commands created in the root directory or subject to being overwritten if you update ARCLI.
+          It is recommended to only place commands in the root directory if you are contributing to ARCLI.
+`);
 
 
 /**
@@ -265,7 +284,7 @@ const ACTION = ({ opt, props }) => {
 const COMMAND = ({ program, props }) => program.command(NAME)
     .description(DESC)
     .action(opt => ACTION({ opt, props }))
-    .option('-d, --destination [destination]', `Path where the command is saved. If you're creating a project specific command, use the shortcut: cwd/\n\tExample:\n\t  ${chalk.cyan('cwd/fubar')}\n\t  Places the command in the ~/your_project/.cli/commands/fubar directory.\n`)
+    .option('-d, --destination [destination]', 'Path where the command is saved')
     .option('-c, --command [command]', 'Command prompt.')
     .option('-o, --overwrite [overwrite]', 'Overwrite the existing command.', false)
     .on('--help', HELP);

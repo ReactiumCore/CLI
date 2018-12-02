@@ -8,6 +8,7 @@ const chalk              = require('chalk');
 const generator          = require('./generator');
 const prettier           = require('prettier');
 const path               = require('path');
+const op                 = require('object-path');
 const mod                = path.dirname(require.main.filename);
 const { error, message } = require(`${mod}/lib/messenger`);
 
@@ -45,38 +46,37 @@ const CANCELED = 'Action canceled!';
  * @description Prompts the user to confirm the operation
  * @since 2.0.0
  */
-const CONFIRM = ({ props, params }) => {
+const CONFIRM = ({ props, params, msg }) => {
     const { prompt } = props;
 
+    msg = msg || chalk.white('Proceed?');
+
     return new Promise((resolve, reject) => {
-        prompt.get({
-            properties: {
-                confirmed: {
-                    description: `${chalk.white('Proceed?')} ${chalk.cyan('(Y/N):')}`,
-                    type: 'string',
-                    required: true,
-                    pattern: /^y|n|Y|N/,
-                    message: ` `,
-                    before: (val) => {
-                        return (String(val).toLowerCase() === 'y');
-                    }
+        prompt.get(
+            {
+                properties: {
+                    confirmed: {
+                        description: `${msg} ${chalk.cyan('(Y/N):')}`,
+                        type: 'string',
+                        required: true,
+                        pattern: /^y|n|Y|N/,
+                        message: ` `,
+                        before: val => {
+                            return String(val).toUpperCase() === 'Y';
+                        },
+                    },
+                },
+            },
+            (error, input = {}) => {
+                const confirmed = op.get(input, 'confirmed', false);
+                if (error || confirmed === false) {
+                    reject(error);
+                } else {
+                    params['confirmed'] = true;
+                    resolve(params);
                 }
-            }
-        }, (error, input) => {
-            let confirmed;
-
-            try {
-                confirmed = input.confirmed;
-            } catch (err) {
-                confirmed = false;
-            }
-
-            if (error || confirmed === false) {
-                reject(error);
-            } else {
-                resolve(confirmed);
-            }
-        });
+            },
+        );
     });
 };
 
@@ -88,11 +88,8 @@ const CONFIRM = ({ props, params }) => {
  * @since 2.0.0
  */
 const CONFORM = ({ input, props }) => {
-    const { cwd } = props;
-
-    let output = {};
-
-    Object.entries(input).forEach(([key, val]) => {
+    const output = Object.keys(input).reduce((obj, key) => {
+        let val = input[key];
         switch(key) {
             default:
                 output[key] = val;
@@ -110,14 +107,52 @@ const CONFORM = ({ input, props }) => {
  * @see https://www.npmjs.com/package/commander#automated---help
  * @since 2.0.0
  */
-const HELP = () => {
-    console.log('');
-    console.log('Example:');
-    console.log('');
-    console.log('  Some example of what this does');
-    console.log('');
-};
+const HELP = () => console.log(`
+Example:
+  $ arcli {{command}} -h
+`);
 
+/**
+ * FLAGS
+ * @description Array of flags passed from the commander options.
+ * @since 2.0.18
+ */
+const FLAGS = [];
+
+/**
+ * FLAGS_TO_PARAMS Function
+ * @description Create an object used by the prompt.override property.
+ * @since 2.0.18
+ */
+const FLAGS_TO_PARAMS = ({ opt = {} }) =>
+    FLAGS.reduce((obj, key) => {
+        let val = opt[key];
+        val = typeof val === 'function' ? undefined : val;
+
+        if (val) {
+            obj[key] = val;
+        }
+
+        return obj;
+    }, {});
+
+/**
+ * PREFLIGHT Function
+ */
+const PREFLIGHT = ({ msg, params, props }) => {
+    msg = msg || 'Preflight checklist:';
+
+    message(msg);
+
+    // Transform the preflight object instead of the params object
+    const preflight = { ...params };
+
+    console.log(
+        prettier.format(JSON.stringify(preflight), {
+            parser: 'json-stringify',
+        }),
+    );
+};
 
 /**
  * SCHEMA Function
@@ -126,8 +161,6 @@ const HELP = () => {
  * @since 2.0.0
  */
 const SCHEMA = ({ props }) => {
-    const { cwd, prompt } = props;
-
     return {
         properties: {
             sample: {
@@ -152,58 +185,42 @@ const ACTION = ({ opt, props }) => {
     console.log('');
 
     const { cwd, prompt } = props;
-
     const schema = SCHEMA({ props });
-
-    const ovr = Object.keys(schema.properties)
-    .reduce((obj, key) => {
-        let val = opt[key];
-        val = (typeof val === 'function') ? null : val;
-        if (val) { obj[key] = val; }
-        return obj;
-    }, {});
-
+    const ovr = FLAGS_TO_PARAMS({ opts });
 
     prompt.override = ovr;
     prompt.start();
-    prompt.get(schema, (err, input) => {
-        // Keep this conditional as the first line in this function.
-        // Why? because you will get a js error if you try to set or use anything related to the input object.
-        if (err) {
-            prompt.stop();
-            error(`${NAME} ${err.message}`);
-            return;
-        }
 
-        const params = CONFORM({ input, props });
-        const { overwrite } = params;
+    return new Promise((resolve, reject) => {
+        prompt.get(schema, (err, input = {}) => {
+            if (err) {
+                prompt.stop();
+                reject(`${NAME} ${err.message}`);
+                return;
+            }
 
-        // Exit if overwrite or confirm !== true
-        if (typeof overwrite === 'boolean' && !overwrite) {
-            prompt.stop();
-            message(CANCELED);
-            return;
-        }
+            input = { ...ovr, ...input };
+            params = CONFORM({ input, props });
 
-        message(`Preflight message:`);
-        const preflight = { ...params };
+            PREFLIGHT({ params, props });
 
-        console.log(prettier.format(
-            JSON.stringify(preflight),
-            {parser: 'json-stringify'}
-        ));
-
-        CONFIRM({ props, params }).then(() => {
-            console.log('');
-
-            generator({ params, props }).then(success => {
-                console.log('');
-            });
-        }).catch(err => {
-            prompt.stop();
-            message(CANCELED);
+            resolve(params);
         });
-    });
+    })
+        .then(() => {
+            return CONFIRM({ props, params });
+        })
+        .then(() => {
+            console.log('');
+            return generator({ action: 'create', params, props });
+        })
+        .then(results => {
+            console.log('');
+        })
+        .catch(err => {
+            prompt.stop();
+            message(op.get(err, 'message', CANCELED));
+        });
 };
 
 
@@ -214,7 +231,14 @@ const ACTION = ({ opt, props }) => {
 const COMMAND = ({ program, props }) => program.command(NAME)
     .description(DESC)
     .action(opt => ACTION({ opt, props }))
-    .option('-s, --sample [sample]', 'Sample parameter.')
+    .option(
+        '-s, --sample [sample]',
+        'Sample parameter.'
+    )
+    .option(
+        '-o, --overwrite [overwrite]',
+        'Overwrite existing file.',
+    )
     .on('--help', HELP);
 
 
@@ -226,9 +250,6 @@ const COMMAND = ({ program, props }) => program.command(NAME)
  * @since 2.0.0
  */
 module.exports = {
-    ACTION,
-    CONFIRM,
-    CONFORM,
     COMMAND,
     NAME,
 };
