@@ -1,13 +1,11 @@
-
-const path       = require('path');
-const chalk      = require('chalk');
-const fs         = require('fs-extra');
-const op         = require('object-path');
+const path = require('path');
+const chalk = require('chalk');
+const fs = require('fs-extra');
+const op = require('object-path');
 const handlebars = require('handlebars').compile;
 
-
-module.exports = (spinner) => {
-    const message = (text) => {
+module.exports = spinner => {
+    const message = text => {
         if (spinner) {
             spinner.text = text;
         }
@@ -20,9 +18,27 @@ module.exports = (spinner) => {
             if (style) {
                 const { cwd } = props;
 
-                const styleFile = path.normalize(`${cwd}/src/assets/style/style.scss`);
+                const mainStyleSheet = path.normalize(
+                    `${cwd}/src/assets/style/style.scss`,
+                );
+                const toolkitStyleSheet = path.normalize(
+                    `${cwd}/src/assets/style/toolkit.scss`,
+                );
 
-                fs.writeFileSync(styleFile, '\n// Styles\n\n');
+                const scssDir = path.normalize(`${cwd}/src/assets/style/_scss`);
+
+                if (fs.existsSync(mainStyleSheet)) {
+                    fs.writeFileSync(mainStyleSheet, '\n// Styles\n\n');
+                }
+
+                if (fs.existsSync(toolkitStyleSheet)) {
+                    fs.writeFileSync(
+                        toolkitStyleSheet,
+                        '\n// Toolkit Specific Styles\n\n',
+                    );
+                }
+
+                fs.emptyDirSync(scssDir);
             }
 
             return Promise.resolve({ action, status: 200 });
@@ -35,10 +51,15 @@ module.exports = (spinner) => {
 
                 const { cwd } = props;
 
-                const manifestFile = path.normalize(`${cwd}/src/app/toolkit/index.js`);
+                const manifestFile = path.normalize(
+                    `${cwd}/src/app/toolkit/index.js`,
+                );
 
                 let cont = fs.readFileSync(manifestFile);
-                    cont = String(cont).replace(/menu: {((.|\n|\r)*)},/, 'menu: {},');
+                cont = String(cont).replace(
+                    /menu: {((.|\n|\r)*)},/,
+                    'menu: {},',
+                );
 
                 fs.writeFileSync(manifestFile, cont);
             }
@@ -46,7 +67,6 @@ module.exports = (spinner) => {
             return Promise.resolve({ action, status: 200 });
         },
         empty: ({ action, params, props }) => {
-
             const { cwd } = props;
             const { demo, font, images, toolkit } = params;
 
@@ -57,8 +77,10 @@ module.exports = (spinner) => {
                 const fontPath = path.normalize(`${cwd}/src/assets/fonts`);
 
                 fs.readdirSync(fontPath)
-                .filter(file => Boolean(!fontExcludes.includes(file)))
-                .forEach(file => fs.removeSync(path.normalize(`${fontPath}/${file}`)));
+                    .filter(file => Boolean(!fontExcludes.includes(file)))
+                    .forEach(file =>
+                        fs.removeSync(path.normalize(`${fontPath}/${file}`)),
+                    );
             }
 
             if (images) {
@@ -68,8 +90,10 @@ module.exports = (spinner) => {
                 const imagePath = path.normalize(`${cwd}/src/assets/images`);
 
                 fs.readdirSync(imagePath)
-                .filter(file => Boolean(!imageExcludes.includes(file)))
-                .forEach(file => fs.removeSync(path.normalize(`${imagePath}/${file}`)));
+                    .filter(file => Boolean(!imageExcludes.includes(file)))
+                    .forEach(file =>
+                        fs.removeSync(path.normalize(`${imagePath}/${file}`)),
+                    );
             }
 
             if (demo) {
@@ -89,8 +113,10 @@ module.exports = (spinner) => {
                 const toolkitExclude = ['index.js', 'overview'];
 
                 fs.readdirSync(toolkitPath)
-                .filter(file => Boolean(!toolkitExclude.includes(file)))
-                .forEach(file => fs.removeSync(path.normalize(`${toolkitPath}/${file}`)));
+                    .filter(file => Boolean(!toolkitExclude.includes(file)))
+                    .forEach(file =>
+                        fs.removeSync(path.normalize(`${toolkitPath}/${file}`)),
+                    );
             }
 
             return Promise.resolve({ action, status: 200 });
