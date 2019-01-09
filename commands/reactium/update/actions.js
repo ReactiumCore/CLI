@@ -6,6 +6,7 @@ const request    = require('request');
 const decompress = require('decompress');
 const zip        = require('folder-zipper');
 const pkg        = require('./package');
+const semver     = require('semver');
 
 module.exports = (spinner) => {
     const message = (text) => {
@@ -132,14 +133,14 @@ module.exports = (spinner) => {
 
         package: ({ params, props, action }) => {
             const { cwd } = props;
-            const package = pkg(props, path.normalize(`${cwd}/tmp/update/.core/reactium-config.js`));
+            const newPackage = pkg(props, path.normalize(`${cwd}/tmp/update/.core/reactium-config.js`));
 
             message('updating package.json...');
 
             const packageFile = path.normalize(`${cwd}/package.json`);
 
             return new Promise((resolve, reject) => {
-                fs.writeFile(packageFile, package, 'utf8', error => {
+                fs.writeFile(packageFile, newPackage, 'utf8', error => {
                     if (error) {
                         reject(error);
                     } else {
@@ -147,6 +148,45 @@ module.exports = (spinner) => {
                     }
                 });
             });
+        },
+
+        files: ({ params, props, action }) => { // Add/Remove src files
+            const { cwd } = props;
+            const reactium = require(path.normalize(`${cwd}/tmp/update/.core/reactium-config`));
+            const reactiumVersion = op.get(reactium, 'version');
+            const add = op.get(reactium, 'update.files.add') || [];
+            const remove = op.get(reactium, 'update.files.remove') || [];
+            
+            if (add.length > 0 || remove.length > 0) {
+                message('updating app source...');
+            } else {
+                return Promise.resolve({ action, status: 200 });
+            }
+
+            // Remove files from src
+            remove.filter(({ version }) => semver.satisfies(
+                reactiumVersion,
+                version
+            )).forEach(({ source }) => {
+                source = path.normalize(`${cwd}/${source}`);
+                if (fs.existsSync(source)) {
+                    fs.removeSync(source);
+                }
+            });
+
+            // Add files to src
+            add.filter(({ version }) => semver.satisfies(
+                reactiumVersion,
+                version
+            )).forEach(({ destination, source }) => {
+                destination = path.normalize(`${cwd}/${destination}`);
+                source = path.normalize(`${cwd}/${source}`);
+                if (!fs.existsSync(destination)) {
+                    fs.copySync(source, destination);
+                }
+            });
+
+            return Promise.resolve({ action, status: 200 });
         },
 
         cleanup: ({ params, props, action }) => {
