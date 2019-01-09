@@ -156,7 +156,7 @@ module.exports = (spinner) => {
             const reactiumVersion = op.get(reactium, 'version');
             const add = op.get(reactium, 'update.files.add') || [];
             const remove = op.get(reactium, 'update.files.remove') || [];
-            
+
             if (add.length > 0 || remove.length > 0) {
                 message('updating app source...');
             } else {
@@ -178,10 +178,10 @@ module.exports = (spinner) => {
             add.filter(({ version }) => semver.satisfies(
                 reactiumVersion,
                 version
-            )).forEach(({ destination, source }) => {
+            )).forEach(({ destination, force, source }) => {
                 destination = path.normalize(`${cwd}/${destination}`);
                 source = path.normalize(`${cwd}/${source}`);
-                if (!fs.existsSync(destination)) {
+                if (!fs.existsSync(destination) || force === true) {
                     fs.copySync(source, destination);
                 }
             });
