@@ -94,7 +94,7 @@ axios
 
       if (
         !Object.keys(commands).find(key =>
-          new RegExp(`^${key}`).test(command)
+          new RegExp(`^${command}`).test(key)
         ) &&
         !isFlag
       ) {
