@@ -88,16 +88,18 @@ axios
     Object.values(commands).forEach(req => req.COMMAND({ program, props }));
 
     // Is valid command?
-    if (process.argv.length >= 2) {
+    if (process.argv.length > 2) {
       const command = process.argv[2];
+      const isFlag = String(command).substr(0, 1) === "-";
 
       if (
-        !Object.keys(commands).find(key => {
-          const regex = new RegExp(`^${key}`);
-          return regex.test(command);
-        })
+        !Object.keys(commands).find(key =>
+          new RegExp(`^${key}`).test(command)
+        ) &&
+        !isFlag
       ) {
-        console.log(chalk.red("Invalid command:"), process.argv[2]);
+        console.log("\n");
+        console.log(chalk.red("Invalid command:"), chalk.cyan(command));
         console.log("\n");
         program.help();
         return;
