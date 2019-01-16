@@ -87,18 +87,15 @@ const CONFIRM = ({ props, params, msg }) => {
  * @param input Object The key value pairs to reduce.
  * @since 2.0.0
  */
-const CONFORM = ({ input, props }) => {
-    const output = Object.keys(input).reduce((obj, key) => {
-        let val = input[key];
-        switch(key) {
-            default:
-                output[key] = val;
-                break;
-        }
-    });
-
-    return output;
-};
+const CONFORM = ({ input, props }) => Object.keys(input).reduce((obj, key) => {
+    let val = input[key];
+    switch(key) {
+        default:
+            obj[key] = val;
+            break;
+    }
+    return obj;
+}, {});
 
 
 /**
