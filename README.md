@@ -10,8 +10,10 @@ $ npm install -g atomic-reactor-cli
 ```
 
 
+# Usage
+
 ```
-Usage: arcli <command> [options]
+arcli <command> [options]
 
 Options:
   -v, --version                 Output the version number.
