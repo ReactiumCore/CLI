@@ -1,11 +1,11 @@
-const fs       = require('fs-extra');
-const path     = require('path');
-const op       = require('object-path');
+const path = require('path');
+const fs = require('fs-extra');
+const op = require('object-path');
 const prettier = require('prettier');
+const homedir = require('os').homedir();
 
-
-module.exports = (spinner) => {
-    const message = (text) => {
+module.exports = spinner => {
+    const message = text => {
         if (spinner) {
             spinner.text = text;
         }
@@ -13,17 +13,19 @@ module.exports = (spinner) => {
 
     return {
         backup: ({ props, action }) => {
-            const { config, root } = props;
+            const { config, cwd, root } = props;
 
             message('backing up config.json...');
 
-            fs.ensureDirSync(path.join(root, '.BACKUP'));
+            const backupPath = path.normalize(path.join(homedir, '.arcli', path.basename(cwd), '.BACKUP'));
+
+            fs.ensureDirSync(backupPath);
 
             const now = Date.now();
-            const file = path.normalize(path.join(root, 'config.json'));
-            const backup = path.normalize(path.join(
-                root, '.BACKUP', `${now}.config.json.BACKUP`
-            ));
+            const file = path.normalize(path.join(homedir, '.arcli', 'config.json'));
+            const backup = path.normalize(
+                path.join(backupPath, `${now}.config.json.BACKUP`),
+            );
 
             return new Promise((resolve, reject) => {
                 fs.copy(file, backup, error => {
@@ -37,14 +39,12 @@ module.exports = (spinner) => {
         },
 
         update: ({ params, props, action }) => {
-            const { root } = props;
             const { newConfig } = params;
 
-            const file = path.normalize(path.join(root, 'config.json'));
-            const fileContent = prettier.format(
-                JSON.stringify(newConfig),
-                {parser: 'json-stringify'}
-            );
+            const file = path.normalize(path.join(homedir, '.arcli', 'config.json'));
+            const fileContent = prettier.format(JSON.stringify(newConfig), {
+                parser: 'json-stringify',
+            });
 
             message('updating config.json...');
 
@@ -57,6 +57,6 @@ module.exports = (spinner) => {
                     }
                 });
             });
-        }
+        },
     };
 };
