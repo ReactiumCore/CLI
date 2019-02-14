@@ -4,30 +4,34 @@
  * -----------------------------------------------------------------------------
  */
 
-const _                  = require('underscore');
-const fs                 = require('fs-extra');
-const path               = require('path');
-const chalk              = require('chalk');
-const op                 = require('object-path');
-const generator          = require('./generator');
-const globby             = require('globby').sync;
-const prettier           = require('prettier');
-const slugify            = require('slugify');
-const mod                = path.dirname(require.main.filename);
+const _ = require("underscore");
+const fs = require("fs-extra");
+const path = require("path");
+const chalk = require("chalk");
+const op = require("object-path");
+const generator = require("./generator");
+const globby = require("globby").sync;
+const prettier = require("prettier");
+const slugify = require("slugify");
+const mod = path.dirname(require.main.filename);
 const { error, message } = require(`${mod}/lib/messenger`);
 
-
 const formatDestination = (val, props) => {
-    const { cwd, root } = props;
+  const { cwd, root } = props;
 
-    val = path.normalize(val);
-    val = String(val).replace(/^~\/|^\/cwd\/|^cwd\//i, `${cwd}/.cli/commands/`);
-    val = String(val).replace(/^\/app\/|^app\//i, `${cwd}/.core/.cli/commands/`);
-    val = String(val).replace(/^\/core\/|^core\//i, `${cwd}/.core/.cli/commands/`);
-    val = String(val).replace(/^\/root\/|^root\//i, `${root}/commands/`);
-    val = path.normalize(val);
+  const replacers = [
+    [/^~\/|^\/cwd\/|^cwd\//i, `${cwd}/.cli/commands/`],
+    [/^\/app\/|^app\//i, `${cwd}/.core/.cli/commands/`],
+    [/^\/core\/|^core\//i, `${cwd}/.core/.cli/commands/`],
+    [/^\/root\/|^root\//i, `${root}/commands/`]
+  ];
 
-    return val;
+  return path.normalize(
+    replacers.reduce(
+      (newVal, replacer) => newVal.replace(replacer[0], replacer[1]),
+      path.normalize(val)
+    )
+  );
 };
 
 /**
@@ -37,8 +41,7 @@ const formatDestination = (val, props) => {
  * @see https://www.npmjs.com/package/commander#command-specific-options
  * @since 2.0.0
  */
-const NAME = 'commander';
-
+const NAME = "commander";
 
 /**
  * DESC String
@@ -47,16 +50,14 @@ const NAME = 'commander';
  * @see https://www.npmjs.com/package/commander#automated---help
  * @since 2.0.0
  */
-const DESC = 'ARCLI:    Create a CLI function.';
-
+const DESC = "ARCLI:    Create a CLI function.";
 
 /**
  * CANCELED String
  * @description Message sent when the command is canceled
  * @since 2.0.0
  */
-const CANCELED = 'Command creation canceled!';
-
+const CANCELED = "Command creation canceled!";
 
 /**
  * confirm({ props:Object, params:Object }) Function
@@ -64,34 +65,36 @@ const CANCELED = 'Command creation canceled!';
  * @since 2.0.0
  */
 const CONFIRM = ({ props, params }) => {
-    const { prompt } = props;
+  const { prompt } = props;
 
-    return new Promise((resolve, reject) => {
-        prompt.get({
-            properties: {
-                confirmed: {
-                    description: `${chalk.white('Proceed?')} ${chalk.cyan('(Y/N):')}`,
-                    type: 'string',
-                    required: true,
-                    pattern: /^y|n|Y|N/,
-                    message: ` `,
-                    before: (val) => {
-                        return (String(val).toLowerCase() === 'y');
-                    }
-                }
+  return new Promise((resolve, reject) => {
+    prompt.get(
+      {
+        properties: {
+          confirmed: {
+            description: `${chalk.white("Proceed?")} ${chalk.cyan("(Y/N):")}`,
+            type: "string",
+            required: true,
+            pattern: /^y|n|Y|N/,
+            message: ` `,
+            before: val => {
+              return String(val).toLowerCase() === "y";
             }
-        }, (error, input) => {
-            const confirmed = op.get(input, 'confirmed');
+          }
+        }
+      },
+      (error, input) => {
+        const confirmed = op.get(input, "confirmed");
 
-            if (error || confirmed === false) {
-                reject(error);
-            } else {
-                resolve(confirmed);
-            }
-        });
-    });
+        if (error || confirmed === false) {
+          reject(error);
+        } else {
+          resolve(confirmed);
+        }
+      }
+    );
+  });
 };
-
 
 /**
  * conform(input:Object) Function
@@ -100,27 +103,26 @@ const CONFIRM = ({ props, params }) => {
  * @since 2.0.0
  */
 const CONFORM = ({ input, props }) => {
-    const { cwd } = props;
+  const { cwd } = props;
 
-    let output = {};
+  let output = {};
 
-    Object.entries(input).forEach(([key, val]) => {
-        key = String(key).toLowerCase();
+  Object.entries(input).forEach(([key, val]) => {
+    key = String(key).toLowerCase();
 
-        switch (key) {
-            case 'destination':
-                output[key] = formatDestination(val, props);
-                break;
+    switch (key) {
+      case "destination":
+        output[key] = formatDestination(val, props);
+        break;
 
-            default:
-                output[key] = val;
-                break;
-        }
-    });
+      default:
+        output[key] = val;
+        break;
+    }
+  });
 
-    return output;
+  return output;
 };
-
 
 /**
  * HELP Function
@@ -128,33 +130,49 @@ const CONFORM = ({ input, props }) => {
  * @see https://www.npmjs.com/package/commander#automated---help
  * @since 2.0.0
  */
-const HELP = () => console.log(`
+const HELP = () =>
+  console.log(`
 Shortcuts:
   When creating a command, there are 3 --destination shortcuts available:
-  ${chalk.cyan('cwd/')} | ${chalk.cyan('app/')} | ${chalk.cyan('root/')}
+  ${chalk.cyan("cwd/")} | ${chalk.cyan("app/")} | ${chalk.cyan("root/")}
 
-    ${chalk.cyan('cwd/')}
-      Creates a command in the ${chalk.cyan('~/project-root/.cli')} directory:
-        $ arcli commander --command 'fubar' --destination '${chalk.cyan('cwd/')}fubar'
+    ${chalk.cyan("cwd/")}
+      Creates a command in the ${chalk.cyan("~/project-root/.cli")} directory:
+        $ arcli commander --command 'fubar' --destination '${chalk.cyan(
+          "cwd/"
+        )}fubar'
 
-        ${chalk.cyan('* Note:')} commands created in the project-root are specific to the current project.
+        ${chalk.cyan(
+          "* Note:"
+        )} commands created in the project-root are specific to the current project.
 
-    ${chalk.cyan('app/')}
-      Creates a command in the ${chalk.cyan('~/project-root/.core/.cli')} directory:
-        $ arcli commander --command 'fubar' --destination '${chalk.cyan('app/')}fubar'
+    ${chalk.cyan("app/")}
+      Creates a command in the ${chalk.cyan(
+        "~/project-root/.core/.cli"
+      )} directory:
+        $ arcli commander --command 'fubar' --destination '${chalk.cyan(
+          "app/"
+        )}fubar'
 
-        ${chalk.cyan('* Note:')} commands created in the app directory are specific to the current project and version of the framework Reactium or Actinium.
+        ${chalk.cyan(
+          "* Note:"
+        )} commands created in the app directory are specific to the current project and version of the framework Reactium or Actinium.
           Should you update the framework core, your commands will be overwritten.
           It is recommended to only place commands in the app directory if you are contributing to Reactium or Actinium core.
 
-    ${chalk.cyan('root/')}
-      Creates a command in the ${chalk.cyan('~/home/.arcli/commands')} directory:
-        $ arcli commander --command 'fubar' --destination '${chalk.cyan('root/')}fubar'
+    ${chalk.cyan("root/")}
+      Creates a command in the ${chalk.cyan(
+        "~/home/.arcli/commands"
+      )} directory:
+        $ arcli commander --command 'fubar' --destination '${chalk.cyan(
+          "root/"
+        )}fubar'
 
-        ${chalk.cyan('* Note:')} commands created in the root directory or subject to being overwritten if you update ARCLI.
+        ${chalk.cyan(
+          "* Note:"
+        )} commands created in the root directory or subject to being overwritten if you update ARCLI.
           It is recommended to only place commands in the root directory if you are contributing to ARCLI.
 `);
-
 
 /**
  * SCHEMA Object
@@ -163,49 +181,46 @@ Shortcuts:
  * @since 2.0.0
  */
 const SCHEMA = ({ props }) => {
-    const { cwd, prompt } = props;
-    const defaultDirectory = path.normalize('~/.cli/commands');
+  const { cwd, prompt } = props;
+  const defaultDirectory = path.normalize("~/.cli/commands");
 
+  return {
+    properties: {
+      command: {
+        type: "string",
+        description: chalk.white(`Command:`)
+      },
+      destination: {
+        description: chalk.white("Destination:"),
+        message: "Destination is a required parameter. Example: ~/mycommand",
+        required: true
+      },
+      overwrite: {
+        required: true,
+        pattern: /^y|n|Y|N/,
+        message: " ",
+        description: chalk.white("Overwrite existing command?: (Y/N)"),
+        ask: () => {
+          try {
+            let dest =
+              prompt.override["destination"] ||
+              prompt.history("destination").value;
+            dest = formatDestination(dest, props);
 
-    return {
-        properties: {
-            command: {
-                type: 'string',
-                description: chalk.white(`Command:`),
-            },
-            destination: {
-                description: chalk.white('Destination:'),
-                message: 'Destination is a required parameter. Example: ~/mycommand',
-                required: true,
-            },
-            overwrite: {
-                required: true,
-                pattern: /^y|n|Y|N/,
-                message: ' ',
-                description: chalk.white('Overwrite existing command?: (Y/N)'),
-                ask: () => {
-                    try {
-                        let dest = prompt.override['destination'] || prompt.history('destination').value;
-                            dest = formatDestination(dest, props);
+            const filepath = path.normalize(path.join(dest, "index.js"));
 
-                        const filepath = path.normalize(path.join(
-                            dest,
-                            'index.js',
-                        ));
-
-                        return fs.existsSync(filepath);
-                    } catch (err) {
-                        return false;
-                    }
-                },
-                before: (val) => {
-                    return (String(val).toLowerCase() === 'y');
-                }
-            },
+            return fs.existsSync(filepath);
+          } catch (err) {
+            return false;
+          }
+        },
+        before: val => {
+          return String(val).toLowerCase() === "y";
         }
+      }
     }
+  };
 };
-
 
 /**
  * ACTION Function
@@ -216,80 +231,88 @@ const SCHEMA = ({ props }) => {
  * @since 2.0.0
  */
 const ACTION = ({ opt, props }) => {
-    console.log('');
+  console.log("");
 
-    const { cwd, prompt } = props;
+  const { cwd, prompt } = props;
 
-    const schema = SCHEMA({ props });
+  const schema = SCHEMA({ props });
 
-    const ovr = Object.keys(schema.properties)
-    .reduce((obj, key) => {
-        let val = opt[key];
-        val = (typeof val === 'function') ? null : val;
-        if (val) { obj[key] = val; }
-        return obj;
-    }, {});
+  const ovr = Object.keys(schema.properties).reduce((obj, key) => {
+    let val = opt[key];
+    val = typeof val === "function" ? null : val;
+    if (val) {
+      obj[key] = val;
+    }
+    return obj;
+  }, {});
 
+  prompt.override = ovr;
+  prompt.start();
+  prompt.get(schema, (err, input) => {
+    // Keep this conditional as the first line in this function.
+    // Why? because you will get a js error if you try to set or use anything related to the input object.
+    if (err) {
+      prompt.stop();
+      error(`${NAME} ${err.message}`);
+      return;
+    }
 
-    prompt.override = ovr;
-    prompt.start();
-    prompt.get(schema, (err, input) => {
-        // Keep this conditional as the first line in this function.
-        // Why? because you will get a js error if you try to set or use anything related to the input object.
-        if (err) {
-            prompt.stop();
-            error(`${NAME} ${err.message}`);
-            return;
-        }
+    const params = CONFORM({ input, props });
+    const { overwrite } = params;
 
-        const params = CONFORM({ input, props });
-        const { overwrite } = params;
+    // Exit if overwrite or confirm !== true
+    if (typeof overwrite === "boolean" && !overwrite) {
+      prompt.stop();
+      message(CANCELED);
+      return;
+    }
 
-        // Exit if overwrite or confirm !== true
-        if (typeof overwrite === 'boolean' && !overwrite) {
-            prompt.stop();
-            message(CANCELED);
-            return;
-        }
+    message(`A command will be created with the following parameters:`);
+    const preflight = { ...params };
 
-        message(`A command will be created with the following parameters:`);
-        const preflight = { ...params };
+    if (overwrite !== true) {
+      delete preflight.overwrite;
+    }
 
-        if (overwrite !== true) {
-            delete preflight.overwrite;
-        }
+    console.log(
+      prettier.format(JSON.stringify(preflight), { parser: "json-stringify" })
+    );
 
-        console.log(prettier.format(
-            JSON.stringify(preflight),
-            { parser: 'json-stringify' }
-        ));
+    CONFIRM({ props, params })
+      .then(() => {
+        console.log("");
 
-        CONFIRM({ props, params }).then(() => {
-            console.log('');
-
-            generator({ params, props }).then(success => {
-                console.log('');
-            });
-        }).catch(err => {
-            prompt.stop();
-            message(CANCELED);
+        generator({ params, props }).then(success => {
+          console.log("");
         });
-    });
+      })
+      .catch(err => {
+        prompt.stop();
+        message(CANCELED);
+      });
+  });
 };
-
 
 /**
  * COMMAND Function
  * @description Function that executes program.command()
  */
-const COMMAND = ({ program, props }) => program.command(NAME)
+const COMMAND = ({ program, props }) =>
+  program
+    .command(NAME)
     .description(DESC)
     .action(opt => ACTION({ opt, props }))
-    .option('-d, --destination [destination]', 'Path where the command is saved')
-    .option('-c, --command [command]', 'Command prompt.')
-    .option('-o, --overwrite [overwrite]', 'Overwrite the existing command.', false)
-    .on('--help', HELP);
-
+    .option(
+      "-d, --destination [destination]",
+      "Path where the command is saved"
+    )
+    .option("-c, --command [command]", "Command prompt.")
+    .option(
+      "-o, --overwrite [overwrite]",
+      "Overwrite the existing command.",
+      false
+    )
+    .on("--help", HELP);
 
 /**
  * Module Constructor
@@ -299,9 +322,9 @@ const COMMAND = ({ program, props }) => program.command(NAME)
  * @since 2.0.0
  */
 module.exports = {
-    ACTION,
-    CONFIRM,
-    CONFORM,
-    COMMAND,
-    NAME,
+  ACTION,
+  CONFIRM,
+  CONFORM,
+  COMMAND,
+  NAME
 };
