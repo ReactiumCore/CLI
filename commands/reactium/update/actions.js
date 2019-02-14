@@ -1,15 +1,15 @@
-
-const fs         = require('fs-extra');
-const path       = require('path');
-const op         = require('object-path');
-const request    = require('request');
+const fs = require('fs-extra');
+const path = require('path');
+const op = require('object-path');
+const request = require('request');
 const decompress = require('decompress');
-const zip        = require('folder-zipper');
-const pkg        = require('./package');
-const semver     = require('semver');
+const zip = require('folder-zipper');
+const pkg = require('./package');
+const semver = require('semver');
+const homedir = require('os').homedir();
 
-module.exports = (spinner) => {
-    const message = (text) => {
+module.exports = spinner => {
+    const message = text => {
         if (spinner) {
             spinner.text = text;
         }
@@ -27,9 +27,13 @@ module.exports = (spinner) => {
             // Download the most recent version of reactium
             return new Promise((resolve, reject) => {
                 request(config.reactium.repo)
-                .pipe(fs.createWriteStream(path.normalize(`${cwd}/tmp/reactium.zip`)))
-                .on('error', error => reject(error))
-                .on('close', () => resolve({ action, status: 200 }));
+                    .pipe(
+                        fs.createWriteStream(
+                            path.normalize(`${cwd}/tmp/reactium.zip`),
+                        ),
+                    )
+                    .on('error', error => reject(error))
+                    .on('close', () => resolve({ action, status: 200 }));
             });
         },
 
@@ -45,9 +49,9 @@ module.exports = (spinner) => {
             fs.ensureDirSync(updateDir);
 
             return new Promise((resolve, reject) => {
-                decompress(zipFile, updateDir, {strip: 1})
-                .then(() => resolve({ action, status: 200 }))
-                .catch(error => reject(error));
+                decompress(zipFile, updateDir, { strip: 1 })
+                    .then(() => resolve({ action, status: 200 }))
+                    .catch(error => reject(error));
             });
         },
 
@@ -56,14 +60,26 @@ module.exports = (spinner) => {
 
             message('backing up core...');
 
-            const now           = Date.now();
-            const coreDir       = path.normalize(`${cwd}/.core`);
-            const packageFile   = path.normalize(`${cwd}/package.json`);
-            const backupDir     = path.normalize(`${cwd}/.BACKUP/update`);
-            const gulpFile      = path.normalize(`${cwd}/gulpfile.js`);
-            const coreBackup    = path.normalize(`${backupDir}/${now}.core.zip`);
-            const packageBackup = path.normalize(`${backupDir}/${now}.package.json`);
-            const gulpBackup    = path.normalize(`${backupDir}/${now}.gulpfile.js`);
+            const now = Date.now();
+            const coreDir = path.normalize(`${cwd}/.core`);
+            const packageFile = path.normalize(`${cwd}/package.json`);
+            const backupDir = path.normalize(
+                path.join(
+                    homedir,
+                    '.arcli',
+                    path.basename(cwd),
+                    '.BACKUP',
+                    'update',
+                ),
+            );
+            const gulpFile = path.normalize(`${cwd}/gulpfile.js`);
+            const coreBackup = path.normalize(`${backupDir}/${now}.core.zip`);
+            const packageBackup = path.normalize(
+                `${backupDir}/${now}.package.json`,
+            );
+            const gulpBackup = path.normalize(
+                `${backupDir}/${now}.gulpfile.js`,
+            );
 
             // Create the backup directory
             fs.ensureDirSync(backupDir);
@@ -76,7 +92,7 @@ module.exports = (spinner) => {
 
             // Backup the ~/.core directory
             return zip(coreDir, coreBackup).then(() => {
-                return { action, status: 200 } ;
+                return { action, status: 200 };
             });
         },
 
@@ -85,7 +101,7 @@ module.exports = (spinner) => {
 
             message('updating core...');
 
-            const coreDir   = path.normalize(`${cwd}/.core/`);
+            const coreDir = path.normalize(`${cwd}/.core/`);
             const updateDir = path.normalize(`${cwd}/tmp/update/.core/`);
 
             fs.ensureDirSync(coreDir);
@@ -109,7 +125,9 @@ module.exports = (spinner) => {
             const babelFilePath = path.normalize(`${cwd}/babel.config.js`);
 
             if (!fs.existsSync(babelFilePath)) {
-                const templateFilePath = path.normalize(`${__dirname}/template/babel.config.js`);
+                const templateFilePath = path.normalize(
+                    `${__dirname}/template/babel.config.js`,
+                );
                 const template = fs.readFileSync(templateFilePath);
 
                 fs.writeFileSync(babelFilePath, template);
@@ -123,7 +141,9 @@ module.exports = (spinner) => {
 
             // gulpfile.js file
             const gulpFilePath = path.normalize(`${cwd}/gulpfile.js`);
-            const templateFilePath = path.normalize(`${__dirname}/template/gulpfile.js`);
+            const templateFilePath = path.normalize(
+                `${__dirname}/template/gulpfile.js`,
+            );
             const template = fs.readFileSync(templateFilePath);
 
             fs.writeFileSync(gulpFilePath, template);
@@ -133,7 +153,10 @@ module.exports = (spinner) => {
 
         package: ({ params, props, action }) => {
             const { cwd } = props;
-            const newPackage = pkg(props, path.normalize(`${cwd}/tmp/update/.core/reactium-config.js`));
+            const newPackage = pkg(
+                props,
+                path.normalize(`${cwd}/tmp/update/.core/reactium-config.js`),
+            );
 
             message('updating package.json...');
 
@@ -150,9 +173,12 @@ module.exports = (spinner) => {
             });
         },
 
-        files: ({ params, props, action }) => { // Add/Remove src files
+        files: ({ params, props, action }) => {
+            // Add/Remove src files
             const { cwd } = props;
-            const reactium = require(path.normalize(`${cwd}/tmp/update/.core/reactium-config`));
+            const reactium = require(path.normalize(
+                `${cwd}/tmp/update/.core/reactium-config`,
+            ));
             const reactiumVersion = op.get(reactium, 'version');
             const add = op.get(reactium, 'update.files.add') || [];
             const remove = op.get(reactium, 'update.files.remove') || [];
@@ -164,21 +190,21 @@ module.exports = (spinner) => {
             }
 
             // Remove files from src
-            remove.filter(({ version }) => semver.satisfies(
-                reactiumVersion,
-                version
-            )).forEach(({ source }) => {
-                source = path.normalize(`${cwd}/${source}`);
-                if (fs.existsSync(source)) {
-                    fs.removeSync(source);
-                }
-            });
+            remove
+                .filter(({ version }) =>
+                    semver.satisfies(reactiumVersion, version),
+                )
+                .forEach(({ source }) => {
+                    source = path.normalize(`${cwd}/${source}`);
+                    if (fs.existsSync(source)) {
+                        fs.removeSync(source);
+                    }
+                });
 
             // Add files to src
-            add.filter(({ version }) => semver.satisfies(
-                reactiumVersion,
-                version
-            )).forEach(({ destination, force, source }) => {
+            add.filter(({ version }) =>
+                semver.satisfies(reactiumVersion, version),
+            ).forEach(({ destination, force, source }) => {
                 destination = path.normalize(`${cwd}/${destination}`);
                 source = path.normalize(`${cwd}/${source}`);
                 if (!fs.existsSync(destination) || force === true) {
@@ -203,6 +229,6 @@ module.exports = (spinner) => {
                     }
                 });
             });
-        }
+        },
     };
-}
+};

@@ -1,11 +1,11 @@
-const fs         = require('fs-extra');
-const path       = require('path');
-const op         = require('object-path');
-const request    = require('request');
+const fs = require('fs-extra');
+const path = require('path');
+const op = require('object-path');
+const request = require('request');
 const decompress = require('decompress');
 
-module.exports = (spinner) => {
-    const message = (text) => {
+module.exports = spinner => {
+    const message = text => {
         if (spinner) {
             spinner.text = text;
         }
@@ -23,9 +23,13 @@ module.exports = (spinner) => {
             // Download the most recent version of reactium
             return new Promise((resolve, reject) => {
                 request(config.reactium.repo)
-                .pipe(fs.createWriteStream(path.normalize(`${cwd}/tmp/reactium.zip`)))
-                .on('error', error => reject(error))
-                .on('close', () => resolve({ action, status: 200 }));
+                    .pipe(
+                        fs.createWriteStream(
+                            path.normalize(`${cwd}/tmp/reactium.zip`),
+                        ),
+                    )
+                    .on('error', error => reject(error))
+                    .on('close', () => resolve({ action, status: 200 }));
             });
         },
 
@@ -37,9 +41,9 @@ module.exports = (spinner) => {
             const zipFile = path.normalize(`${cwd}/tmp/reactium.zip`);
 
             return new Promise((resolve, reject) => {
-                decompress(zipFile, cwd, {strip: 1})
-                .then(() => resolve({ action, status: 200 }))
-                .catch(error => reject(error));
+                decompress(zipFile, cwd, { strip: 1 })
+                    .then(() => resolve({ action, status: 200 }))
+                    .catch(error => reject(error));
             });
         },
 
@@ -48,7 +52,7 @@ module.exports = (spinner) => {
 
             const { cwd } = props;
             const prettierFile = path.normalize(`${cwd}/.prettierignore`);
-            const  cont = fs.readFileSync(prettierFile);
+            const cont = fs.readFileSync(prettierFile);
 
             fs.writeFileSync(prettierFile, `.core\n${cont}`);
 

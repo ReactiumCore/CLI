@@ -1,9 +1,19 @@
 
+
 # Atomic Reactor CLI
 A CLI for creating Atomic Reactor Awesomeness!
 
+
+# Installation
 ```
-Usage: arcli <command> [options]
+$ npm install -g atomic-reactor-cli
+```
+
+
+# Usage
+
+```
+$ arcli <command> [options]
 
 Options:
   -v, --version                 Output the version number.
