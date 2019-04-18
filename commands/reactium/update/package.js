@@ -1,13 +1,14 @@
-const path     = require('path');
+const path = require('path');
 const prettier = require('prettier');
-const op       = require('object-path');
+const op = require('object-path');
 
 module.exports = (props, reactiumConfigFile) => {
     const { cwd } = props;
 
-    reactiumConfigFile       = reactiumConfigFile || path.normalize(`${cwd}/.core/reactium-config`);
+    reactiumConfigFile =
+        reactiumConfigFile || path.normalize(`${cwd}/.core/reactium-config`);
 
-    const packageFile        = path.normalize(`${cwd}/package.json`);
+    const packageFile = path.normalize(`${cwd}/package.json`);
 
     let pkg, reactiumConfig;
 
@@ -35,18 +36,14 @@ module.exports = (props, reactiumConfigFile) => {
     let removeScripts = op.get(
         reactiumConfig,
         'update.package.scripts.remove',
-        []
+        [],
     );
-    removeScripts.forEach((i) => {
+    removeScripts.forEach(i => {
         delete scripts[i];
     });
 
     // Update scripts : add
-    let addScripts = op.get(
-        reactiumConfig,
-        'update.package.scripts.add',
-        {}
-    );
+    let addScripts = op.get(reactiumConfig, 'update.package.scripts.add', {});
 
     Object.entries(addScripts).forEach(([key, value]) => {
         scripts[key] = value;
@@ -55,71 +52,37 @@ module.exports = (props, reactiumConfigFile) => {
     // Update scripts object
     pkg['scripts'] = scripts;
 
-    // Get devDependencies
-    let devDependencies = op.get(pkg, 'devDependencies', {});
+    // Update dependencies objects
+    ['dependencies', 'devDependencies'].forEach(depType => {
+        const existingDeps = op.get(pkg, depType, {});
+        const removeDeps = op.get(
+            reactiumConfig,
+            ['update', 'package', depType, 'remove'],
+            [],
+        );
+        const addDeps = op.get(
+            reactiumConfig,
+            ['update', 'package', depType, 'add'],
+            {},
+        );
 
-    // Update devDependencies : remove
-    let removeDevDependencies = op.get(
-        reactiumConfig,
-        'update.package.devDependencies.remove',
-        []
-    );
-
-    removeDevDependencies.forEach((i) => {
-        delete devDependencies[i];
+        pkg[depType] = Object.entries(existingDeps)
+            .filter(([name]) => !removeDeps.find(remove => remove === name))
+            .concat(Object.entries(addDeps))
+            .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+            .reduce((newDeps, [key, value]) => {
+                newDeps[key] = value;
+                return newDeps;
+            }, {});
     });
-
-    // Update devDependencies : add
-    let addDevDependencies = op.get(
-        reactiumConfig,
-        'update.package.devDependencies.add',
-        {}
-    );
-
-    Object.entries(addDevDependencies).forEach(([key, value]) => {
-        devDependencies[key] = value;
-    });
-
-    // Update devDependencies object
-    pkg['devDependencies'] = devDependencies;
-
-    // Get dependencies
-    let dependencies = op.get(pkg, 'dependencies', {});
-
-    // Update dependencies : remove
-    let removeDependencies = op.get(
-        reactiumConfig,
-        'update.package.dependencies.remove',
-        []
-    );
-
-    removeDependencies.forEach((i) => {
-        delete dependencies[i];
-    });
-
-    // Update dependencies : add
-    let addDependencies = op.get(
-        reactiumConfig,
-        'update.package.dependencies.add',
-        {}
-    );
-
-    Object.entries(addDependencies).forEach(([key, value]) => {
-        dependencies[key] = value;
-    });
-
-    // Update dependencies object
-    pkg['dependencies'] = dependencies;
 
     // Remove babel config
     delete pkg.babel;
 
-
     // Write the new package.json file.
-    let pkgCont = prettier.format(
-        JSON.stringify(pkg),
-        { parser: 'json-stringify' }
-    );
+    let pkgCont = prettier.format(JSON.stringify(pkg), {
+        parser: 'json-stringify',
+    });
 
     return pkgCont;
 };
