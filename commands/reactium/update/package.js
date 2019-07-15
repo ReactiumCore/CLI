@@ -2,20 +2,20 @@ const path = require('path');
 const prettier = require('prettier');
 const op = require('object-path');
 
-module.exports = (props, reactiumConfigFile) => {
+module.exports = (props, updatePath) => {
+    const updatePackageJson = path.normalize(`${updatePath}/package.json`);
+    const reactiumConfigFile = path.normalize(`${updatePath}/.core/reactium-config.js`);
     const { cwd } = props;
-
-    reactiumConfigFile =
-        reactiumConfigFile || path.normalize(`${cwd}/.core/reactium-config`);
-
     const packageFile = path.normalize(`${cwd}/package.json`);
 
-    let pkg, reactiumConfig;
+    let pkg, reactiumConfig, updatePackage;
 
     // Get the .core/reactium-config.js file;
     try {
+        updatePackage = require(updatePackageJson);
         reactiumConfig = require(reactiumConfigFile);
     } catch (err) {
+        updatePackage = {};
         reactiumConfig = {};
     }
 
@@ -55,16 +55,16 @@ module.exports = (props, reactiumConfigFile) => {
     // Update dependencies objects
     ['dependencies', 'devDependencies'].forEach(depType => {
         const existingDeps = op.get(pkg, depType, {});
+        const addDeps = op.get(
+            updatePackage,
+            depType,
+            {},
+        );
         const removeDeps = op.get(
             reactiumConfig,
             ['update', 'package', depType, 'remove'],
             [],
-        );
-        const addDeps = op.get(
-            reactiumConfig,
-            ['update', 'package', depType, 'add'],
-            {},
-        );
+        ).concat(Object.keys(addDeps));
 
         pkg[depType] = Object.entries(existingDeps)
             .filter(([name]) => !removeDeps.find(remove => remove === name))

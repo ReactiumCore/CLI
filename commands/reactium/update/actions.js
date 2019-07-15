@@ -155,7 +155,7 @@ module.exports = spinner => {
             const { cwd } = props;
             const newPackage = pkg(
                 props,
-                path.normalize(`${cwd}/tmp/update/.core/reactium-config.js`),
+                path.normalize(`${cwd}/tmp/update/`),
             );
 
             message('updating package.json...');
