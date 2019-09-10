@@ -1,11 +1,11 @@
-const fs         = require('fs-extra');
-const path       = require('path');
-const op         = require('object-path');
-const request    = require('request');
+const path = require('path');
+const fs = require('fs-extra');
+const op = require('object-path');
+const request = require('request');
 const decompress = require('decompress');
 
-module.exports = (spinner) => {
-    const message = (text) => {
+module.exports = spinner => {
+    const message = text => {
         if (spinner) {
             spinner.text = text;
         }
@@ -17,15 +17,19 @@ module.exports = (spinner) => {
 
             message('downloading payload, this may take awhile...');
 
-            // Create the tmp directory if it doesn't exist.
+            // Create the tmp directory.
             fs.ensureDirSync(path.normalize(`${cwd}/tmp`));
 
             // Download the most recent version of actinium
             return new Promise((resolve, reject) => {
                 request(config.actinium.repo)
-                .pipe(fs.createWriteStream(path.normalize(`${cwd}/tmp/actinium.zip`)))
-                .on('error', error => reject(error))
-                .on('close', () => resolve({ action, status: 200 }));
+                    .pipe(
+                        fs.createWriteStream(
+                            path.normalize(`${cwd}/tmp/actinium.zip`),
+                        ),
+                    )
+                    .on('error', error => reject(error))
+                    .on('close', () => resolve({ action, status: 200 }));
             });
         },
 
@@ -37,9 +41,9 @@ module.exports = (spinner) => {
             const zipFile = path.normalize(`${cwd}/tmp/actinium.zip`);
 
             return new Promise((resolve, reject) => {
-                decompress(zipFile, cwd, {strip: 1})
-                .then(() => resolve({ action, status: 200 }))
-                .catch(error => reject(error));
+                decompress(zipFile, cwd, { strip: 1 })
+                    .then(() => resolve({ action, status: 200 }))
+                    .catch(error => reject(error));
             });
         },
 

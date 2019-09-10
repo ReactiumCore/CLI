@@ -19,7 +19,7 @@ const { error, message } = require(`${mod}/lib/messenger`);
  * @see https://www.npmjs.com/package/commander#command-specific-options
  * @since 2.0.0
  */
-const NAME = 'empty';
+const NAME = 'reactium <empty>';
 
 
 /**
@@ -29,7 +29,7 @@ const NAME = 'empty';
  * @see https://www.npmjs.com/package/commander#automated---help
  * @since 2.0.0
  */
-const DESC = 'Remove Reactium demo pages, components, and toolkit.';
+const DESC = 'Reactium: Remove demo pages, components, and toolkit.';
 
 
 /**
@@ -225,5 +225,5 @@ module.exports = {
     CONFIRM,
     CONFORM,
     COMMAND,
-    NAME,
+    ID: NAME,
 };

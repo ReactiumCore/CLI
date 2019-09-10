@@ -4,24 +4,22 @@
  * -----------------------------------------------------------------------------
  */
 
-const chalk              = require('chalk');
-const generator          = require('./generator');
-const prettier           = require('prettier');
-const path               = require('path');
-const op                 = require('object-path');
-const mod                = path.dirname(require.main.filename);
+const chalk = require('chalk');
+const generator = require('./generator');
+const prettier = require('prettier');
+const path = require('path');
+const op = require('object-path');
+const mod = path.dirname(require.main.filename);
 const { error, message } = require(`${mod}/lib/messenger`);
-
 
 /**
  * NAME String
  * @description Constant defined as the command name. Value passed to the commander.command() function.
- * @example $ arcli {{command}}
+ * @example $ arcli update
  * @see https://www.npmjs.com/package/commander#command-specific-options
  * @since 2.0.0
  */
-const NAME = '{{command}}';
-
+const NAME = 'actinium <update>';
 
 /**
  * DESC String
@@ -30,16 +28,14 @@ const NAME = '{{command}}';
  * @see https://www.npmjs.com/package/commander#automated---help
  * @since 2.0.0
  */
-const DESC = 'The description of the command';
-
+const DESC = 'Actinium: Update core';
 
 /**
  * CANCELED String
  * @description Message sent when the command is canceled
  * @since 2.0.0
  */
-const CANCELED = 'Action canceled!';
-
+const CANCELED = 'Actinium update canceled!';
 
 /**
  * confirm({ props:Object, params:Object }) Function
@@ -80,23 +76,22 @@ const CONFIRM = ({ props, params, msg }) => {
     });
 };
 
-
 /**
  * conform(input:Object) Function
  * @description Reduces the input object.
  * @param input Object The key value pairs to reduce.
  * @since 2.0.0
  */
-const CONFORM = ({ input, props }) => Object.keys(input).reduce((obj, key) => {
-    let val = input[key];
-    switch(key) {
-        default:
-            obj[key] = val;
-            break;
-    }
-    return obj;
-}, {});
-
+const CONFORM = ({ input, props }) =>
+    Object.keys(input).reduce((obj, key) => {
+        let val = input[key];
+        switch (key) {
+            default:
+                obj[key] = val;
+                break;
+        }
+        return obj;
+    }, {});
 
 /**
  * HELP Function
@@ -104,9 +99,10 @@ const CONFORM = ({ input, props }) => Object.keys(input).reduce((obj, key) => {
  * @see https://www.npmjs.com/package/commander#automated---help
  * @since 2.0.0
  */
-const HELP = () => console.log(`
+const HELP = () =>
+    console.log(`
 Example:
-  $ arcli {{command}} -h
+  $ arcli update -h
 `);
 
 /**
@@ -114,7 +110,7 @@ Example:
  * @description Array of flags passed from the commander options.
  * @since 2.0.18
  */
-const FLAGS = ['sample', 'overwrite'];
+const FLAGS = ['overwrite'];
 
 /**
  * FLAGS_TO_PARAMS Function
@@ -134,41 +130,25 @@ const FLAGS_TO_PARAMS = ({ opt = {} }) =>
     }, {});
 
 /**
- * PREFLIGHT Function
- */
-const PREFLIGHT = ({ msg, params, props }) => {
-    msg = msg || 'Preflight checklist:';
-
-    message(msg);
-
-    // Transform the preflight object instead of the params object
-    const preflight = { ...params };
-
-    console.log(
-        prettier.format(JSON.stringify(preflight), {
-            parser: 'json-stringify',
-        }),
-    );
-};
-
-/**
  * SCHEMA Function
  * @description used to describe the input for the prompt function.
  * @see https://www.npmjs.com/package/prompt
  * @since 2.0.0
  */
-const SCHEMA = ({ props }) => {
+const SCHEMA = () => {
     return {
         properties: {
-            sample: {
-                description: chalk.white('Sample:'),
-                required: true,
-                default: true,
+            overwrite: {
+                description: `${chalk.white(
+                    'Are you sure you want to update?',
+                )} ${chalk.cyan('(Y/N):')}`,
+                before: val => {
+                    return String(val).toLowerCase() === 'y';
+                },
             },
-        }
-    }
+        },
+    };
 };
-
 
 /**
  * ACTION Function
@@ -199,14 +179,9 @@ const ACTION = ({ opt, props }) => {
             input = { ...ovr, ...input };
             const params = CONFORM({ input, props });
 
-            PREFLIGHT({ params, props });
-
-            resolve();
+            resolve(params);
         });
     })
-        .then(params => {
-            return CONFIRM({ props, params });
-        })
         .then(params => {
             console.log('');
             return generator({ params, props });
@@ -220,24 +195,17 @@ const ACTION = ({ opt, props }) => {
         });
 };
 
-
 /**
  * COMMAND Function
  * @description Function that executes program.command()
  */
-const COMMAND = ({ program, props }) => program.command(NAME)
-    .description(DESC)
-    .action(opt => ACTION({ opt, props }))
-    .option(
-        '-s, --sample [sample]',
-        'Sample parameter.'
-    )
-    .option(
-        '-o, --overwrite [overwrite]',
-        'Overwrite existing file.',
-    )
-    .on('--help', HELP);
-
+const COMMAND = ({ program, props }) =>
+    program
+        .command(NAME)
+        .description(DESC)
+        .action(opt => ACTION({ opt, props }))
+        .option('-o, --overwrite [overwrite]', 'Overwrite existing files.')
+        .on('--help', HELP);
 
 /**
  * Module Constructor
@@ -248,5 +216,5 @@ const COMMAND = ({ program, props }) => program.command(NAME)
  */
 module.exports = {
     COMMAND,
-    NAME,
+    ID: NAME,
 };

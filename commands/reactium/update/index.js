@@ -106,7 +106,6 @@ const CONFIRM = ({ props, params }) => {
 const HELP = () => {
     console.log('');
     console.log('Beware:');
-    console.log('');
     console.log('  Update will overwrite existing ~/.core files and possibly alter the ~/package.json');
     console.log('');
 };
@@ -193,7 +192,7 @@ const COMMAND = ({ program, props }) => program.command(NAME)
     .description(DESC)
     .action((action, opt) => ACTION({ action, opt, props }))
     .option('-o, --overwrite [overwrite]', 'Overwrite the current directory.')
-    .option('-e, --empty [empty]', 'Install/Update without demo site and components.')
+    .option('-e, --empty [empty]', 'Update without demo site and components.')
     .option('-c, --core [core]', 'Update the Reactium core only.')
     .on('--help', HELP);
 
@@ -210,5 +209,5 @@ module.exports = {
     CONFIRM,
     CONFORM,
     COMMAND,
-    NAME,
+    ID: NAME,
 };

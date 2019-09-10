@@ -1,7 +1,7 @@
 const ora = require('ora');
 const ActionSequence = require('action-sequence');
 
-module.exports = ({ action, params, props }) => {
+module.exports = ({ params, props }) => {
     const spinner = ora({
         spinner: 'dots',
         color: 'cyan',
@@ -21,6 +21,7 @@ module.exports = ({ action, params, props }) => {
         })
         .catch(error => {
             spinner.fail('error!');
+            console.log(error);
             return error;
         });
 };

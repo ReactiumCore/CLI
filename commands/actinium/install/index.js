@@ -219,5 +219,5 @@ module.exports = {
     CONFIRM,
     CONFORM,
     COMMAND,
-    NAME,
+    ID: NAME,
 };

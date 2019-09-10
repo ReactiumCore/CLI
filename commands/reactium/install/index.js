@@ -30,7 +30,7 @@ const NAME = 'reactium <install>';
  * @see https://www.npmjs.com/package/commander#automated---help
  * @since 2.0.0
  */
-const DESC = 'Reactium: Download and install.';
+const DESC = 'Reactium: Install from master branch.';
 
 
 /**
@@ -209,8 +209,7 @@ const COMMAND = ({ program, props }) => {
         .description(DESC)
         .action((action, opt) => ACTION({ action, opt, props }))
         .option('-o, --overwrite [overwrite]', 'Overwrite the current directory.')
-        .option('-e, --empty [empty]', 'Install/Update without demo site and components.')
-        .option('-c, --core [core]', 'Update the Reactium core only.')
+        .option('-e, --empty [empty]', 'Install without demo site and components.')
         .on('--help', HELP);
 };
 
@@ -227,5 +226,5 @@ module.exports = {
     CONFIRM,
     CONFORM,
     COMMAND,
-    NAME,
+    ID: NAME,
 };

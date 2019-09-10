@@ -6,7 +6,6 @@ const decompress = require('decompress');
 const zip = require('folder-zipper');
 const pkg = require('./package');
 const semver = require('semver');
-const homedir = require('os').homedir();
 
 module.exports = spinner => {
     const message = text => {

@@ -6,17 +6,17 @@ module.exports = (props, updatePath) => {
     const { cwd } = props;
     const packageFile = path.normalize(`${cwd}/package.json`);
     const updatePackageJson = path.normalize(`${updatePath}/package.json`);
-    const reactiumConfigFile = path.normalize(`${updatePath}/.core/reactium-config.js`);
+    const actiniumConfigFile = path.normalize(`${updatePath}/.core/actinium-config.js`);
 
-    let pkg, reactiumConfig, updatePackage;
+    let pkg, actiniumConfig, updatePackage;
 
-    // Get the .core/reactium-config.js file;
+    // Get the .core/actinium-config.js file;
     try {
         updatePackage = require(updatePackageJson);
-        reactiumConfig = require(reactiumConfigFile);
+        actiniumConfig = require(actiniumConfigFile);
     } catch (err) {
         updatePackage = {};
-        reactiumConfig = {};
+        actiniumConfig = {};
     }
 
     // Get the cwd package.json
@@ -31,7 +31,7 @@ module.exports = (props, updatePath) => {
 
     // Update scripts : remove
     let removeScripts = op.get(
-        reactiumConfig,
+        actiniumConfig,
         'update.package.scripts.remove',
         [],
     );
@@ -40,7 +40,7 @@ module.exports = (props, updatePath) => {
     });
 
     // Update scripts : add
-    let addScripts = op.get(reactiumConfig, 'update.package.scripts.add', {});
+    let addScripts = op.get(actiniumConfig, 'update.package.scripts.add', {});
 
     Object.entries(addScripts).forEach(([key, value]) => {
         scripts[key] = value;
@@ -58,7 +58,7 @@ module.exports = (props, updatePath) => {
             {},
         );
         const removeDeps = op.get(
-            reactiumConfig,
+            actiniumConfig,
             ['update', 'package', depType, 'remove'],
             [],
         ).concat(Object.keys(addDeps));
@@ -73,13 +73,10 @@ module.exports = (props, updatePath) => {
             }, {});
     });
 
-    // Remove babel config
-    delete pkg.babel;
-
     // Write the new package.json file.
     let pkgCont = prettier.format(JSON.stringify(pkg), {
         parser: 'json-stringify',
     });
-
+    
     return pkgCont;
 };

@@ -36,10 +36,9 @@ if (fs.existsSync(localConfigFile)) {
     props.config = Object.assign(props.config, localConfig);
 } else {
     // Create the localized config if it doesn't exist
-    const contents = prettier.format(
-        JSON.stringify(props.config),
-        {parser: 'json-stringify'}
-    );
+    const contents = prettier.format(JSON.stringify(props.config), {
+        parser: 'json-stringify',
+    });
 
     fs.ensureFileSync(localConfigFile);
     fs.writeFileSync(localConfigFile, contents);
@@ -55,6 +54,8 @@ if (fs.existsSync(projConfigFile)) {
 const lastCheck = op.get(props.config, 'updated', Date.now());
 
 function initialize() {
+    console.log('');
+
     // Configure prompt
     prompt.message = chalk[config.prompt.prefixColor](config.prompt.prefix);
     prompt.delimiter = config.prompt.delimiter;
@@ -79,16 +80,35 @@ function initialize() {
      * 3. Project  : ~/PROJECT/.cli/commands       -> overwrites CLI Root & Core.
      */
     const commands = {};
+    const subcommands = {};
+
     globby(globs).forEach(cmd => {
         const req = require(cmd);
-        if (
-            op.has(req, 'NAME') &&
-            op.has(req, 'COMMAND') &&
-            typeof req.COMMAND === 'function'
-        ) {
-            commands[req.NAME] = req;
+        if (op.has(req, 'COMMAND') && typeof req.COMMAND === 'function') {
+            if (op.has(req, 'NAME')) {
+                commands[req.NAME] = req;
+            } else {
+                if (op.has(req, 'ID')) {
+                    let { ID } = req;
+                    ID = String(ID)
+                        .split('<')
+                        .join('')
+                        .split('>')
+                        .join('')
+                        .split(' ').join('.');
+
+                    op.set(subcommands, ID, req);
+                }
+            }
         }
     });
+
+    props.args = process.argv.filter(item => {
+        return String(item).substr(0, 1) !== '-';
+    });
+
+    props.commands = commands;
+    props.subcommands = subcommands;
 
     // Apply commands
     Object.values(commands).forEach(req => req.COMMAND({ program, props }));
@@ -142,10 +162,9 @@ if (lastUpdateCheck > 1) {
         })
         .then(() => {
             props.config.checked = Date.now();
-            const contents = prettier.format(
-                JSON.stringify(props.config),
-                {parser: 'json-stringify'}
-            );
+            const contents = prettier.format(JSON.stringify(props.config), {
+                parser: 'json-stringify',
+            });
 
             fs.ensureFileSync(localConfigFile);
             fs.writeFileSync(localConfigFile, contents);
