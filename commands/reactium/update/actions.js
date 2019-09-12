@@ -54,47 +54,6 @@ module.exports = spinner => {
             });
         },
 
-        backup: ({ params, props, action }) => {
-            const { cwd } = props;
-
-            message('backing up core...');
-
-            const now = Date.now();
-            const coreDir = path.normalize(`${cwd}/.core`);
-            const packageFile = path.normalize(`${cwd}/package.json`);
-            const backupDir = path.normalize(
-                path.join(
-                    homedir,
-                    '.arcli',
-                    path.basename(cwd),
-                    '.BACKUP',
-                    'update',
-                ),
-            );
-            const gulpFile = path.normalize(`${cwd}/gulpfile.js`);
-            const coreBackup = path.normalize(`${backupDir}/${now}.core.zip`);
-            const packageBackup = path.normalize(
-                `${backupDir}/${now}.package.json`,
-            );
-            const gulpBackup = path.normalize(
-                `${backupDir}/${now}.gulpfile.js`,
-            );
-
-            // Create the backup directory
-            fs.ensureDirSync(backupDir);
-
-            // Backup the package.json file
-            fs.copySync(packageFile, packageBackup);
-
-            // Backup the gulpfile.js
-            fs.copySync(gulpFile, gulpBackup);
-
-            // Backup the ~/.core directory
-            return zip(coreDir, coreBackup).then(() => {
-                return { action, status: 200 };
-            });
-        },
-
         core: ({ params, props, action }) => {
             const { cwd } = props;
 
