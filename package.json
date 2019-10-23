@@ -1,6 +1,6 @@
 {
   "name": "atomic-reactor-cli",
-  "version": "2.1.12",
+  "version": "2.1.13",
   "description": "A CLI for creating Atomic Reactor Awesomeness",
   "main": "arcli.js",
   "scripts": {
