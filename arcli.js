@@ -95,7 +95,8 @@ function initialize() {
                         .join('')
                         .split('>')
                         .join('')
-                        .split(' ').join('.');
+                        .split(' ')
+                        .join('.');
 
                     op.set(subcommands, ID, req);
                 }
@@ -141,7 +142,8 @@ function initialize() {
     }
 }
 
-const lastUpdateCheck = moment().diff(moment(lastCheck), 'days');
+const lastUpdateCheck = moment().diff(moment(new Date(lastCheck)), 'days');
+
 if (lastUpdateCheck > 1) {
     axios
         .get(
@@ -162,6 +164,7 @@ if (lastUpdateCheck > 1) {
         })
         .then(() => {
             props.config.checked = Date.now();
+            props.config.updated = Date.now();
             const contents = prettier.format(JSON.stringify(props.config), {
                 parser: 'json-stringify',
             });
