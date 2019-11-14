@@ -213,8 +213,6 @@ const COMMAND = ({ program, props }) => program.command(NAME)
  * @since 2.0.0
  */
 const ACTION = ({ opt, props }) => {
-    console.log('');
-
     const { config, prompt, root } = props;
 
     const ovr = {};
@@ -260,7 +258,9 @@ const ACTION = ({ opt, props }) => {
                 prompt.stop();
                 message(CANCELED);
             }
-        }).catch(() => {
+        })
+        .then(() => prompt.stop())
+        .catch(() => {
             prompt.stop();
             message(CANCELED);
         });

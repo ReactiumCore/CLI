@@ -4,14 +4,13 @@
  * -----------------------------------------------------------------------------
  */
 
-const fs                 = require('fs-extra');
-const path               = require('path');
-const chalk              = require('chalk');
-const generator          = require('./generator');
-const op                 = require('object-path');
-const mod                = path.dirname(require.main.filename);
+const fs = require('fs-extra');
+const path = require('path');
+const chalk = require('chalk');
+const generator = require('./generator');
+const op = require('object-path');
+const mod = path.dirname(require.main.filename);
 const { error, message } = require(`${mod}/lib/messenger`);
-
 
 /**
  * NAME String
@@ -22,7 +21,6 @@ const { error, message } = require(`${mod}/lib/messenger`);
  */
 const NAME = 'reactium <install>';
 
-
 /**
  * DESC String
  * @description Constant defined as the command description. Value passed to
@@ -32,7 +30,6 @@ const NAME = 'reactium <install>';
  */
 const DESC = 'Reactium: Install from master branch.';
 
-
 /**
  * CANCELED String
  * @description Message sent when the command is canceled
@@ -40,15 +37,13 @@ const DESC = 'Reactium: Install from master branch.';
  */
 const CANCELED = 'Reactium install canceled!';
 
-
 /**
  * conform(input:Object) Function
  * @description Reduces the input object.
  * @param input Object The key value pairs to reduce.
  * @since 2.0.0
  */
-const CONFORM = (input) => {
-
+const CONFORM = input => {
     let output = {};
 
     Object.entries(input).forEach(([key, val]) => {
@@ -62,7 +57,6 @@ const CONFORM = (input) => {
     return output;
 };
 
-
 /**
  * confirm({ props:Object, params:Object }) Function
  * @description Prompts the user to confirm the operation
@@ -72,29 +66,33 @@ const CONFIRM = ({ props, params }) => {
     const { prompt } = props;
 
     return new Promise((resolve, reject) => {
-        prompt.get({
-            properties: {
-                confirmed: {
-                    description: `${chalk.white('Proceed?')} ${chalk.cyan('(Y/N):')}`,
-                    type: 'string',
-                    required: true,
-                    pattern: /^y|n|Y|N/,
-                    before: (val) => {
-                        return (String(val).toLowerCase() === 'y');
-                    }
+        prompt.get(
+            {
+                properties: {
+                    confirmed: {
+                        description: `${chalk.white('Proceed?')} ${chalk.cyan(
+                            '(Y/N):',
+                        )}`,
+                        type: 'string',
+                        required: true,
+                        pattern: /^y|n|Y|N/,
+                        before: val => {
+                            return String(val).toLowerCase() === 'y';
+                        },
+                    },
+                },
+            },
+            (err, { confirmed }) => {
+                if (err || !confirmed) {
+                    reject();
+                } else {
+                    params['confirmed'] = confirmed;
+                    resolve(params);
                 }
-            }
-        }, (err, { confirmed }) => {
-            if (err || !confirmed) {
-                reject();
-            } else {
-                params['confirmed'] = confirmed;
-                resolve(params);
-            }
-        });
+            },
+        );
     });
 };
-
 
 /**
  * HELP Function
@@ -110,7 +108,6 @@ const HELP = () => {
     console.log('');
 };
 
-
 /**
  * SCHEMA Object
  * @description used to describe the input for the prompt function.
@@ -120,14 +117,15 @@ const HELP = () => {
 const SCHEMA = {
     properties: {
         overwrite: {
-            description: `${chalk.white('The current directory is not empty. Overwrite?')} ${chalk.cyan('(Y/N):')}`,
-            before: (val) => {
-                return (String(val).toLowerCase() === 'y');
-            }
-        }
-    }
+            description: `${chalk.white(
+                'The current directory is not empty. Overwrite?',
+            )} ${chalk.cyan('(Y/N):')}`,
+            before: val => {
+                return String(val).toLowerCase() === 'y';
+            },
+        },
+    },
 };
-
 
 /**
  * ACTION Function
@@ -138,9 +136,9 @@ const SCHEMA = {
  * @since 2.0.0
  */
 const ACTION = ({ action, opt, props }) => {
-    if (action !== 'install') { return; }
-
-    console.log('');
+    if (action !== 'install') {
+        return;
+    }
 
     const { cwd, prompt } = props;
 
@@ -152,8 +150,10 @@ const ACTION = ({ action, opt, props }) => {
     }
 
     const ovr = {};
-    Object.keys(SCHEMA.properties).forEach((key) => {
-        if (opt[key]) { ovr[key] = opt[key]; }
+    Object.keys(SCHEMA.properties).forEach(key => {
+        if (opt[key]) {
+            ovr[key] = opt[key];
+        }
     });
 
     const empty = op.get(opt, 'empty');
@@ -179,40 +179,56 @@ const ACTION = ({ action, opt, props }) => {
             return;
         }
 
-        message(`Reactium will be installed in the current directory: ${chalk.cyan(cwd)}`);
+        message(
+            `Reactium will be installed in the current directory: ${chalk.cyan(
+                cwd,
+            )}`,
+        );
 
-        CONFIRM({ props, params }).then(params => {
-            const { confirmed } = params;
-            if (confirmed) {
-                console.log('');
-                generator({ params, props }).then(success => {
-                    message(`Run: ${chalk.cyan('$ npm install && npm run local')} to launch the development environment`);
-                });
-            } else {
+        CONFIRM({ props, params })
+            .then(params => {
+                const { confirmed } = params;
+                if (confirmed) {
+                    console.log('');
+                    generator({ params, props }).then(success => {
+                        message(
+                            `Run: ${chalk.cyan(
+                                '$ npm install && npm run local',
+                            )} to launch the development environment`,
+                        );
+                    });
+                } else {
+                    prompt.stop();
+                    message(CANCELED);
+                }
+            })
+            .then(() => prompt.stop())
+            .catch(() => {
                 prompt.stop();
                 message(CANCELED);
-            }
-        }).catch(() => {
-            prompt.stop();
-            message(CANCELED);
-        });
+            });
     });
 };
-
 
 /**
  * COMMAND Function
  * @description Function that executes program.command()
  */
 const COMMAND = ({ program, props }) => {
-    return program.command(NAME)
+    return program
+        .command(NAME)
         .description(DESC)
         .action((action, opt) => ACTION({ action, opt, props }))
-        .option('-o, --overwrite [overwrite]', 'Overwrite the current directory.')
-        .option('-e, --empty [empty]', 'Install without demo site and components.')
+        .option(
+            '-o, --overwrite [overwrite]',
+            'Overwrite the current directory.',
+        )
+        .option(
+            '-e, --empty [empty]',
+            'Install without demo site and components.',
+        )
         .on('--help', HELP);
 };
-
 
 /**
  * Module Constructor

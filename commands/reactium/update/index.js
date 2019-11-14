@@ -140,8 +140,6 @@ const SCHEMA = {
 const ACTION = ({ action, opt, props }) => {
     if (action !== 'update') { return; }
 
-    console.log('');
-
     const { cwd, prompt } = props;
 
     const ovr = {};
@@ -178,6 +176,7 @@ const ACTION = ({ action, opt, props }) => {
         console.log('');
 
         generator({ params, props }).then(success => {
+            prompt.stop();
             message(`Run: ${chalk.cyan('$ npm install')} before launching the development environment.`);
         });
     });

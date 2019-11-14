@@ -14,10 +14,7 @@ module.exports = (spinner) => {
 
     return {
         create: ({ action, params, props }) => {
-
             message(`Creating ${chalk.cyan('something')}...`);
-
-            return Promise.resolve({ action, status: 200 });
         },
     };
 };

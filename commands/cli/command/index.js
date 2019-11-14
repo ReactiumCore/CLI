@@ -286,6 +286,7 @@ const ACTION = ({ opt, props }) => {
           console.log("");
         });
       })
+      .then(() => prompt.stop())
       .catch(err => {
         prompt.stop();
         message(CANCELED);

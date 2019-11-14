@@ -4,13 +4,12 @@
  * -----------------------------------------------------------------------------
  */
 
-const fs                 = require('fs-extra');
-const path               = require('path');
-const chalk              = require('chalk');
-const generator          = require('./generator');
-const mod                = path.dirname(require.main.filename);
+const fs = require('fs-extra');
+const path = require('path');
+const chalk = require('chalk');
+const generator = require('./generator');
+const mod = path.dirname(require.main.filename);
 const { error, message } = require(`${mod}/lib/messenger`);
-
 
 /**
  * NAME String
@@ -21,7 +20,6 @@ const { error, message } = require(`${mod}/lib/messenger`);
  */
 const NAME = 'actinium <install>';
 
-
 /**
  * DESC String
  * @description Constant defined as the command description. Value passed to
@@ -31,7 +29,6 @@ const NAME = 'actinium <install>';
  */
 const DESC = 'Actinium: Download and install.';
 
-
 /**
  * CANCELED String
  * @description Message sent when the command is canceled
@@ -39,15 +36,13 @@ const DESC = 'Actinium: Download and install.';
  */
 const CANCELED = 'Actinium install canceled!';
 
-
 /**
  * conform(input:Object) Function
  * @description Reduces the input object.
  * @param input Object The key value pairs to reduce.
  * @since 2.0.0
  */
-const CONFORM = (input) => {
-
+const CONFORM = input => {
     let output = {};
 
     Object.entries(input).forEach(([key, val]) => {
@@ -61,7 +56,6 @@ const CONFORM = (input) => {
     return output;
 };
 
-
 /**
  * confirm({ props:Object, params:Object }) Function
  * @description Prompts the user to confirm the operation
@@ -71,28 +65,32 @@ const CONFIRM = ({ props, params }) => {
     const { prompt } = props;
 
     return new Promise((resolve, reject) => {
-        prompt.get({
-            properties: {
-                confirmed: {
-                    description: `${chalk.white('Proceed?')} ${chalk.cyan('(Y/N):')}`,
-                    type: 'string',
-                    required: true,
-                    pattern: /^y|n|Y|N/,
-                    before: (val) => {
-                        return (String(val).toLowerCase() === 'y');
-                    }
+        prompt.get(
+            {
+                properties: {
+                    confirmed: {
+                        description: `${chalk.white('Proceed?')} ${chalk.cyan(
+                            '(Y/N):',
+                        )}`,
+                        type: 'string',
+                        required: true,
+                        pattern: /^y|n|Y|N/,
+                        before: val => {
+                            return String(val).toLowerCase() === 'y';
+                        },
+                    },
+                },
+            },
+            (err, { confirmed }) => {
+                if (err || !confirmed) {
+                    reject();
+                } else {
+                    resolve(confirmed);
                 }
-            }
-        }, (err, { confirmed }) => {
-            if (err || !confirmed) {
-                reject();
-            } else {
-                resolve(confirmed);
-            }
-        });
+            },
+        );
     });
 };
-
 
 /**
  * HELP Function
@@ -108,7 +106,6 @@ const HELP = () => {
     console.log('');
 };
 
-
 /**
  * SCHEMA Object
  * @description used to describe the input for the prompt function.
@@ -118,14 +115,15 @@ const HELP = () => {
 const SCHEMA = {
     properties: {
         overwrite: {
-            description: `${chalk.white('The current directory is not empty. Overwrite?')} ${chalk.cyan('(Y/N):')}`,
-            before: (val) => {
-                return (String(val).toLowerCase() === 'y');
-            }
-        }
-    }
+            description: `${chalk.white(
+                'The current directory is not empty. Overwrite?',
+            )} ${chalk.cyan('(Y/N):')}`,
+            before: val => {
+                return String(val).toLowerCase() === 'y';
+            },
+        },
+    },
 };
-
 
 /**
  * ACTION Function
@@ -136,8 +134,6 @@ const SCHEMA = {
  * @since 2.0.0
  */
 const ACTION = ({ opt, props }) => {
-    console.log('');
-
     const { cwd, prompt } = props;
 
     // Check the cwd and see if it's empty
@@ -148,8 +144,10 @@ const ACTION = ({ opt, props }) => {
     }
 
     const ovr = {};
-    Object.keys(SCHEMA.properties).forEach((key) => {
-        if (opt[key]) { ovr[key] = opt[key]; }
+    Object.keys(SCHEMA.properties).forEach(key => {
+        if (opt[key]) {
+            ovr[key] = opt[key];
+        }
     });
 
     prompt.override = ovr;
@@ -175,37 +173,46 @@ const ACTION = ({ opt, props }) => {
 
         message(`Actinium will be installed in the current directory: ${cwd}`);
 
-        CONFIRM({ props, params }).then(confirmed => {
-            if (confirmed) {
-                params['confirm'] = confirmed;
-                console.log('');
-                generator({ params, props }).then(success => {
-                    message(`Run: ${chalk.cyan('$ npm install && npm run local')} to launch the development environment`);
-                });
-            } else {
+        CONFIRM({ props, params })
+            .then(confirmed => {
+                if (confirmed) {
+                    params['confirm'] = confirmed;
+                    console.log('');
+                    generator({ params, props }).then(success => {
+                        message(
+                            `Run: ${chalk.cyan(
+                                '$ npm install && npm run local',
+                            )} to launch the development environment`,
+                        );
+                    });
+                } else {
+                    prompt.stop();
+                    message(CANCELED);
+                }
+            })
+            .them(() => prompt.stop())
+            .catch(() => {
                 prompt.stop();
                 message(CANCELED);
-            }
-        }).catch(() => {
-            prompt.stop();
-            message(CANCELED);
-        });
+            });
     });
 };
-
 
 /**
  * COMMAND Function
  * @description Function that executes program.command()
  */
 const COMMAND = ({ program, props }) => {
-    return program.command(NAME)
+    return program
+        .command(NAME)
         .description(DESC)
         .action((action, opt) => ACTION({ action, opt, props }))
-        .option('-o, --overwrite [overwrite]', 'Overwrite the current directory.')
+        .option(
+            '-o, --overwrite [overwrite]',
+            'Overwrite the current directory.',
+        )
         .on('--help', HELP);
 };
-
 
 /**
  * Module Constructor

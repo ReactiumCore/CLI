@@ -4,13 +4,12 @@
  * -----------------------------------------------------------------------------
  */
 
-const chalk              = require('chalk');
-const generator          = require('./generator');
-const prettier           = require('prettier');
-const path               = require('path');
-const mod                = path.dirname(require.main.filename);
+const chalk = require('chalk');
+const generator = require('./generator');
+const prettier = require('prettier');
+const path = require('path');
+const mod = path.dirname(require.main.filename);
 const { error, message } = require(`${mod}/lib/messenger`);
-
 
 /**
  * NAME String
@@ -21,7 +20,6 @@ const { error, message } = require(`${mod}/lib/messenger`);
  */
 const NAME = 'reactium <empty>';
 
-
 /**
  * DESC String
  * @description Constant defined as the command description. Value passed to
@@ -31,14 +29,12 @@ const NAME = 'reactium <empty>';
  */
 const DESC = 'Reactium: Remove demo pages, components, and toolkit.';
 
-
 /**
  * CANCELED String
  * @description Message sent when the command is canceled
  * @since 2.0.0
  */
 const CANCELED = 'Reactium empty canceled!';
-
 
 /**
  * confirm({ props:Object, params:Object }) Function
@@ -49,37 +45,41 @@ const CONFIRM = ({ props, params }) => {
     const { prompt } = props;
 
     return new Promise((resolve, reject) => {
-        prompt.get({
-            properties: {
-                confirmed: {
-                    description: `${chalk.white('This is a destructive operation. Are you sure?')} ${chalk.cyan('(Y/N):')}`,
-                    type: 'string',
-                    required: true,
-                    pattern: /^y|n|Y|N/,
-                    message: ` `,
-                    before: (val) => {
-                        return (String(val).toLowerCase() === 'y');
-                    }
+        prompt.get(
+            {
+                properties: {
+                    confirmed: {
+                        description: `${chalk.white(
+                            'This is a destructive operation. Are you sure?',
+                        )} ${chalk.cyan('(Y/N):')}`,
+                        type: 'string',
+                        required: true,
+                        pattern: /^y|n|Y|N/,
+                        message: ` `,
+                        before: val => {
+                            return String(val).toLowerCase() === 'y';
+                        },
+                    },
+                },
+            },
+            (error, input) => {
+                let confirmed;
+
+                try {
+                    confirmed = input.confirmed;
+                } catch (err) {
+                    confirmed = false;
                 }
-            }
-        }, (error, input) => {
-            let confirmed;
 
-            try {
-                confirmed = input.confirmed;
-            } catch (err) {
-                confirmed = false;
-            }
-
-            if (error || confirmed === false) {
-                reject(error);
-            } else {
-                resolve(confirmed);
-            }
-        });
+                if (error || confirmed === false) {
+                    reject(error);
+                } else {
+                    resolve(confirmed);
+                }
+            },
+        );
     });
 };
-
 
 /**
  * conform(input:Object) Function
@@ -93,7 +93,7 @@ const CONFORM = ({ input, props }) => {
     let output = {};
 
     Object.entries(input).forEach(([key, val]) => {
-        switch(key) {
+        switch (key) {
             default:
                 output[key] = val;
                 break;
@@ -102,7 +102,6 @@ const CONFORM = ({ input, props }) => {
 
     return output;
 };
-
 
 /**
  * HELP Function
@@ -122,7 +121,6 @@ const HELP = () => {
     console.log('');
 };
 
-
 /**
  * SCHEMA Function
  * @description used to describe the input for the prompt function.
@@ -139,10 +137,9 @@ const SCHEMA = ({ props }) => {
             //     required: true,
             //     default: true,
             // },
-        }
-    }
+        },
+    };
 };
-
 
 /**
  * ACTION Function
@@ -153,24 +150,21 @@ const SCHEMA = ({ props }) => {
  * @since 2.0.0
  */
 const ACTION = ({ opt, props }) => {
-    console.log('');
-
     const { cwd, prompt } = props;
 
     const schema = SCHEMA({ props });
 
-    const ovr = [
-        'demo',
-        'font',
-        'images',
-        'style',
-        'toolkit'
-    ].reduce((obj, key) => {
-        let val = opt[key];
-        val = (typeof val === 'function') ? null : val;
-        if (val) { obj[key] = val; }
-        return obj;
-    }, {});
+    const ovr = ['demo', 'font', 'images', 'style', 'toolkit'].reduce(
+        (obj, key) => {
+            let val = opt[key];
+            val = typeof val === 'function' ? null : val;
+            if (val) {
+                obj[key] = val;
+            }
+            return obj;
+        },
+        {},
+    );
 
     prompt.override = ovr;
     prompt.start();
@@ -185,33 +179,48 @@ const ACTION = ({ opt, props }) => {
 
         const params = { ...CONFORM({ input, props }), ...ovr };
 
-        CONFIRM({ props, params }).then(() => {
-            console.log('');
-            generator({ params, props }).then(success => {
+        CONFIRM({ props, params })
+            .then(() => {
                 console.log('');
+                generator({ params, props }).then(success => {
+                    console.log('');
+                });
+            })
+            .then(() => prompt.stop())
+            .catch(err => {
+                prompt.stop();
+                message(CANCELED);
             });
-        }).catch(err => {
-            prompt.stop();
-            message(CANCELED);
-        });
     });
 };
-
 
 /**
  * COMMAND Function
  * @description Function that executes program.command()
  */
-const COMMAND = ({ program, props }) => program.command(NAME)
-    .description(DESC)
-    .action(opt => ACTION({ opt, props }))
-    .option('-D, --no-demo [demo]', 'Keep the demo site and components.')
-    .option('-T, --no-toolkit [toolkit]', 'Keep the default toolkit elements.')
-    .option('-S, --no-style [style]', 'Do not empty the ~/src/assets/style/style.scss file.')
-    .option('-F, --no-font [font]', 'Do not empty the ~/src/assets/fonts directory.')
-    .option('-I, --no-images [images]', 'Do not empty the ~/src/assets/images directory.')
-    .on('--help', HELP);
-
+const COMMAND = ({ program, props }) =>
+    program
+        .command(NAME)
+        .description(DESC)
+        .action(opt => ACTION({ opt, props }))
+        .option('-D, --no-demo [demo]', 'Keep the demo site and components.')
+        .option(
+            '-T, --no-toolkit [toolkit]',
+            'Keep the default toolkit elements.',
+        )
+        .option(
+            '-S, --no-style [style]',
+            'Do not empty the ~/src/assets/style/style.scss file.',
+        )
+        .option(
+            '-F, --no-font [font]',
+            'Do not empty the ~/src/assets/fonts directory.',
+        )
+        .option(
+            '-I, --no-images [images]',
+            'Do not empty the ~/src/assets/images directory.',
+        )
+        .on('--help', HELP);
 
 /**
  * Module Constructor
