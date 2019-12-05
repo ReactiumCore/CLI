@@ -1,6 +1,9 @@
 
 
 # Atomic Reactor CLI
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/Atomic-Reactor/CLI.svg)](https://greenkeeper.io/)
+
 A CLI for creating Atomic Reactor Awesomeness!
 
 
