@@ -21,11 +21,11 @@ describe(`arcli config:set`, function (done) {
         op.set(params, 'newConfig.updated', Date.now());
         generator({ props, params })
         .then(success => {
-            expect(success).to.have.lengthOf(2);
+            expect(Object.values(success)).to.have.lengthOf(2);
             done();
         })
         .catch(errors => {
-            console.log(`\n    ${errors.join('\n    ')}\n`);
+            console.log(`\n    ${Object.values(errors).join('\n    ')}\n`);
             done();
         });
     });

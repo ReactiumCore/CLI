@@ -17,7 +17,7 @@ module.exports = spinner => {
 
             message('backing up config.json...');
 
-            const backupPath = path.normalize(path.join(homedir, '.arcli', path.basename(cwd), '.BACKUP'));
+            const backupPath = path.normalize(path.join(homedir, '.arcli/.BACKUP'));
 
             fs.ensureDirSync(backupPath);
 

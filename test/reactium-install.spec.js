@@ -20,7 +20,7 @@ describe(`arcli re:install -> ${props.cwd}`, function () {
 
     it ('All actions complete', () => {
         return generator({ props, params }).then(success => {
-            return expect(success).to.have.lengthOf.at.least(1);
+            return expect(Object.values(success)).to.have.lengthOf.at.least(1);
         });
     });
 });

@@ -21,6 +21,7 @@ module.exports = ({ params, props }) => {
         return success;
     }).catch((error) => {
         spinner.fail('Config set error!');
+        console.log(error);
         return error;
     });
 };

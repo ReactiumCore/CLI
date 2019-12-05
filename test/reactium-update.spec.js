@@ -26,7 +26,7 @@ describe(`arcli re:update -> ${props.cwd}`, function () {
         return generator({
             props, params
         }).then(success => {
-            return expect(success).to.have.lengthOf.at.least(1);
+            return expect(Object.values(success)).to.have.lengthOf.at.least(1);
         }).catch(error => console.log(error));
     });
 });
