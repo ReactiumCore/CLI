@@ -1,6 +1,6 @@
 {
   "name": "atomic-reactor-cli",
-  "version": "2.1.18",
+  "version": "2.1.19",
   "description": "A CLI for creating Atomic Reactor Awesomeness",
   "main": "arcli.js",
   "scripts": {
@@ -48,7 +48,7 @@
     "handlebars": "^4.5.3",
     "moment": "^2.24.0",
     "object-path": "^0.11.4",
-    "ora": "^4.0.3",
+    "ora": "^3.4.0",
     "prettier": "^1.19.1",
     "prompt": "^1.0.0",
     "request": "^2.88.0",

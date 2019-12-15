@@ -19,8 +19,6 @@ const semver = require('semver');
 const homedir = require('os').homedir();
 const prettier = require('prettier');
 
-console.log({homedir});
-
 // Build the props object
 const props = { cwd, root: __dirname, prompt, config };
 
