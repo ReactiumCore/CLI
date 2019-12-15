@@ -19,6 +19,8 @@ const semver = require('semver');
 const homedir = require('os').homedir();
 const prettier = require('prettier');
 
+console.log({homedir});
+
 // Build the props object
 const props = { cwd, root: __dirname, prompt, config };
 
@@ -67,9 +69,11 @@ function initialize() {
     // Find commands
     const dirs = config.commands || [];
     const globs = dirs.map(dir =>
-        String(`${dir}/**/*index.js`)
+        // globby only allows posix separators
+        path.normalize(String(`${dir}/**/*index.js`)
             .replace(/\[root\]/gi, props.root)
-            .replace(/\[cwd\]/gi, props.cwd),
+            .replace(/\[cwd\]/gi, props.cwd))
+            .split(/[\\\/]/g).join(path.posix.sep)
     );
 
     /**
