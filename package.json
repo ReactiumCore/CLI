@@ -1,6 +1,6 @@
 {
   "name": "atomic-reactor-cli",
-  "version": "2.1.20",
+  "version": "2.1.21",
   "description": "A CLI for creating Atomic Reactor Awesomeness",
   "main": "arcli.js",
   "scripts": {
@@ -33,6 +33,7 @@
     "cli"
   ],
   "dependencies": {
+    "@atomic-reactor/decompress": "^4.2.0",
     "action-sequence": "^1.1.1",
     "axios": "^0.19.2",
     "camelcase": "^5.3.1",
@@ -40,12 +41,11 @@
     "cli-spinners": "^2.2.0",
     "commander": "^4.0.1",
     "decamelize": "^3.2.0",
-    "@atomic-reactor/decompress": "^4.2.0",
     "folder-zipper": "^1.0.0",
     "fs-extra": "^8.1.0",
     "fs-readdir-recursive": "^1.1.0",
     "globby": "^10.0.1",
-    "handlebars": "^4.7.3",
+    "handlebars": "^4.7.6",
     "moment": "^2.24.0",
     "object-path": "^0.11.4",
     "ora": "^3.4.0",
