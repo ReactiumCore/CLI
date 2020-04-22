@@ -190,7 +190,11 @@ const ACTION = ({ opt, props }) => {
                     message(CANCELED);
                 }
             })
-            .them(() => prompt.stop())
+            .them(() => {
+                try {
+                    prompt.stop();
+                } catch (err) {}
+            })
             .catch(() => {
                 prompt.stop();
                 message(CANCELED);
