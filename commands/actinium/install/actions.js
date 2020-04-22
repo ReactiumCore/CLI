@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs-extra');
 const op = require('object-path');
 const request = require('request');
-const decompress = require('decompress');
+const decompress = require('@atomic-reactor/decompress');
 
 module.exports = spinner => {
     const message = text => {
