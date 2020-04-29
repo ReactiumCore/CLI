@@ -1,0 +1,213 @@
+/**
+ * -----------------------------------------------------------------------------
+ * Imports
+ * -----------------------------------------------------------------------------
+ */
+const path = require('path');
+const chalk = require('chalk');
+const op = require('object-path');
+const mod = path.dirname(require.main.filename);
+const { error, message } = require(`${mod}/lib/messenger`);
+
+const GENERATOR = require('./generator');
+
+/**
+ * NAME String
+ * @description Constant defined as the command name. Value passed to the commander.command() function.
+ * @example $ arcli publish
+ * @see https://www.npmjs.com/package/commander#command-specific-options
+ * @since 2.0.0
+ */
+const NAME = 'auth';
+
+/**
+ * DESC String
+ * @description Constant defined as the command description. Value passed to
+ * the commander.desc() function. This string is also used in the --help flag output.
+ * @see https://www.npmjs.com/package/commander#automated---help
+ * @since 2.0.0
+ */
+const DESC = 'Actinium authenticator';
+
+/**
+ * CANCELED String
+ * @description Message sent when the command is canceled
+ * @since 2.0.0
+ */
+const CANCELED = 'Auth canceled!';
+
+/**
+ * conform(input:Object) Function
+ * @description Reduces the input object.
+ * @param input Object The key value pairs to reduce.
+ * @since 2.0.0
+ */
+const CONFORM = ({ input, props }) =>
+    Object.keys(input).reduce((obj, key) => {
+        let val = input[key];
+        switch (key) {
+            default:
+                obj[key] = val;
+                break;
+        }
+        return obj;
+    }, {});
+
+/**
+ * HELP Function
+ * @description Function called in the commander.on('--help', callback) callback.
+ * @see https://www.npmjs.com/package/commander#automated---help
+ * @since 2.0.0
+ */
+const HELP = () =>
+    console.log(`
+Example:
+  $ arcli auth -u Bob -p MyP455VV0RD!
+`);
+
+/**
+ * FLAGS
+ * @description Array of flags passed from the commander options.
+ * @since 2.0.18
+ */
+const FLAGS = ['app', 'clear', 'username', 'password', 'server'];
+
+/**
+ * FLAGS_TO_PARAMS Function
+ * @description Create an object used by the prompt.override property.
+ * @since 2.0.18
+ */
+const FLAGS_TO_PARAMS = ({ opt = {} }) =>
+    FLAGS.reduce((obj, key) => {
+        let val = opt[key];
+        val = typeof val === 'function' ? undefined : val;
+
+        if (val) {
+            obj[key] = val;
+        }
+
+        return obj;
+    }, {});
+
+/**
+ * PREFLIGHT Function
+ */
+const PREFLIGHT = ({ msg, params, props }) => {
+    msg = msg || 'Preflight checklist:';
+
+    message(msg);
+
+    // Transform the preflight object instead of the params object
+    const preflight = { ...params };
+
+    console.log(
+        prettier.format(JSON.stringify(preflight), {
+            parser: 'json-stringify',
+        }),
+    );
+};
+
+/**
+ * SCHEMA Function
+ * @description used to describe the input for the prompt function.
+ * @see https://www.npmjs.com/package/prompt
+ * @since 2.0.0
+ */
+const SCHEMA = ({ params, props }) => {
+    let { clear, username, password } = params;
+
+    clear = clear || Boolean(username || password);    
+
+    const sessionToken = clear
+        ? undefined
+        : op.get(props, 'config.registry.sessionToken');
+
+    return {
+        properties: {
+            username: {
+                ask: () => !sessionToken,
+                description: chalk.white('Username:'),
+                required: true,
+            },
+            password: {
+                ask: () => !sessionToken,
+                description: chalk.white('Password:'),
+                hidden: true,
+                message: 'Password is a required parameter',
+                replace: '*',
+                required: true,
+            },
+        },
+    };
+};
+
+/**
+ * ACTION Function
+ * @description Function used as the commander.action() callback.
+ * @see https://www.npmjs.com/package/commander
+ * @param opt Object The commander options passed into the function.
+ * @param props Object The CLI props passed from the calling class `orcli.js`.
+ * @since 2.0.0
+ */
+const ACTION = ({ opt, props }) => {
+    const { cwd, prompt } = props;
+
+    const ovr = FLAGS_TO_PARAMS({ opt });
+
+    prompt.override = ovr;
+    prompt.start();
+
+    let params = { ...ovr };
+
+    const schema = SCHEMA({ params, props });
+
+    return new Promise((resolve, reject) => {
+        prompt.get(schema, (err, input = {}) => {
+            if (err) {
+                prompt.stop();
+                reject(`${NAME} ${err.message}`);
+                return;
+            }
+
+            input = { ...ovr, ...input };
+            params = CONFORM({ input, props });
+
+            resolve();
+        });
+    })
+        .then(() => GENERATOR({ params, props }))
+        .then(() => prompt.stop())
+        .then(() => console.log(''))
+        .catch(err => {
+            prompt.stop();
+            message(op.get(err, 'message', op.get(err, 'msg', CANCELED)));
+        });
+};
+
+/**
+ * COMMAND Function
+ * @description Function that executes program.command()
+ */
+const COMMAND = ({ program, props }) =>
+    program
+        .command(NAME)
+        .description(DESC)
+        .action(opt => ACTION({ opt, props }))
+        .option('-a, --app [app]', 'App ID')
+        .option('-c, --clear [clear]', 'Clear sessionToken')
+        .option('-u, --username [username]', 'Username')
+        .option('-p, --password [password]', 'Password')
+        .option('-s, --server [server]', 'Server URL')
+        .on('--help', HELP);
+
+/**
+ * Module Constructor
+ * @description Internal constructor of the module that is being exported.
+ * @param program Class Commander.program reference.
+ * @param props Object The CLI props passed from the calling class `arcli.js`.
+ * @since 2.0.0
+ */
+module.exports = {
+    COMMAND,
+    NAME,
+};
