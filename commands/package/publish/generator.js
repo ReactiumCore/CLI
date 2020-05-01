@@ -23,7 +23,6 @@ module.exports = ({ params, props }) => {
 
     return ActionSequence({ actions, options: { params, props } })
         .then(success => {
-            spinner.succeed('complete!');
             console.log('');
             return success;
         })

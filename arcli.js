@@ -2,6 +2,9 @@
 
 'use strict';
 
+// Globals
+global.Actinium = require('parse/node');
+
 // Imports
 const config = require(__dirname + '/config.json');
 const ver = require('./package').version;

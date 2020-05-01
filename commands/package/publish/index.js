@@ -4,10 +4,25 @@
  * -----------------------------------------------------------------------------
  */
 const path = require('path');
+const fs = require('fs-extra');
 const chalk = require('chalk');
+const semver = require('semver');
 const op = require('object-path');
 const mod = path.dirname(require.main.filename);
 const { error, message } = require(`${mod}/lib/messenger`);
+
+const getPackageVersion = (cwd, inc) => {
+    let val = '0.0.1';
+    const pkgFile = path.normalize(path.join(cwd, 'package.json'));
+
+    if (fs.existsSync(pkgFile)) {
+        const { version } = require(`${cwd}/package`);
+        val = version ? semver.coerce(version).version : val;
+    }
+
+    val = inc ? semver.inc(val, inc) : val;
+    return val;
+};
 
 const GENERATOR = require('./generator');
 
@@ -46,6 +61,13 @@ const CONFORM = ({ input, props }) =>
     Object.keys(input).reduce((obj, key) => {
         let val = input[key];
         switch (key) {
+            case 'version':
+                const incs = ['major', 'minor', 'patch'];
+                obj[key] = incs.includes(String(val).toLowerCase())
+                    ? semver.inc(getPackageVersion(props.cwd), val)
+                    : semver.coerce(val).version;
+                break;
+
             default:
                 obj[key] = val;
                 break;
@@ -61,6 +83,12 @@ const CONFORM = ({ input, props }) =>
  */
 const HELP = () =>
     console.log(`
+When specifying -v, --version with ${chalk.cyan('major')}, ${chalk.cyan(
+        'minor',
+    )}, or ${chalk.cyan('patch')}, the plugin ${chalk.bold(
+        'package.json',
+    )} ${chalk.cyan('version')} value will be incremented accordingly.
+
 Example:
   $ arcli publish
 `);
@@ -70,7 +98,7 @@ Example:
  * @description Array of flags passed from the commander options.
  * @since 2.0.18
  */
-const FLAGS = ['app', 'server'];
+const FLAGS = ['app', 'private', 'server', 'version'];
 
 /**
  * FLAGS_TO_PARAMS Function
@@ -88,24 +116,6 @@ const FLAGS_TO_PARAMS = ({ opt = {} }) =>
 
         return obj;
     }, {});
-
-/**
- * PREFLIGHT Function
- */
-const PREFLIGHT = ({ msg, params, props }) => {
-    msg = msg || 'Preflight checklist:';
-
-    message(msg);
-
-    // Transform the preflight object instead of the params object
-    const preflight = { ...params };
-
-    console.log(
-        prettier.format(JSON.stringify(preflight), {
-            parser: 'json-stringify',
-        }),
-    );
-};
 
 /**
  * SCHEMA Function
@@ -131,6 +141,21 @@ const SCHEMA = ({ props }) => {
                 replace: '*',
                 required: true,
             },
+            version: {
+                default: getPackageVersion(props.cwd, 'patch'),
+                description: chalk.white('Version:'),
+                message: 'Version is a required parameter',
+                required: true,
+            },
+            private: {
+                before: val => String(val).substr(0, 1).toUpperCase() === 'Y',
+                default: 'N',
+                description: `${chalk.white('Private')} ${chalk.cyan('(Y/N):')}`,
+                message: ' ',
+                pattern: /^y|n|Y|N/,
+                required: true,
+                type: 'string',
+            }
         },
     };
 };
@@ -186,7 +211,12 @@ const COMMAND = ({ program, props }) =>
         .description(DESC)
         .action(opt => ACTION({ opt, props }))
         .option('-a, --app [app]', 'App ID')
+        .option(
+            '-p, --private [private]',
+            'Make the plugin available to ACL targets only',
+        )
         .option('-s, --server [server]', 'Server URL')
+        .option('-v, --version [version]', 'Plugin semver. Defaults to 0.0.1')
         .on('--help', HELP);
 
 /**
