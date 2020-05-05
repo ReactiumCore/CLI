@@ -32,7 +32,7 @@
   },
   "registry": {
     "app": "Actinium",
-    "server": "http://localhost:9000/api"
+    "server": "https://v1.reactium.io/api"
   },
   "checked": 1540382853918,
   "updated": 1540382853918
