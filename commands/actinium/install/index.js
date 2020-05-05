@@ -190,7 +190,7 @@ const ACTION = ({ opt, props }) => {
                     message(CANCELED);
                 }
             })
-            .then(() =>  prompt.stop())
+            .then(() => prompt.stop())
             .catch(() => {
                 prompt.stop();
                 message(CANCELED);
@@ -202,17 +202,12 @@ const ACTION = ({ opt, props }) => {
  * COMMAND Function
  * @description Function that executes program.command()
  */
-const COMMAND = ({ program, props }) => {
-    return program
+const COMMAND = ({ program, props }) =>
+    program
         .command(NAME)
         .description(DESC)
         .action((action, opt) => ACTION({ action, opt, props }))
-        .option(
-            '-o, --overwrite [overwrite]',
-            'Overwrite the current directory.',
-        )
         .on('--help', HELP);
-};
 
 /**
  * Module Constructor

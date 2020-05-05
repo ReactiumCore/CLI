@@ -1,6 +1,6 @@
 {
   "name": "atomic-reactor-cli",
-  "version": "2.1.24",
+  "version": "2.1.25",
   "description": "A CLI for creating Atomic Reactor Awesomeness",
   "main": "arcli.js",
   "scripts": {
@@ -33,30 +33,31 @@
     "cli"
   ],
   "dependencies": {
-    "@atomic-reactor/decompress": "^4.2.0",
+    "@atomic-reactor/decompress": "^4.2.3",
     "action-sequence": "^1.1.1",
     "axios": "^0.19.2",
     "camelcase": "^5.3.1",
     "chalk": "^3.0.0",
-    "cli-spinners": "^2.2.0",
-    "commander": "^4.0.1",
+    "cli-spinners": "^2.3.0",
+    "commander": "^4.1.1",
     "decamelize": "^3.2.0",
     "folder-zipper": "^1.0.0",
     "fs-extra": "^8.1.0",
     "fs-readdir-recursive": "^1.1.0",
-    "globby": "^10.0.1",
+    "globby": "^10.0.2",
     "handlebars": "^4.7.6",
-    "moment": "^2.24.0",
+    "moment": "^2.25.3",
+    "npm": "^6.14.5",
     "object-path": "^0.11.4",
     "ora": "^3.4.0",
     "parse": "^2.13.0",
     "prettier": "^1.19.1",
     "prompt": "^1.0.0",
-    "request": "^2.88.0",
+    "request": "^2.88.2",
     "semver": "^6.3.0",
-    "slugify": "^1.3.6",
+    "slugify": "^1.4.0",
     "tar": "^6.0.2",
-    "underscore": "^1.9.2"
+    "underscore": "^1.10.2"
   },
   "devDependencies": {
     "chai": "^4.2.0",

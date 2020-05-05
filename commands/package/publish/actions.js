@@ -1,10 +1,12 @@
-const op = require('object-path');
-const crypto = require('crypto');
-const _ = require('underscore');
-const chalk = require('chalk');
-const fs = require('fs-extra');
-const path = require('path');
 const tar = require('tar');
+const path = require('path');
+const fs = require('fs-extra');
+const chalk = require('chalk');
+const _ = require('underscore');
+const crypto = require('crypto');
+const op = require('object-path');
+const mod = path.dirname(require.main.filename);
+const bytesToSize = require(`${mod}/lib/bytesToSize`);
 
 module.exports = spinner => {
     let bytes,
@@ -59,22 +61,12 @@ module.exports = spinner => {
             });
         });
 
-    const bytesToSize = bytes => {
-        const sizes = ['bytes', 'kb', 'mb', 'gb', 'tb'];
-        if (bytes === 0) return chalk.cyan('0 ') + chalk.cyan(sizes[0]);
-        const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
-        return (
-            chalk.cyan(Math.round(bytes / Math.pow(1024, i), 2)) +
-            ' ' +
-            chalk.cyan(sizes[i])
-        );
-    };
-
     return {
         init: ({ props }) => {
             cwd = String(props.cwd)
                 .split('\\')
                 .join('/');
+
             pkgFile = path.normalize(`${cwd}/package.json`);
             prompt = props.prompt;
             sessionToken = op.get(props, 'config.registry.sessionToken');
@@ -162,15 +154,10 @@ module.exports = spinner => {
             // Write new package.json
             pkg.version = params.version;
 
-            let pname = String(pkg.name)
+            const pname = String(pkg.name)
                 .toLowerCase()
                 .replace(/\s\s+/g, ' ')
-                .replace(/ /g, '-')
-                .replace(/[^0-9a-z@\-\/]/gi, '');
-
-            pname = pname.startsWith('@reactium-module/')
-                ? pname
-                : `@reactium-module/${pname}`;
+                .replace(/[^0-9a-z@\-\/]/gi, '-');
 
             op.set(pkg, 'name', pname);
             fs.writeFileSync(pkgFile, JSON.stringify(pkg, null, 2));
@@ -232,7 +219,13 @@ module.exports = spinner => {
 
             const { size } = fs.statSync(filepath);
 
-            console.log(chalk.cyan('+'), 'compressed', bytesToSize(bytes), '→', bytesToSize(size));
+            console.log(
+                chalk.cyan('+'),
+                'compressed',
+                bytesToSize(bytes),
+                '→',
+                bytesToSize(size),
+            );
             console.log('');
             spinner.start();
         },
@@ -247,16 +240,22 @@ module.exports = spinner => {
                 .digest('hex');
 
             message(`uploading ${chalk.cyan(filename)}...`);
-            filedata = Array.from(filedata);
-            const file = await new Actinium.File(`reactium-module.${checksum}.tgz`, filedata).save();
+
+            const filedataArray = Array.from(filedata);
+
+            const file = await new Actinium.File(
+                `${checksum}.tgz`,
+                filedataArray,
+            ).save();
 
             message(`publishing ${chalk.cyan(filename)}...`);
 
             const data = {
                 checksum,
-                file: file.url(),
+                file,
                 name: pkg.name,
-                private: params.private,
+                organization: op.get(params, 'organization'),
+                private: op.get(params, 'private'),
                 version: String(pkg.version),
             };
 
@@ -266,11 +265,13 @@ module.exports = spinner => {
 
             spinner.stopAndPersist({
                 symbol: chalk.green('✔'),
-                text: `published ${chalk.cyan(pkg.name)} v${chalk.cyan(pkg.version)}`
+                text: `published ${chalk.cyan(pkg.name)} v${chalk.cyan(
+                    pkg.version,
+                )}`,
             });
         },
         cleanup: () => {
             fs.removeSync(filepath);
-        }
+        },
     };
 };
