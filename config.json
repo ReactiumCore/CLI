@@ -31,7 +31,7 @@
     ]
   },
   "registry": {
-    "app": "Actinium",
+    "app": "ReactiumRegistry",
     "server": "https://v1.reactium.io/api"
   },
   "checked": 1540382853918,

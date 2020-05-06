@@ -46,6 +46,11 @@ const HELP = () =>
     console.log(`
 Example:
   $ arcli install @atomic-reactor/admin
+
+For devops purposes you can call:
+  $ arcli install
+
+This will install any previously installed plugins registered in the package.json > reactiumDependencies and package.json actiniumDependencies
 `);
 
 /**
