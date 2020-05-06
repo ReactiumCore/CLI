@@ -71,9 +71,10 @@ module.exports = spinner => {
             prompt = props.prompt;
             sessionToken = op.get(props, 'config.registry.sessionToken');
 
-            const app = op.get(props, 'config.registry.app', 'Actinium');
-            const serverURL = op.get(props, 'config.registry.server');
-            Actinium.initialize(app);
+            const appID = op.get(props, 'config.registry.app', 'ReactiumRegistry');
+            const serverURL = op.get(props, 'config.registry.server', 'https://v1.reactium.io/api');
+
+            Actinium.initialize(appID);
             Actinium.serverURL = serverURL;
         },
         package: async ({ action, params, props }) => {

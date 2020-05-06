@@ -66,6 +66,13 @@ module.exports = spinner => {
             message(`Removing plugin ${chalk.cyan(name)}...`)
             fs.removeSync(dir);
         },
+        unregisterPkg: () => {
+            message(`Unregistering plugin...`);
+            const pkgjson = normalize(cwd, 'package.json');
+            const pkg = require(pkgjson);
+            op.del(pkg, [`${app}Dependencies`, name], version);
+            fs.writeFileSync(pkgjson, JSON.stringify(pkg, null, 2));
+        },
         complete: () => {
             console.log('');
             spinner.start();

@@ -18,7 +18,7 @@ const { message } = require(`${mod}/lib/messenger`);
  * @see https://www.npmjs.com/package/commander#command-specific-options
  * @since 2.0.0
  */
-const NAME = 'install <name>';
+const NAME = 'install [name]';
 
 /**
  * DESC String
@@ -56,7 +56,7 @@ Example:
  * @param props Object The CLI props passed from the calling class `orcli.js`.
  * @since 2.0.0
  */
-const ACTION = ({ name, props }) =>
+const ACTION = ({ name, opt, props }) =>
     GENERATOR({ params: { name }, props })
         .then(() => process.exit())
         .catch(err =>

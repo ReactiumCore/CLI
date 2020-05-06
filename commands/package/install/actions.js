@@ -31,6 +31,8 @@ module.exports = spinner => {
                 .split('\\')
                 .join('/');
 
+            app = targetApp(cwd);
+
             sessionToken = op.get(props, 'config.registry.sessionToken');
 
             name = op.get(params, 'name');
@@ -43,14 +45,14 @@ module.exports = spinner => {
             name = _.compact(String(name).split('@'))[0];
             name = String(params.name).substr(0, 1) === '@' ? `@${name}` : name;
 
-            const app = op.get(props, 'config.registry.app', 'Actinium');
-            const serverURL = op.get(props, 'config.registry.server');
+            const appID = op.get(props, 'config.registry.app', 'ReactiumRegistry');
+            const serverURL = op.get(props, 'config.registry.server', 'https://v1.reactium.io/api');
 
             Actinium.serverURL = serverURL;
-            Actinium.initialize(app);
+            Actinium.initialize(appID);
         },
         check: () => {
-            app = targetApp(cwd);
+
             if (!app) {
                 spinner.fail(
                     `Current working directory ${chalk.cyan(
@@ -131,6 +133,13 @@ module.exports = spinner => {
                 normalize(dir, '_npm', 'package.json'),
                 { overwrite: true },
             );
+        },
+        registerPkg: () => {
+            message(`Registering plugin...`);
+            const pkgjson = normalize(cwd, 'package.json');
+            const pkg = require(pkgjson);
+            op.set(pkg, [`${app}Dependencies`, name], version);
+            fs.writeFileSync(pkgjson, JSON.stringify(pkg, null, 2));
         },
         npm: async () => {
             spinner.stopAndPersist({
