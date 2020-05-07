@@ -61,12 +61,21 @@ This will install any previously installed plugins registered in the package.jso
  * @param props Object The CLI props passed from the calling class `orcli.js`.
  * @since 2.0.0
  */
-const ACTION = ({ name, opt, props }) =>
-    GENERATOR({ params: { name }, props })
+const ACTION = ({ name, opt, props }) => {
+    if (name === 'actinium' || name === 'reactium') {
+        return require(`${mod}/commands/${name}/install`).ACTION({
+            action: 'install',
+            opt,
+            props,
+        });
+    }
+
+    return GENERATOR({ params: { name }, props })
         .then(() => process.exit())
         .catch(err =>
             message(op.get(err, 'message', op.get(err, 'msg', CANCELED))),
         );
+};
 
 /**
  * COMMAND Function
