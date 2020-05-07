@@ -4,6 +4,7 @@ const fs = require('fs-extra');
 const chalk = require('chalk');
 const _ = require('underscore');
 const crypto = require('crypto');
+const globby = require('globby');
 const op = require('object-path');
 const mod = path.dirname(require.main.filename);
 const bytesToSize = require(`${mod}/lib/bytesToSize`);
@@ -17,7 +18,9 @@ module.exports = spinner => {
         pkgFile,
         pkgUpdate,
         prompt,
-        sessionToken;
+        sessionToken,
+        tmpDir;
+
     const x = chalk.magenta('✖');
 
     const message = text => {
@@ -30,6 +33,8 @@ module.exports = spinner => {
         console.log('');
         process.exit();
     };
+
+    const normalize = (...args) => path.normalize(path.join(...args));
 
     const pkgPrompt = fields =>
         new Promise((resolve, reject) => {
@@ -70,6 +75,7 @@ module.exports = spinner => {
             pkgFile = path.normalize(`${cwd}/package.json`);
             prompt = props.prompt;
             sessionToken = op.get(props, 'config.registry.sessionToken');
+            tmpDir = normalize(require('os').homedir(), '.arcli', 'tmp', 'publish', path.basename(cwd));
 
             const appID = op.get(props, 'config.registry.app', 'ReactiumRegistry');
             const serverURL = op.get(props, 'config.registry.server', 'https://v1.reactium.io/api');
@@ -178,6 +184,27 @@ module.exports = spinner => {
                 exit();
             }
         },
+        tmp: () => {
+            spinner.stop();
+            fs.ensureDirSync(tmpDir);
+            fs.emptyDirSync(tmpDir);
+            fs.copySync(cwd, tmpDir);
+        },
+        transform: async () => {
+            spinner.start();
+            message(`Compiling...`);
+
+            const regex = new RegExp(`components/${path.basename(cwd)}`, 'g');
+            const replacer = `reactium_modules/${pkg.name}`;
+            const files = await globby([`${tmpDir}/**/*.js`, `${tmpDir}/**/*.jsx`, `!${tmpDir}/**/*.json`]);
+
+            for (const i in files) {
+                const file = files[i];
+                let content = fs.readFileSync(file);
+                content = String(content).replace(regex, replacer);
+                fs.writeFileSync(file, content);
+            }
+        },
         compress: ({ action, params, props }) => {
             spinner.stopAndPersist({
                 symbol: chalk.cyan('+'),
@@ -185,13 +212,13 @@ module.exports = spinner => {
             });
 
             filename = ['reactium-module', 'tgz'].join('.');
-            filepath = path.normalize(path.join(cwd, filename));
+            filepath = path.normalize(path.join(tmpDir, filename));
 
             if (fs.existsSync(filepath)) fs.removeSync(filepath);
 
             bytes = 0;
 
-            const dir = '/' + path.basename(cwd) + '/';
+            const dir = '/' + path.basename(tmpDir) + '/';
 
             tar.create(
                 {
@@ -214,12 +241,14 @@ module.exports = spinner => {
                     },
                     gzip: true,
                     sync: true,
+                    cwd: tmpDir,
                 },
                 ['./', filename],
             );
 
             const { size } = fs.statSync(filepath);
 
+            console.log('');
             console.log(
                 chalk.cyan('+'),
                 'compressed',
@@ -263,16 +292,14 @@ module.exports = spinner => {
             const result = await Actinium.Cloud.run('registry-publish', data, {
                 sessionToken,
             });
-
-            spinner.stopAndPersist({
-                symbol: chalk.green('✔'),
-                text: `published ${chalk.cyan(pkg.name)} v${chalk.cyan(
-                    pkg.version,
-                )}`,
-            });
         },
         cleanup: () => {
-            fs.removeSync(filepath);
+            fs.removeSync(tmpDir);
         },
+        complete: () => {
+            spinner.succeed(`published ${chalk.cyan(pkg.name)} v${chalk.cyan(
+                pkg.version,
+            )}`);
+        }
     };
 };

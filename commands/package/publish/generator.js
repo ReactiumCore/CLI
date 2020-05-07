@@ -6,6 +6,8 @@ const ActionSequence = require('action-sequence');
 module.exports = ({ params, props }) => {
     const spinner = ora({ spinner: 'dots', color: 'cyan' });
 
+    console.log('');
+
     spinner.start();
 
     const authActions = require(`${mod}/commands/auth/actions`)(spinner);
@@ -13,11 +15,11 @@ module.exports = ({ params, props }) => {
 
     const actions = { ...authActions, ...cmdActions };
 
-    return ActionSequence({ actions, options: { params, props } })
-        .then(success => console.log(''))
-        .catch(error => {
+    return ActionSequence({ actions, options: { params, props } }).catch(
+        error => {
             spinner.fail('error!');
             console.log(error);
             return error;
-        });
+        },
+    );
 };
