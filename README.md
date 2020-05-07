@@ -77,9 +77,10 @@ $ arcli config --key 'toolkit.types' --value 'atom molecule organism template li
     "prefixColor": "cyan"
   },
   "commands": [
-    "[root]/commands",               // Resolves to the ~/global/node_modules/ARCLI/commands directory. Used for global commands.
-    "[cwd]/.core/.cli/commands",     // Resolves to the ~/project/.core/.cli/commands directory. Used for application core commands.
-    "[cwd]/.cli/commands"            // Resolves to the ~/project/.cli/commands directory. Used for project specific commands.
+    "[root]/commands",                      // Resolves to the ~/global/node_modules/ARCLI/commands directory. Used for global commands.
+    "[cwd]/.core/.cli/commands",            // Resolves to the ~/project/.core/.cli/commands directory. Used for application core commands.
+    "[cwd]/.cli/commands"                   // Resolves to the ~/project/.cli/commands directory. Used for project specific commands.
+    "[cwd]/node_modules/**/.cli/commands"   // Resolves to any .cli/commands directories in the ~/project/node_modules directory.
   ],
   "reactium": {
     "repo": "https://github.com/Atomic-Reactor/Reactium/archive/master.zip",
@@ -90,6 +91,10 @@ $ arcli config --key 'toolkit.types' --value 'atom molecule organism template li
   },
   "actinium": {
     "repo": "https://github.com/Atomic-Reactor/Actinium-2.0/archive/master.zip"
+  },
+  "registry": {
+    "app": "ReactiumRegistry",
+    "server": "https://v1.reactium.io/api"
   },
   "toolkit": {
     "types": [
