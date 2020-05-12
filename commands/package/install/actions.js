@@ -4,10 +4,12 @@ const path = require('path');
 const chalk = require('chalk');
 const fs = require('fs-extra');
 const _ = require('underscore');
+const globby = require('globby');
 const op = require('object-path');
 const request = require('request');
 const mod = path.dirname(require.main.filename);
 const targetApp = require(`${mod}/lib/targetApp`);
+const ActionSequence = require('action-sequence');
 
 module.exports = spinner => {
     let app, cwd, dir, filepath, name, plugin, sessionToken, tmp, url, version;
@@ -166,6 +168,20 @@ module.exports = spinner => {
                     console.log(err);
                     process.exit();
                 });
+        },
+        postinstall: async () => {
+            const actionFiles= await globby([`${dir}/**/arcli-install.js`]);
+            if (actionFiles.length < 1) return;
+
+            const actions = actionFiles.reduce((obj, file, i) => {
+                const acts = require(normalize(file))(spinner);
+                Object.keys(acts).forEach(key => {
+                    obj[`postinstall_${i}_${key}`] = acts[key];
+                });
+                return obj;
+            }, {});
+
+            await ActionSequence({ actions, options: { params, props } });
         },
         complete: () => {
             console.log('');
