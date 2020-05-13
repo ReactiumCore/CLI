@@ -116,7 +116,7 @@ const PREFLIGHT = ({ msg, params, props }) => {
 const SCHEMA = ({ params, props }) => {
     let { clear, username, password } = params;
 
-    clear = clear || Boolean(username || password);    
+    clear = clear || Boolean(username || password);
 
     const sessionToken = clear
         ? undefined
@@ -125,12 +125,10 @@ const SCHEMA = ({ params, props }) => {
     return {
         properties: {
             username: {
-                ask: () => !sessionToken,
                 description: chalk.white('Username:'),
                 required: true,
             },
             password: {
-                ask: () => !sessionToken,
                 description: chalk.white('Password:'),
                 hidden: true,
                 message: 'Password is a required parameter',
