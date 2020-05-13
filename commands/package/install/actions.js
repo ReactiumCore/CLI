@@ -143,6 +143,21 @@ module.exports = spinner => {
             op.set(pkg, [`${app}Dependencies`, name], version);
             fs.writeFileSync(pkgjson, JSON.stringify(pkg, null, 2));
         },
+        postinstall: async ({ params, props }) => {
+            const actionFiles= await globby([`${dir}/**/arcli-install.js`]);
+            if (actionFiles.length < 1) return;
+
+            const actions = actionFiles.reduce((obj, file, i) => {
+                const acts = require(normalize(file))(spinner);
+                Object.keys(acts).forEach(key => {
+                    obj[`postinstall_${i}_${key}`] = acts[key];
+                });
+                return obj;
+            }, {});
+
+            params['pluginDirectory'] = dir; 
+            await ActionSequence({ actions, options: { params, props } });
+        },
         npm: async () => {
             spinner.stopAndPersist({
                 text: `Installing ${chalk.cyan('dependencies')}...`,
@@ -168,20 +183,6 @@ module.exports = spinner => {
                     console.log(err);
                     process.exit();
                 });
-        },
-        postinstall: async () => {
-            const actionFiles= await globby([`${dir}/**/arcli-install.js`]);
-            if (actionFiles.length < 1) return;
-
-            const actions = actionFiles.reduce((obj, file, i) => {
-                const acts = require(normalize(file))(spinner);
-                Object.keys(acts).forEach(key => {
-                    obj[`postinstall_${i}_${key}`] = acts[key];
-                });
-                return obj;
-            }, {});
-
-            await ActionSequence({ actions, options: { params, props } });
         },
         complete: () => {
             console.log('');
