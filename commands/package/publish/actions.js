@@ -177,7 +177,10 @@ module.exports = spinner => {
                 'registry-check',
                 { name, version },
                 { sessionToken },
-            );
+            ).catch(err => {
+                spinner.stop();
+                console.log(JSON.stringify(err));
+            });
 
             if (canPublish !== true) {
                 spinner.fail(`${chalk.magenta('Error:')} ${canPublish}`);
@@ -291,6 +294,9 @@ module.exports = spinner => {
 
             const result = await Actinium.Cloud.run('registry-publish', data, {
                 sessionToken,
+            }).catch(err => {
+                spinner.stop();
+                console.log(JSON.stringify(err));
             });
         },
         cleanup: () => {
