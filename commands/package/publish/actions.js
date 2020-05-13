@@ -59,6 +59,11 @@ module.exports = spinner => {
 
             prompt.start();
             prompt.get(schema, (err, results) => {
+                if (err) {
+                    console.log(err);
+                    process.exit();
+                    return;
+                }
                 Object.keys(results).forEach(key =>
                     op.set(pkg, key, results[key]),
                 );
@@ -119,7 +124,9 @@ module.exports = spinner => {
                         name,
                         description,
                     })),
-                );
+                ).catch(err => {
+                    console.log(33, JSON.stringify(err));
+                });
                 console.log('');
 
                 spinner.start();
@@ -151,7 +158,9 @@ module.exports = spinner => {
                         pkgUpdate = true;
                         spinner.stopAndPersist({ symbol: x, text });
                         console.log('');
-                        await pkgPrompt([{ name, description: fields[name] }]);
+                        await pkgPrompt([{ name, description: fields[name] }]).catch(err => {
+                            console.log(34, JSON.stringify(err));
+                        });
                         console.log('');
                         spinner.start();
                     }
@@ -173,17 +182,17 @@ module.exports = spinner => {
         validate: async ({ action, params, props }) => {
             const { name, version } = pkg;
 
-            const canPublish = await Actinium.Cloud.run(
+            const result = await Actinium.Cloud.run(
                 'registry-check',
                 { name, version },
                 { sessionToken },
-            ).catch(err => {
-                spinner.stop();
-                console.log(JSON.stringify(err));
-            });
+            );
+
+            const canPublish = op.get(result, 'enabled');
 
             if (canPublish !== true) {
-                spinner.fail(`${chalk.magenta('Error:')} ${canPublish}`);
+                spinner.fail(`${chalk.magenta('Error:')} ${JSON.stringify(canPublish)}`);
+                console.log(35);
                 exit();
             }
         },
@@ -296,7 +305,7 @@ module.exports = spinner => {
                 sessionToken,
             }).catch(err => {
                 spinner.stop();
-                console.log(JSON.stringify(err));
+                console.log(32, JSON.stringify(err));
             });
         },
         cleanup: () => {

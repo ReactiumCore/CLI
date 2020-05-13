@@ -17,7 +17,7 @@ module.exports = ({ params, props }) => {
 
     return ActionSequence({ actions, options: { params, props } }).catch(
         error => {
-            spinner.fail('error!');
+            //spinner.fail('error!');
             console.log(JSON.stringify(error));
             return error;
         },

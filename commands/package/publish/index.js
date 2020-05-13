@@ -196,8 +196,7 @@ const ACTION = ({ opt, props }) => {
         .then(() => prompt.stop())
         .then(results => console.log(''))
         .catch(err => {
-            prompt.stop();
-            message(op.get(err, 'message', op.get(err, 'msg', CANCELED)));
+            console.log(10, JSON.stringify(err));
         });
 };
 
