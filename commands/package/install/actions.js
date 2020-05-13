@@ -4,10 +4,11 @@ const path = require('path');
 const chalk = require('chalk');
 const fs = require('fs-extra');
 const _ = require('underscore');
-const globby = require('globby');
 const op = require('object-path');
 const request = require('request');
+const globby = require('globby').sync;
 const mod = path.dirname(require.main.filename);
+const deleteEmpty = require('delete-empty').sync;
 const targetApp = require(`${mod}/lib/targetApp`);
 const ActionSequence = require('action-sequence');
 
@@ -136,6 +137,19 @@ module.exports = spinner => {
                 { overwrite: true },
             );
         },
+        static: () => {
+            spinner.stop();
+            fs.ensureDirSync(normalize(dir, '_static'));
+            const assets = globby([path.join(dir, '/**/assets/**')]);
+            assets.forEach(file => {
+                let newFile = file.split('/assets/').pop();
+                newFile = normalize(dir, '_static', 'assets', newFile);
+                fs.ensureDirSync(path.dirname(newFile));
+                fs.moveSync(file, newFile);
+            });
+            deleteEmpty(dir);
+            spinner.start();
+        },
         registerPkg: () => {
             message(`Registering plugin...`);
             const pkgjson = normalize(cwd, 'package.json');
@@ -144,7 +158,7 @@ module.exports = spinner => {
             fs.writeFileSync(pkgjson, JSON.stringify(pkg, null, 2));
         },
         postinstall: async ({ params, props }) => {
-            const actionFiles= await globby([`${dir}/**/arcli-install.js`]);
+            const actionFiles= globby([`${dir}/**/arcli-install.js`]);
             if (actionFiles.length < 1) return;
 
             const actions = actionFiles.reduce((obj, file, i) => {
@@ -155,7 +169,7 @@ module.exports = spinner => {
                 return obj;
             }, {});
 
-            params['pluginDirectory'] = dir; 
+            params['pluginDirectory'] = dir;
             await ActionSequence({ actions, options: { params, props } });
         },
         npm: async () => {
