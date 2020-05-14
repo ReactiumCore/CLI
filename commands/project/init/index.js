@@ -4,14 +4,13 @@
  * -----------------------------------------------------------------------------
  */
 
-const chalk              = require('chalk');
-const prettier           = require('prettier');
-const path               = require('path');
-const op                 = require('object-path');
-const mod                = path.dirname(require.main.filename);
+const chalk = require('chalk');
+const prettier = require('prettier');
+const path = require('path');
+const op = require('object-path');
+const mod = path.dirname(require.main.filename);
 const { error, message } = require(`${mod}/lib/messenger`);
-const GENERATOR          = require('./generator');
-
+const GENERATOR = require('./generator');
 
 /**
  * NAME String
@@ -22,7 +21,6 @@ const GENERATOR          = require('./generator');
  */
 const NAME = 'project &lt;init&gt;';
 
-
 /**
  * DESC String
  * @description Constant defined as the command description. Value passed to
@@ -32,14 +30,12 @@ const NAME = 'project &lt;init&gt;';
  */
 const DESC = 'The description of the command';
 
-
 /**
  * CANCELED String
  * @description Message sent when the command is canceled
  * @since 2.0.0
  */
 const CANCELED = 'Action canceled!';
-
 
 /**
  * confirm({ props:Object, params:Object }) Function
@@ -80,23 +76,22 @@ const CONFIRM = ({ props, params, msg }) => {
     });
 };
 
-
 /**
  * conform(input:Object) Function
  * @description Reduces the input object.
  * @param input Object The key value pairs to reduce.
  * @since 2.0.0
  */
-const CONFORM = ({ input, props }) => Object.keys(input).reduce((obj, key) => {
-    let val = input[key];
-    switch(key) {
-        default:
-            obj[key] = val;
-            break;
-    }
-    return obj;
-}, {});
-
+const CONFORM = ({ input, props }) =>
+    Object.keys(input).reduce((obj, key) => {
+        let val = input[key];
+        switch (key) {
+            default:
+                obj[key] = val;
+                break;
+        }
+        return obj;
+    }, {});
 
 /**
  * HELP Function
@@ -104,7 +99,8 @@ const CONFORM = ({ input, props }) => Object.keys(input).reduce((obj, key) => {
  * @see https://www.npmjs.com/package/commander#automated---help
  * @since 2.0.0
  */
-const HELP = () => console.log(`
+const HELP = () =>
+    console.log(`
 Example:
   $ arcli project &lt;init&gt; -h
 `);
@@ -165,10 +161,9 @@ const SCHEMA = ({ props }) => {
                 required: true,
                 default: true,
             },
-        }
-    }
+        },
+    };
 };
-
 
 /**
  * ACTION Function
@@ -216,24 +211,18 @@ const ACTION = ({ opt, props }) => {
         });
 };
 
-
 /**
  * COMMAND Function
  * @description Function that executes program.command()
  */
-const COMMAND = ({ program, props }) => program.command(NAME)
-    .description(DESC)
-    .action(opt => ACTION({ opt, props }))
-    .option(
-        '-s, --sample [sample]',
-        'Sample parameter.'
-    )
-    .option(
-        '-o, --overwrite [overwrite]',
-        'Overwrite existing file.',
-    )
-    .on('--help', HELP);
-
+const COMMAND = ({ program, props }) =>
+    program
+        .command(NAME)
+        .description(DESC)
+        .action(opt => ACTION({ opt, props }))
+        .option('-s, --sample [sample]', 'Sample parameter.')
+        .option('-o, --overwrite [overwrite]', 'Overwrite existing file.')
+        .on('--help', HELP);
 
 /**
  * Module Constructor
@@ -244,5 +233,5 @@ const COMMAND = ({ program, props }) => program.command(NAME)
  */
 module.exports = {
     COMMAND,
-    NAME,
+    ID: NAME,
 };
