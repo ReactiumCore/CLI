@@ -16,11 +16,11 @@ const GENERATOR          = require('./generator');
 /**
  * NAME String
  * @description Constant defined as the command name. Value passed to the commander.command() function.
- * @example $ arcli {{command}}
+ * @example $ arcli {{{command}}}
  * @see https://www.npmjs.com/package/commander#command-specific-options
  * @since 2.0.0
  */
-const NAME = '{{command}}';
+const NAME = '{{{command}}}';
 
 
 /**
@@ -106,7 +106,7 @@ const CONFORM = ({ input, props }) => Object.keys(input).reduce((obj, key) => {
  */
 const HELP = () => console.log(`
 Example:
-  $ arcli {{command}} -h
+  $ arcli {{{command}}} -h
 `);
 
 /**
