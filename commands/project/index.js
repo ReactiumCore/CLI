@@ -17,7 +17,7 @@ const HELP = props => {
     console.log('');
 };
 
-const COMMAND = ({ program, props }) => {
+const COMMAND = ({ program, props, arcli }) => {
     const ACT = props.args[3];
     const { subcommands = {} } = props;
 
@@ -33,7 +33,7 @@ const COMMAND = ({ program, props }) => {
             process.exit();
         }
 
-        return subcommands[NAME][ACT]['COMMAND']({ program, props });
+        return subcommands[NAME][ACT]['COMMAND']({ program, props, arcli });
     } else {
         return program
             .command(`${NAME} <action>`)

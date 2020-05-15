@@ -173,7 +173,7 @@ const SCHEMA = ({ props }) => {
  * @param props Object The CLI props passed from the calling class `orcli.js`.
  * @since 2.0.0
  */
-const ACTION = ({ opt, props }) => {
+const ACTION = ({ opt, props, arcli }) => {
     const { cwd, prompt } = props;
     const schema = SCHEMA({ props });
     const ovr = FLAGS_TO_PARAMS({ opt });
@@ -200,7 +200,7 @@ const ACTION = ({ opt, props }) => {
         });
     })
         .then(() => CONFIRM({ props, params }))
-        .then(() => GENERATOR({ params, props }))
+        .then(() => GENERATOR({ params, props, arcli }))
         .then(() => prompt.stop())
         .then(results => {
             console.log('');
@@ -215,11 +215,11 @@ const ACTION = ({ opt, props }) => {
  * COMMAND Function
  * @description Function that executes program.command()
  */
-const COMMAND = ({ program, props }) =>
+const COMMAND = ({ program, props, arcli }) =>
     program
         .command(NAME)
         .description(DESC)
-        .action(opt => ACTION({ opt, props }))
+        .action(opt => ACTION({ opt, props, arcli }))
         .option('-s, --sample [sample]', 'Sample parameter.')
         .option('-o, --overwrite [overwrite]', 'Overwrite existing file.')
         .on('--help', HELP);

@@ -12,6 +12,7 @@ const op = require('object-path');
 const axios = require('axios');
 const moment = require('moment');
 const semver = require('semver');
+const _ = require('underscore');
 
 const { config, ver } = bootstrap.props;
 
@@ -30,14 +31,7 @@ const cmds = () => {
             } else {
                 if (op.has(req, 'ID')) {
                     let { ID } = req;
-                    ID = String(ID)
-                        .split('<')
-                        .join('')
-                        .split('>')
-                        .join('')
-                        .split(' ')
-                        .join('.');
-
+                    ID = String(ID).replace(/\<|\>/g, '').replace(/\s/g, '.');
                     op.set(subcommands, ID, req);
                 }
             }
@@ -49,9 +43,12 @@ const cmds = () => {
 
 const initialize = () => {
     const { commands, subcommands } = cmds();
+    props.args = process.argv.filter(item => String(item).substr(0, 1) !== '-');
     props.commands = commands;
     props.subcommands = subcommands;
-    props.args = process.argv.filter(item => String(item).substr(0, 1) !== '-');
+
+    // Apply commands
+    Object.values(commands).forEach(req => req.COMMAND({ program, props, arcli: bootstrap }));
 
     // Configure prompt
     prompt.message = chalk[config.prompt.prefixColor](config.prompt.prefix);
@@ -60,9 +57,6 @@ const initialize = () => {
     // Initialize the CLI
     program.version(ver, '-v, --version');
     program.usage('<command> [options]');
-
-    // Apply commands
-    Object.values(commands).forEach(req => req.COMMAND({ program, props }));
 
     // Is valid command?
     if (process.argv.length > 2) {
@@ -87,9 +81,7 @@ const initialize = () => {
     program.parse(process.argv);
 
     // Output the help if nothing is passed
-    if (!process.argv.slice(2).length) {
-        program.help();
-    }
+    if (!process.argv.slice(2).length) program.help();
 };
 
 const lastCheck = op.get(props.config, 'updated', Date.now());

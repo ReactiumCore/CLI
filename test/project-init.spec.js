@@ -21,7 +21,7 @@ describe(`arcli project <init>`, function(done) {
     it('All actions complete', done => {
         fs.ensureDirSync(cwd);
 
-        generator({ props, params })
+        generator({ props, params, arcli: bootstrap })
             .then(success => {
                 expect(Object.values(success)).to.have.lengthOf(1);
                 fs.removeDirSync(cwd);

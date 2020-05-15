@@ -2,7 +2,6 @@
 
 // Globals
 const Actinium = require('parse/node');
-
 global.Actinium = Actinium;
 
 // Imports
@@ -10,6 +9,7 @@ const root = __dirname;
 const config = require('./config');
 const ver = require('./package').version;
 const chalk = require('chalk');
+const ora = require('ora');
 const path = require('path');
 const fs = require('fs-extra');
 const globby = require('globby').sync;
@@ -19,8 +19,17 @@ const semver = require('semver');
 const homedir = require('os').homedir();
 const prettier = require('prettier');
 const generator = require('./lib/generator');
+const Hook = require('@atomic-reactor/reactium-sdk-core/lib/hook').default;
+
+const spinner = ora({ spinner: 'dots', color: 'cyan' });
 
 const initialize = props => {
+
+    // require arlic-hooks.js files
+    globby([path.join(cwd, '/**/arcli-hooks.js')]).forEach(path =>
+        require(path),
+    );
+
     // Get application config
     const appConfigFile = path.normalize(`${cwd}/.core/.cli/config.json`);
     if (fs.existsSync(appConfigFile)) {
@@ -74,6 +83,7 @@ const props = initialize({ config, cwd, homedir, root, ver });
 
 module.exports = {
     Actinium,
+    Hook,
     chalk,
     commands,
     fs,
@@ -84,5 +94,7 @@ module.exports = {
     moment,
     prettier,
     semver,
+    spinner,
     props,
+    tmp: path.normalize(path.join(homedir, 'tmp'))
 };
