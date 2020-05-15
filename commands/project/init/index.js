@@ -19,7 +19,7 @@ const GENERATOR = require('./generator');
  * @see https://www.npmjs.com/package/commander#command-specific-options
  * @since 2.0.0
  */
-const NAME = 'project &lt;init&gt;';
+const NAME = 'project <init>';
 
 /**
  * DESC String

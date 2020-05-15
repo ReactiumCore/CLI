@@ -13,7 +13,7 @@ const HELP = props => {
     console.log(' ', actions.map(act => chalk.cyan(act)).join(', '));
     console.log('');
     console.log('Example:');
-    actions.forEach(act => console.log(`  $ arcl`, chalk.magenta(NAME), chalk.cyan(act), '-h'));
+    actions.forEach(act => console.log(`  $ arcli`, chalk.magenta(NAME), chalk.cyan(act), '-h'));
     console.log('');
     console.log('Beware:');
     console.log(`  ${chalk.cyan('Install')} will overwrite existing files.`);

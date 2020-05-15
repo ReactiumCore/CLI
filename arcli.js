@@ -2,92 +2,27 @@
 
 'use strict';
 
-// Globals
-global.Actinium = require('parse/node');
-
 // Imports
-const config = require(__dirname + '/config.json');
-const ver = require('./package').version;
+const bootstrap = require('./bootstrap');
 const chalk = require('chalk');
-const path = require('path');
 const fs = require('fs-extra');
 const program = require('commander');
 const prompt = require('prompt');
-const globby = require('globby').sync;
 const op = require('object-path');
 const axios = require('axios');
 const moment = require('moment');
-const cwd = path.resolve(process.cwd());
 const semver = require('semver');
-const homedir = require('os').homedir();
-const prettier = require('prettier');
+
+const { config, ver } = bootstrap.props;
 
 // Build the props object
-const props = { cwd, root: __dirname, prompt, config };
+const props = { ...bootstrap.props, prompt };
 
-// Get application config
-const appConfigFile = path.normalize(`${cwd}/.core/.cli/config.json`);
-if (fs.existsSync(appConfigFile)) {
-    const appConfig = require(appConfigFile);
-    props.config = Object.assign(props.config, appConfig);
-}
-
-// Get local config
-const localConfigFile = path.join(homedir, '.arcli', 'config.json');
-if (fs.existsSync(localConfigFile)) {
-    const localConfig = require(localConfigFile);
-    props.config = Object.assign(props.config, localConfig);
-} else {
-    // Create the localized config if it doesn't exist
-    const contents = prettier.format(JSON.stringify(props.config), {
-        parser: 'json-stringify',
-    });
-
-    fs.ensureFileSync(localConfigFile);
-    fs.writeFileSync(localConfigFile, contents);
-}
-
-// Get project config
-const projConfigFile = path.normalize(`${cwd}/.cli/config.json`);
-if (fs.existsSync(projConfigFile)) {
-    const projConfig = require(projConfigFile);
-    props.config = Object.assign(props.config, projConfig);
-}
-
-const lastCheck = op.get(props.config, 'updated', Date.now());
-
-function initialize() {
-    console.log('');
-
-    // Configure prompt
-    prompt.message = chalk[config.prompt.prefixColor](config.prompt.prefix);
-    prompt.delimiter = config.prompt.delimiter;
-
-    // Initialize the CLI
-    program.version(ver, '-v, --version');
-    program.usage('<command> [options]');
-
-    // Find commands
-    const dirs = config.commands || [];
-    const globs = dirs.map(dir =>
-        // globby only allows posix separators
-        path.normalize(String(`${dir}/**/*index.js`)
-            .replace(/\[root\]/gi, props.root)
-            .replace(/\[cwd\]/gi, props.cwd))
-            .split(/[\\\/]/g).join(path.posix.sep)
-    );
-
-    /**
-     * Since commands is an Object, you can replace pre-defined commands with custom ones.
-     * The order in which commands are aggregated:
-     * 1. CLI Root : ./commands
-     * 2. Core     : ~/PROJECT/.core/.cli/commands -> overwrites CLI Root.
-     * 3. Project  : ~/PROJECT/.cli/commands       -> overwrites CLI Root & Core.
-     */
+const cmds = () => {
     const commands = {};
     const subcommands = {};
 
-    globby(globs).forEach(cmd => {
+    bootstrap.commands().forEach(cmd => {
         const req = require(cmd);
         if (op.has(req, 'COMMAND') && typeof req.COMMAND === 'function') {
             if (op.has(req, 'NAME')) {
@@ -109,12 +44,22 @@ function initialize() {
         }
     });
 
-    props.args = process.argv.filter(item => {
-        return String(item).substr(0, 1) !== '-';
-    });
+    return { commands, subcommands };
+};
 
+const initialize = () => {
+    const { commands, subcommands } = cmds();
     props.commands = commands;
     props.subcommands = subcommands;
+    props.args = process.argv.filter(item => String(item).substr(0, 1) !== '-');
+
+    // Configure prompt
+    prompt.message = chalk[config.prompt.prefixColor](config.prompt.prefix);
+    prompt.delimiter = config.prompt.delimiter;
+
+    // Initialize the CLI
+    program.version(ver, '-v, --version');
+    program.usage('<command> [options]');
 
     // Apply commands
     Object.values(commands).forEach(req => req.COMMAND({ program, props }));
@@ -145,8 +90,9 @@ function initialize() {
     if (!process.argv.slice(2).length) {
         program.help();
     }
-}
+};
 
+const lastCheck = op.get(props.config, 'updated', Date.now());
 const lastUpdateCheck = moment().diff(moment(new Date(lastCheck)), 'days');
 
 if (lastUpdateCheck > 1) {
@@ -170,10 +116,7 @@ if (lastUpdateCheck > 1) {
         .then(() => {
             props.config.checked = Date.now();
             props.config.updated = Date.now();
-            const contents = prettier.format(JSON.stringify(props.config), {
-                parser: 'json-stringify',
-            });
-
+            const contents = JSON.stringify(props.config, null, 2);
             fs.ensureFileSync(localConfigFile);
             fs.writeFileSync(localConfigFile, contents);
         })

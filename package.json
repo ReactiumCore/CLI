@@ -1,6 +1,6 @@
 {
   "name": "@atomic-reactor/cli",
-  "version": "2.2.8",
+  "version": "2.2.9",
   "description": "A CLI for creating Atomic Reactor Awesomeness",
   "main": "arcli.js",
   "scripts": {
@@ -17,7 +17,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Atomic-Reactor/CLI.git"
+    "url": "git+https://github.com/Atomic-Reactor/CLI.git"
   },
   "bin": {
     "arcli": "arcli.js"
@@ -34,6 +34,7 @@
   ],
   "dependencies": {
     "@atomic-reactor/decompress": "^4.2.3",
+    "@atomic-reactor/reactium-sdk-core": "0.0.66",
     "action-sequence": "^1.1.1",
     "axios": "^0.19.2",
     "camelcase": "^5.3.1",
@@ -47,6 +48,7 @@
     "fs-readdir-recursive": "^1.1.0",
     "globby": "^10.0.2",
     "handlebars": "^4.7.6",
+    "memory-cache": "^0.2.0",
     "moment": "^2.25.3",
     "npm": "^6.14.5",
     "object-path": "^0.11.4",
@@ -64,5 +66,13 @@
     "chai": "^4.2.0",
     "mocha": "^7.1.2",
     "npm-run-all": "^4.1.5"
+  },
+  "bugs": {
+    "url": "https://github.com/Atomic-Reactor/CLI/issues"
+  },
+  "homepage": "https://github.com/Atomic-Reactor/CLI#readme",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
   }
 }
