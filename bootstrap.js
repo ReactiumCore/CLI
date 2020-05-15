@@ -22,6 +22,7 @@ const generator = require('./lib/generator');
 const Hook = require('@atomic-reactor/reactium-sdk-core/lib/hook').default;
 
 const spinner = ora({ spinner: 'dots', color: 'cyan' });
+spinner.message = (...args) => spinner.start(args.join(' '));
 
 const initialize = props => {
 

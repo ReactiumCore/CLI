@@ -102,7 +102,7 @@ const CONFORM = ({ input, props }) =>
 const HELP = () =>
     console.log(`
 Example:
-  $ arcli project &lt;init&gt; -h
+  $ arcli project init -h
 `);
 
 /**
@@ -173,7 +173,7 @@ const SCHEMA = ({ props }) => {
  * @param props Object The CLI props passed from the calling class `orcli.js`.
  * @since 2.0.0
  */
-const ACTION = ({ opt, props, arcli }) => {
+const ACTION = ({ arcli, opt, props }) => {
     const { cwd, prompt } = props;
     const schema = SCHEMA({ props });
     const ovr = FLAGS_TO_PARAMS({ opt });
@@ -200,7 +200,7 @@ const ACTION = ({ opt, props, arcli }) => {
         });
     })
         .then(() => CONFIRM({ props, params }))
-        .then(() => GENERATOR({ params, props, arcli }))
+        .then(() => GENERATOR({ arcli, params, props }))
         .then(() => prompt.stop())
         .then(results => {
             console.log('');
@@ -215,11 +215,11 @@ const ACTION = ({ opt, props, arcli }) => {
  * COMMAND Function
  * @description Function that executes program.command()
  */
-const COMMAND = ({ program, props, arcli }) =>
+const COMMAND = ({ arcli, program, props }) =>
     program
         .command(NAME)
         .description(DESC)
-        .action(opt => ACTION({ opt, props, arcli }))
+        .action(opt => ACTION({ arcli, opt, props }))
         .option('-s, --sample [sample]', 'Sample parameter.')
         .option('-o, --overwrite [overwrite]', 'Overwrite existing file.')
         .on('--help', HELP);

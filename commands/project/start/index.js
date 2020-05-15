@@ -15,7 +15,7 @@ const GENERATOR = require('./generator');
 /**
  * NAME String
  * @description Constant defined as the command name. Value passed to the commander.command() function.
- * @example $ arcli project <start>
+ * @example $ arcli project start
  * @see https://www.npmjs.com/package/commander#command-specific-options
  * @since 2.0.0
  */
@@ -102,7 +102,7 @@ const CONFORM = ({ input, props }) =>
 const HELP = () =>
     console.log(`
 Example:
-  $ arcli project <start> -h
+  $ arcli project start -h
 `);
 
 /**
@@ -173,7 +173,7 @@ const SCHEMA = ({ props }) => {
  * @param props Object The CLI props passed from the calling class `orcli.js`.
  * @since 2.0.0
  */
-const ACTION = ({ opt, props }) => {
+const ACTION = ({ arcli, opt, props }) => {
     const { cwd, prompt } = props;
     const schema = SCHEMA({ props });
     const ovr = FLAGS_TO_PARAMS({ opt });
@@ -200,7 +200,7 @@ const ACTION = ({ opt, props }) => {
         });
     })
         .then(() => CONFIRM({ props, params }))
-        .then(() => GENERATOR({ params, props }))
+        .then(() => GENERATOR({ arcli, params, props }))
         .then(() => prompt.stop())
         .then(results => {
             console.log('');
@@ -215,11 +215,11 @@ const ACTION = ({ opt, props }) => {
  * COMMAND Function
  * @description Function that executes program.command()
  */
-const COMMAND = ({ program, props }) =>
+const COMMAND = ({ arcli, program, props }) =>
     program
         .command(NAME)
         .description(DESC)
-        .action(opt => ACTION({ opt, props }))
+        .action(opt => ACTION({ arcli, opt, props }))
         .option('-s, --sample [sample]', 'Sample parameter.')
         .option('-o, --overwrite [overwrite]', 'Overwrite existing file.')
         .on('--help', HELP);

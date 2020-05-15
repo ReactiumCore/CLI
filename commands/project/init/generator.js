@@ -6,8 +6,6 @@ module.exports = ({ arcli, params, props }) => {
 
     const { Hook, spinner } = arcli;
 
-    spinner.start();
-
     const actions = require('./actions')(spinner);
 
     const onError = error => {
