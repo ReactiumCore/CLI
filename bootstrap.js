@@ -80,6 +80,7 @@ module.exports = {
     path,
     generator,
     globby,
+    homedir,
     moment,
     prettier,
     semver,

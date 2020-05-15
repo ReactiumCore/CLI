@@ -2,12 +2,13 @@
   "name": "@atomic-reactor/cli",
   "version": "2.2.9",
   "description": "A CLI for creating Atomic Reactor Awesomeness",
-  "main": "arcli.js",
+  "main": "arcli-node.js",
   "scripts": {
     "test": "run-s test:*",
     "test:reactium-install": "mocha ./test/reactium-install.spec.js",
     "test:config-set": "mocha ./test/config-set.spec.js",
-    "test:reactium-update": "mocha ./test/reactium-update.spec.js"
+    "test:reactium-update": "mocha ./test/reactium-update.spec.js",
+    "test:project-init": "mocha ./test/project-init.spec.js"
   },
   "author": "Reactium LLC",
   "license": "MIT",
