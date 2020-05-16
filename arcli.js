@@ -3,21 +3,34 @@
 'use strict';
 
 // Imports
-const bootstrap = require('./bootstrap');
 const chalk = require('chalk');
 const fs = require('fs-extra');
-const program = require('commander');
-const prompt = require('prompt');
-const op = require('object-path');
 const axios = require('axios');
+const _ = require('underscore');
 const moment = require('moment');
 const semver = require('semver');
-const _ = require('underscore');
+const prompt = require('prompt');
+const op = require('object-path');
+const program = require('commander');
+const inquirer = require('inquirer');
+const bootstrap = require('./bootstrap');
 
-const { config, ver } = bootstrap.props;
+// Extend inquirer
+inquirer.registerPrompt('fuzzypath', require('inquirer-fuzzy-path'));
+inquirer.registerPrompt(
+    'autocomplete',
+    require('inquirer-autocomplete-prompt'),
+);
 
-// Build the props object
-const props = { ...bootstrap.props, prompt };
+// Extend arcli props
+global.arcli.props.inquirer = inquirer;
+global.arcli.props.prompt = prompt;
+global.arcli.prefix = chalk.cyan(
+    String(arcli.props.config.prompt.prefix).trim(),
+);
+
+const { props } = bootstrap;
+const { config, ver } = props;
 
 const cmds = () => {
     const commands = {};
@@ -31,7 +44,9 @@ const cmds = () => {
             } else {
                 if (op.has(req, 'ID')) {
                     let { ID } = req;
-                    ID = String(ID).replace(/\<|\>/g, '').replace(/\s/g, '.');
+                    ID = String(ID)
+                        .replace(/\<|\>/g, '')
+                        .replace(/\s/g, '.');
                     op.set(subcommands, ID, req);
                 }
             }
@@ -48,7 +63,9 @@ const initialize = () => {
     props.subcommands = subcommands;
 
     // Apply commands
-    Object.values(commands).forEach(req => req.COMMAND({ program, props, arcli: bootstrap }));
+    Object.values(commands).forEach(req =>
+        req.COMMAND({ program, props, arcli: bootstrap }),
+    );
 
     // Configure prompt
     prompt.message = chalk[config.prompt.prefixColor](config.prompt.prefix);

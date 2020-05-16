@@ -1,19 +1,21 @@
 const path = require('path');
-const chalk = require('chalk');
 const fs = require('fs-extra');
+const chalk = require('chalk');
 const _ = require('underscore');
 const op = require('object-path');
 
-module.exports = () => {
-    let Hook, spinner;
+module.exports = (arcli) => {
+    let cwd, params, props;
 
     return {
-        init: ({ arcli, params, props }) => {
-            Hook = op.get(arcli, 'Hook');
-            spinner = op.get(arcli, 'spinner');
+        init: args => {
+            arcli = arcli || op.get(args, 'arcli');
+            cwd = op.get(args, 'props.cwd');
+            params = op.get(args, 'params');
+            props = op.get(args, 'props');
         },
-        create: ({ params, props }) => {
-            spinner.message('Creating', chalk.cyan('something'), '...');
+        create: () => {
+            Spinner.message('Creating', chalk.cyan('something'), '...');
         },
     };
 };

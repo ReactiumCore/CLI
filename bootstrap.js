@@ -3,13 +3,17 @@
 // Globals
 const Actinium = require('parse/node');
 global.Actinium = Actinium;
+global.Hook = require('@atomic-reactor/reactium-sdk-core/lib/hook').default;
+global.Spinner = require('ora')({ spinner: 'dots', color: 'cyan' });
+
+// Extend
+Spinner.message = (...args) => Spinner.start(args.join(' '));
 
 // Imports
 const root = __dirname;
 const config = require('./config');
 const ver = require('./package').version;
 const chalk = require('chalk');
-const ora = require('ora');
 const path = require('path');
 const fs = require('fs-extra');
 const globby = require('globby').sync;
@@ -19,10 +23,6 @@ const semver = require('semver');
 const homedir = require('os').homedir();
 const prettier = require('prettier');
 const generator = require('./lib/generator');
-const Hook = require('@atomic-reactor/reactium-sdk-core/lib/hook').default;
-
-const spinner = ora({ spinner: 'dots', color: 'cyan' });
-spinner.message = (...args) => spinner.start(args.join(' '));
 
 const initialize = props => {
 
@@ -82,9 +82,8 @@ const commands = () => {
 // Build the props object
 const props = initialize({ config, cwd, homedir, root, ver });
 
-module.exports = {
+global.arcli = {
     Actinium,
-    Hook,
     chalk,
     commands,
     fs,
@@ -95,7 +94,8 @@ module.exports = {
     moment,
     prettier,
     semver,
-    spinner,
     props,
     tmp: path.normalize(path.join(homedir, 'tmp'))
 };
+
+module.exports = global.arcli;
