@@ -3,19 +3,27 @@ const fs = require('fs-extra');
 const chalk = require('chalk');
 const _ = require('underscore');
 const op = require('object-path');
+const ActionSequence = require('action-sequence');
 
-module.exports = (arcli) => {
-    let cwd, params, props;
+const { arcli, Hook, Spinner } = global;
+
+const normalize = arcli.normalizePath;
+const mod = path.dirname(require.main.filename);
+
+module.exports = () => {
+    const cwd = op.get(arcli, 'props.cwd');
 
     return {
-        init: args => {
-            arcli = arcli || op.get(args, 'arcli');
-            cwd = op.get(args, 'props.cwd');
-            params = op.get(args, 'params');
-            props = op.get(args, 'props');
-        },
-        create: () => {
-            Spinner.message('Creating', chalk.cyan('something'), '...');
+        package: ({ params }) => {
+            Spinner.message('Creating', chalk.cyan('package.json') + '...');
+            Spinner.stop();
+            const pkg = require(`${mod}/commands/project/init/template/package`);
+
+            pkg.name = params.project;
+
+            Hook.runSync('project-package', pkg);
+
+            fs.writeJsonSync(normalize(cwd, 'package.json'), pkg);
         },
     };
 };

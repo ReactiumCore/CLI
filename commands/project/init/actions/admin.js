@@ -20,23 +20,15 @@ module.exports = () => {
         init: args => {
             params = op.get(args, 'params');
         },
-        directory: () => {
-            Spinner.message('Creating', chalk.cyan('API'), 'directory...');
-
-            const dir = normalize(cwd, 'API');
-
-            fs.ensureDirSync(dir);
-            fs.emptyDirSync(dir);
-        },
-        download: () => {
-            const actions = require(`${mod}/commands/actinium/install/actions`)(
-                Spinner,
+        reactium: () => {
+            const actions = require(`${mod}/commands/project/init/actions/app`)(
+                'ADMIN',
             );
             return ActionSequence({
                 actions,
                 options: {
                     params,
-                    props: { ...props, cwd: normalize(cwd, 'API') },
+                    props: { ...props, cwd: normalize(cwd, 'ADMIN') },
                 },
             });
         },

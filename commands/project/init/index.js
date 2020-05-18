@@ -53,7 +53,7 @@ const HELP = () => {
 };
 
 const FLAGS = () => {
-    let flags = ['app', 'overwrite', 'import', 'type', 'unattended'];
+    let flags = ['admin', 'api', 'app', 'overwrite', 'import', 'type', 'unattended'];
     Hook.runSync('project-init-flags', flags);
     return flags;
 };
@@ -200,6 +200,41 @@ const OVERWRITE_PROMPT = async params => {
     }
 };
 
+const APP_PROMPT = () =>
+    inquirer.prompt([
+        {
+            prefix,
+            name: 'app',
+            type: 'list',
+            message: 'What type of app?:',
+            choices: _.pluck(appTypes, 'value'),
+            default: _.findIndex(appTypes, { key: 'web' }),
+            filter: val => _.findWhere(appTypes, { value: val }).key,
+        },
+    ]);
+
+const API_PROMPT = () =>
+    inquirer.prompt([
+        {
+            prefix,
+            name: 'api',
+            type: 'confirm',
+            message: 'Need an API?:',
+            default: false,
+        },
+    ]);
+
+const ADMIN_PROMPT = () =>
+    inquirer.prompt([
+        {
+            prefix,
+            name: 'admin',
+            type: 'confirm',
+            message: 'Need an Admin?:',
+            default: false,
+        },
+    ]);
+
 const ACTION = async (action, params) => {
     console.log('');
 
@@ -259,28 +294,28 @@ const ACTION = async (action, params) => {
         params.type = type;
     }
 
+    if (params.type === 'full-stack') {
+        const { app } = await APP_PROMPT();
+        params.admin = true;
+        params.api = true;
+        params.app = app;
+    }
+
     // 1.3 - params.app
     if (!op.has(params, 'app') && params.type === 'app') {
-        const { api, app } = await inquirer.prompt([
-            {
-                prefix,
-                name: 'app',
-                type: 'list',
-                message: 'What type of app?:',
-                choices: _.pluck(appTypes, 'value'),
-                default: _.findIndex(appTypes, { key: 'web' }),
-                filter: val => _.findWhere(appTypes, { value: val }).key,
-            },
-            {
-                prefix,
-                name: 'api',
-                type: 'confirm',
-                message: 'Need an API?:',
-                default: false,
-            },
-        ]);
+        const { app } = await APP_PROMPT();
+        const { api } = await API_PROMPT();
         params.api = api;
         params.app = app;
+    }
+
+    // 1.4 - params.admin
+    if (
+        !op.has(params, 'admin') &&
+        (op.get(params, 'api') === true || params.type === 'api')
+    ) {
+        const { admin } = await ADMIN_PROMPT();
+        params.admin = admin;
     }
 
     // 2.0 - conform the params
@@ -316,6 +351,8 @@ const COMMAND = ({ program, ...args }) =>
         .option('-i, --import [import]', 'Import a project.json file')
         .option('-o, --overwrite [overwrite]', 'Overwrite existing project.')
         .option('--unattended [unattended]', 'Run the command without prompts.')
+        .option('--admin [admin]', 'Add Admin to project.')
+        .option('--api [api]', 'Add Actinium to project')
         .on('--help', HELP);
 
 module.exports = {

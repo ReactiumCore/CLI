@@ -6,39 +6,44 @@ const op = require('object-path');
 const ActionSequence = require('action-sequence');
 
 const { arcli, Hook, Spinner } = global;
+
+const normalize = arcli.normalizePath;
 const mod = path.dirname(require.main.filename);
 
-module.exports = () => {
+module.exports = (DIR = 'APP') => {
     let params;
 
     const props = op.get(arcli, 'props');
     const cwd = op.get(arcli, 'props.cwd');
-    const normalize = (...args) => path.normalize(path.join(...args));
 
     return {
         init: args => {
             params = op.get(args, 'params');
         },
         directory: () => {
-            Spinner.message('Creating', chalk.cyan('APP'), 'directory...');
+            Spinner.message('Creating', chalk.cyan(DIR), 'directory...');
 
-            const dir = normalize(cwd, 'APP');
+            const dir = normalize(cwd, DIR);
 
             fs.ensureDirSync(dir);
             fs.emptyDirSync(dir);
         },
-        install: () => {
-            const actions = require(`${mod}/commands/reactium/install/actions`)(Spinner);
+        download: () => {
+            const actions = require(`${mod}/commands/reactium/install/actions`)(
+                Spinner,
+            );
             return ActionSequence({
                 actions,
                 options: {
                     params,
-                    props: { ...props, cwd: normalize(cwd, 'APP') },
+                    props: { ...props, cwd: normalize(cwd, DIR) },
                 },
             });
         },
         empty: () => {
-            const actions = require(`${mod}/commands/reactium/empty/actions`)(Spinner);
+            const actions = require(`${mod}/commands/reactium/empty/actions`)(
+                Spinner,
+            );
             return ActionSequence({
                 actions,
                 options: {
@@ -50,7 +55,7 @@ module.exports = () => {
                         style: true,
                         toolkt: true,
                     },
-                    props: { ...props, cwd: normalize(cwd, 'APP') },
+                    props: { ...props, cwd: normalize(cwd, DIR) },
                 },
             });
         },

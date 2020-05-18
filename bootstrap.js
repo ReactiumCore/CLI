@@ -33,6 +33,8 @@ const mergeActions = (...args) =>
         return output;
     }, {});
 
+const normalizePath = (...args) => path.normalize(path.join(...args));
+
 const initialize = props => {
 
     // require arlic-hooks.js files
@@ -41,14 +43,14 @@ const initialize = props => {
     );
 
     // Get application config
-    const appConfigFile = path.normalize(`${cwd}/.core/.cli/config.json`);
+    const appConfigFile = normalizePath(cwd, '.core', '.cli', 'config.json');
     if (fs.existsSync(appConfigFile)) {
         const appConfig = require(appConfigFile);
         props.config = Object.assign(props.config, appConfig);
     }
 
     // Get local config
-    const localConfigFile = path.join(homedir, '.arcli', 'config.json');
+    const localConfigFile = normalizePath(homedir, '.arcli', 'config.json');
     props.localConfigFile = localConfigFile;
 
     if (fs.existsSync(localConfigFile)) {
@@ -62,7 +64,7 @@ const initialize = props => {
     }
 
     // Get project config
-    const projConfigFile = path.normalize(`${cwd}/.cli/config.json`);
+    const projConfigFile = normalizePath(cwd, '.cli', 'config.json');
     if (fs.existsSync(projConfigFile)) {
         const projConfig = require(projConfigFile);
         props.config = Object.assign(props.config, projConfig);
@@ -104,10 +106,11 @@ global.arcli = {
     homedir,
     mergeActions,
     moment,
+    normalizePath,
     prettier,
     semver,
     props,
-    tmp: path.normalize(path.join(homedir, 'tmp'))
+    tmp: normalizePath(homedir, 'tmp'),
 };
 
 module.exports = global.arcli;
