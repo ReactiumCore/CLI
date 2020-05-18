@@ -167,7 +167,7 @@ const PROJECT_IMPORT_PROMPT = () =>
         ])
         .then(input => {
             const { doImport } = input;
-            
+
             if (doImport !== true) {
                 console.log('');
                 return;
@@ -182,7 +182,7 @@ const PROJECT_IMPORT_PROMPT = () =>
                     itemType: 'file',
                     rootPath: path.resolve('/'),
                     excludePath: p =>
-                        p.includes('node_modules') || p.startsWith('/Volumes/'),
+                        p.includes('node_modules') || p.startsWith('/Volumes/') || p.includes('.Trash'),
                     excludeFilter: p => !p.endsWith('/project.json'),
                     depthLimit: 4,
                 },
