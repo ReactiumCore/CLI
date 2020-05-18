@@ -11,6 +11,7 @@ Spinner.message = (...args) => Spinner.start(args.join(' '));
 
 // Imports
 const root = __dirname;
+const _ = require('underscore');
 const op = require('object-path');
 const config = require('./config');
 const ver = require('./package').version;
@@ -24,6 +25,11 @@ const semver = require('semver');
 const homedir = require('os').homedir();
 const prettier = require('prettier');
 const generator = require('./lib/generator');
+const npm = require('npm');
+const tar = require('tar');
+const request = require('request');
+const deleteEmpty = require('delete-empty').sync;
+const ActionSequence = require('action-sequence');
 
 const mergeActions = (...args) =>
     args.reduce((output, actions, i) => {
@@ -96,9 +102,11 @@ const commands = () => {
 const props = initialize({ config, cwd, homedir, root, ver });
 
 global.arcli = {
+    ActionSequence,
     Actinium,
     chalk,
     commands,
+    deleteEmpty,
     fs,
     path,
     generator,
@@ -106,11 +114,16 @@ global.arcli = {
     homedir,
     mergeActions,
     moment,
+    npm,
     normalizePath,
     prettier,
     semver,
     props,
+    request,
+    tar,
     tmp: normalizePath(homedir, 'tmp'),
+    _,
+    op,
 };
 
 module.exports = global.arcli;

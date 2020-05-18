@@ -50,11 +50,18 @@ module.exports = params => {
     }
 
     const onError = error => {
+        Spinner.stop();
+        console.log(error);
+
         let message = op.get(error, 'message', op.get(error, 'msg', error));
-        message = !message ? error : message;
-        Hook.runSync('project-init-error', { message, params });
-        Spinner.fail(message);
-        return new Error(message);
+
+        if (message) {
+            Hook.runSync('project-init-error', { message, params });
+            Spinner.fail(message);
+            return new Error(message);
+        } else {
+            return new Error(error);
+        }
     };
 
     // Run actions hook

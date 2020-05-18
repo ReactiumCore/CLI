@@ -158,6 +158,8 @@ module.exports = spinner => {
             fs.writeFileSync(pkgjson, JSON.stringify(pkg, null, 2));
         },
         postinstall: async ({ params, props }) => {
+            if (op.get(params, 'no-npm') === true) return;
+            
             const actionFiles= globby([`${dir}/**/arcli-install.js`]);
             if (actionFiles.length < 1) return;
 
@@ -172,7 +174,9 @@ module.exports = spinner => {
             params['pluginDirectory'] = dir;
             await ActionSequence({ actions, options: { params, props } });
         },
-        npm: async () => {
+        npm: async ({ params }) => {
+            if (op.get(params, 'no-npm') === true) return;
+
             spinner.stopAndPersist({
                 text: `Installing ${chalk.cyan('dependencies')}...`,
                 symbol: chalk.cyan('+'),
@@ -180,7 +184,7 @@ module.exports = spinner => {
 
             console.log('');
 
-            const pkg = [`./${app}_modules`, slugify(name), '_npm'].join('/');
+            const pkg = [cwd, `${app}_modules`, slugify(name), '_npm'].join('/');
 
             await new Promise((resolve, reject) =>
                 npm.load(err => {

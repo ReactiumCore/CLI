@@ -32,5 +32,17 @@ module.exports = () => {
                 },
             });
         },
+        pluginInstall: () => {
+            const actions = require(`${mod}/commands/package/install/actions`)(
+                Spinner,
+            );
+            return ActionSequence({
+                actions,
+                options: {
+                    params: { ...params, name: '@atomic-reactor/admin', 'no-npm': true },
+                    props: { ...props, cwd: normalize(cwd, 'ADMIN') },
+                },
+            });
+        },
     };
 };
