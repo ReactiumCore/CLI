@@ -6,15 +6,24 @@ const { arcli, Hook, Spinner } = global;
 module.exports = params => {
     console.log('');
 
-    let actions;
+    let actions = {};
 
     switch (op.get(params, 'type')) {
         case 'app':
-            actions = require('./actions/app');
+            actions = require('./actions/app')();
+
+            // Add api actions
+            if (op.get(params, 'api') === true) {
+                actions = arcli.mergeActions(actions, require('./actions/api')());
+            }
+            break;
+
+        case 'api':
+            actions = require('./actions/api')();
             break;
 
         default:
-            actions = require('./actions');
+            actions = require('./actions')();
     }
 
     const onError = error => {
@@ -32,7 +41,7 @@ module.exports = params => {
     }
 
     return ActionSequence({
-        actions: actions(),
+        actions: actions,
         options: { params },
     })
         .then(success => {

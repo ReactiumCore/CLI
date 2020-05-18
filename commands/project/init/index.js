@@ -119,10 +119,7 @@ const UNATTENDED = async params => {
     await GENERATOR(params);
 
     if (!op.get(params, 'import')) {
-        fs.writeJsonSync(
-            path.normalize(path.join(props.cwd, 'project.json')),
-            params,
-        );
+        fs.writeJsonSync(normalize(props.cwd, 'project.json'), params);
     }
 
     console.log('');
@@ -149,35 +146,38 @@ const PROJECT_IMPORT = params => {
     return params;
 };
 
-const PROJECT_IMPORT_PROMPT = () => inquirer
-    .prompt([
-        {
-            prefix,
-            name: 'doImport',
-            type: 'confirm',
-            message: 'Import from project.json file?:',
-            default: false,
-        },
-    ])
-    .then(input => {
-        const { doImport } = input;
-        if (doImport !== true) console.log(''); return;
-
-        return inquirer.prompt([
+const PROJECT_IMPORT_PROMPT = () =>
+    inquirer
+        .prompt([
             {
                 prefix,
-                name: 'importPath',
-                type: 'fuzzypath',
-                message: 'Import file path:',
-                itemType: 'file',
-                rootPath: path.resolve('/'),
-                excludePath: p =>
-                    p.includes('node_modules') || p.startsWith('/Volumes/'),
-                excludeFilter: p => !p.endsWith('/project.json'),
-                depthLimit: 4,
+                name: 'doImport',
+                type: 'confirm',
+                message: 'Import from project.json file?:',
+                default: false,
             },
-        ]);
-    }).then(input => op.get(input, 'importPath'));
+        ])
+        .then(input => {
+            const { doImport } = input;
+            if (doImport !== true) console.log('');
+            return;
+
+            return inquirer.prompt([
+                {
+                    prefix,
+                    name: 'importPath',
+                    type: 'fuzzypath',
+                    message: 'Import file path:',
+                    itemType: 'file',
+                    rootPath: path.resolve('/'),
+                    excludePath: p =>
+                        p.includes('node_modules') || p.startsWith('/Volumes/'),
+                    excludeFilter: p => !p.endsWith('/project.json'),
+                    depthLimit: 4,
+                },
+            ]);
+        })
+        .then(input => op.get(input, 'importPath'));
 
 const OVERWRITE_PROMPT = async params => {
     if (!op.has(params, 'overwrite') && !isEmpty(props.cwd)) {
@@ -261,7 +261,7 @@ const ACTION = async (action, params) => {
 
     // 1.3 - params.app
     if (!op.has(params, 'app') && params.type === 'app') {
-        const { app } = await inquirer.prompt([
+        const { api, app } = await inquirer.prompt([
             {
                 prefix,
                 name: 'app',
@@ -271,7 +271,15 @@ const ACTION = async (action, params) => {
                 default: _.findIndex(appTypes, { key: 'web' }),
                 filter: val => _.findWhere(appTypes, { value: val }).key,
             },
+            {
+                prefix,
+                name: 'api',
+                type: 'confirm',
+                message: 'Need an API?:',
+                default: false,
+            },
         ]);
+        params.api = api;
         params.app = app;
     }
 
@@ -287,10 +295,7 @@ const ACTION = async (action, params) => {
     console.log('');
 
     // 6.0 - write the project.json file
-    fs.writeJsonSync(
-        path.normalize(path.join(props.cwd, 'project.json')),
-        params,
-    );
+    fs.writeJsonSync(normalize(props.cwd, 'project.json'), params);
 
     // 7.0 - return the params for usage in another command
     return params;

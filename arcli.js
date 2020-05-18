@@ -105,6 +105,7 @@ const lastCheck = op.get(props.config, 'updated', Date.now());
 const lastUpdateCheck = moment().diff(moment(new Date(lastCheck)), 'days');
 
 if (lastUpdateCheck > 1) {
+
     axios
         .get(
             'https://raw.githubusercontent.com/Atomic-Reactor/CLI/master/package.json',
@@ -126,8 +127,8 @@ if (lastUpdateCheck > 1) {
             props.config.checked = Date.now();
             props.config.updated = Date.now();
             const contents = JSON.stringify(props.config, null, 2);
-            fs.ensureFileSync(localConfigFile);
-            fs.writeFileSync(localConfigFile, contents);
+            fs.ensureFileSync(props.localConfigFile);
+            fs.writeFileSync(props.localConfigFile, contents);
         })
         .then(() => initialize())
         .catch(err => {

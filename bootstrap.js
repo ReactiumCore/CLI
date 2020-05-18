@@ -11,6 +11,7 @@ Spinner.message = (...args) => Spinner.start(args.join(' '));
 
 // Imports
 const root = __dirname;
+const op = require('object-path');
 const config = require('./config');
 const ver = require('./package').version;
 const chalk = require('chalk');
@@ -23,6 +24,14 @@ const semver = require('semver');
 const homedir = require('os').homedir();
 const prettier = require('prettier');
 const generator = require('./lib/generator');
+
+const mergeActions = (...args) =>
+    args.reduce((output, actions, i) => {
+        Object.keys(actions).forEach(key =>
+            op.set(output, `${key}-${i}`, op.get(actions, key)),
+        );
+        return output;
+    }, {});
 
 const initialize = props => {
 
@@ -40,6 +49,8 @@ const initialize = props => {
 
     // Get local config
     const localConfigFile = path.join(homedir, '.arcli', 'config.json');
+    props.localConfigFile = localConfigFile;
+
     if (fs.existsSync(localConfigFile)) {
         const localConfig = require(localConfigFile);
         props.config = Object.assign(props.config, localConfig);
@@ -91,6 +102,7 @@ global.arcli = {
     generator,
     globby,
     homedir,
+    mergeActions,
     moment,
     prettier,
     semver,
