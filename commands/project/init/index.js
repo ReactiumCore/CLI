@@ -53,7 +53,15 @@ const HELP = () => {
 };
 
 const FLAGS = () => {
-    let flags = ['admin', 'api', 'app', 'overwrite', 'import', 'type', 'unattended'];
+    let flags = [
+        'admin',
+        'api',
+        'app',
+        'overwrite',
+        'import',
+        'type',
+        'unattended',
+    ];
     Hook.runSync('project-init-flags', flags);
     return flags;
 };
@@ -159,8 +167,11 @@ const PROJECT_IMPORT_PROMPT = () =>
         ])
         .then(input => {
             const { doImport } = input;
-            if (doImport !== true) console.log('');
-            return;
+            
+            if (doImport !== true) {
+                console.log('');
+                return;
+            }
 
             return inquirer.prompt([
                 {

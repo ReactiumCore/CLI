@@ -15,15 +15,19 @@ module.exports = () => {
 
     return {
         package: ({ params }) => {
+            const pkgPath = normalize(cwd, 'package.json');
+
+            if (fs.existsSync(pkgPath)) return;
+
             Spinner.message('Creating', chalk.cyan('package.json') + '...');
-            Spinner.stop();
+            
             const pkg = require(`${mod}/commands/project/init/template/package`);
 
             pkg.name = params.project;
 
             Hook.runSync('project-package', pkg);
 
-            fs.writeJsonSync(normalize(cwd, 'package.json'), pkg);
+            fs.writeJsonSync(pkgPath, pkg);
         },
     };
 };
