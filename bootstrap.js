@@ -121,9 +121,6 @@ const commands = () => {
     return globby(globs);
 };
 
-// Build the props object
-const props = initialize({ config, cwd, homedir, root, ver });
-
 global.arcli = {
     ActionSequence,
     Actinium,
@@ -140,7 +137,7 @@ global.arcli = {
     npm,
     normalizePath,
     prettier,
-    props,
+    props: { config, cwd, homedir, root, ver },
     request,
     runCommand,
     semver,
@@ -149,5 +146,8 @@ global.arcli = {
     _,
     op,
 };
+
+// Build the props object
+global.arcli.props = initialize(arcli.props);
 
 module.exports = global.arcli;
