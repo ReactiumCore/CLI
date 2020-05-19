@@ -58,6 +58,8 @@
     "object-path": "^0.11.4",
     "ora": "^3.4.0",
     "parse": "^2.13.0",
+    "pm2": "^4.4.0",
+    "portscanner": "^2.2.0",
     "prettier": "^1.19.1",
     "prompt": "^1.0.0",
     "request": "^2.88.2",

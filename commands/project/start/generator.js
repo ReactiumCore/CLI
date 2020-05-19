@@ -1,14 +1,22 @@
 const op = require('object-path');
 const ActionSequence = require('action-sequence');
+const fs = require('fs-extra');
+
+const { arcli, Hook, Spinner } = global;
 
 module.exports = ({ arcli, params, props }) => {
     console.log('');
 
-    const { Hook, spinner } = arcli;
+    // TODO: get project config from command
+    params.project = fs.readJSONSync(
+        arcli.normalizePath(props.cwd, 'project.json'),
+        { throws: false },
+    );
 
-    const actions = require('./actions')(spinner);
+    let actions = {};
 
     const onError = error => {
+        console.log({error});
         let message = op.get(error, 'message', error);
         Hook.runSync('project-start-error', {
             arcli,
@@ -16,13 +24,33 @@ module.exports = ({ arcli, params, props }) => {
             params,
             props,
         });
-        spinner.fail(message);
+
+        Spinner.fail(message);
         return new Error(message);
     };
 
+    if (op.get(params, 'project.api', false)) {
+        actions = arcli.mergeActions(actions, require('./actions/api')());
+    }
+
+    if (op.get(params, 'project.admin', false)) {
+        actions = arcli.mergeActions(actions, require('./actions/admin')());
+    }
+
+    if (op.get(params, 'project.app', false)) {
+        actions = arcli.mergeActions(actions, require('./actions/app')());
+    }
+
+    actions = arcli.mergeActions(actions, require('./actions/close')());
+
     // Run actions hook
     try {
-        Hook.runSync('project-start-actions', { actions, arcli, params, props });
+        Hook.runSync('project-start-actions', {
+            actions,
+            arcli,
+            params,
+            props,
+        });
     } catch (error) {
         onError(error);
     }
@@ -32,7 +60,7 @@ module.exports = ({ arcli, params, props }) => {
         options: { arcli, params, props },
     })
         .then(success => {
-            let message = 'project init complete!';
+            let message = 'project start complete!';
 
             // Run complete hook
             try {
@@ -43,7 +71,8 @@ module.exports = ({ arcli, params, props }) => {
                     message,
                     success,
                 });
-                spinner.succeed(message);
+
+                Spinner.succeed(message);
             } catch (error) {
                 return onError(error);
             }

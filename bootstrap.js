@@ -24,9 +24,12 @@ const cwd = path.resolve(process.cwd());
 const semver = require('semver');
 const homedir = require('os').homedir();
 const prettier = require('prettier');
+const pm2 = require('pm2');
+const portscanner = require('portscanner');
 const generator = require('./lib/generator');
 const npm = require('npm');
 const tar = require('tar');
+const slugify = require('slugify');
 const request = require('request');
 const deleteEmpty = require('delete-empty').sync;
 const ActionSequence = require('action-sequence');
@@ -111,8 +114,8 @@ const commands = () => {
         path
             .normalize(
                 String(`${dir}/**/*index.js`)
-                    .replace(/\[root\]/gi, props.root)
-                    .replace(/\[cwd\]/gi, props.cwd),
+                    .replace(/\[root\]/gi, arcli.props.root)
+                    .replace(/\[cwd\]/gi, arcli.props.cwd),
             )
             .split(/[\\\/]/g)
             .join(path.posix.sep),
@@ -136,11 +139,14 @@ global.arcli = {
     moment,
     npm,
     normalizePath,
+    pm2,
+    portscanner,
     prettier,
     props: { config, cwd, homedir, root, ver },
     request,
     runCommand,
     semver,
+    slugify,
     tar,
     tmp: normalizePath(homedir, 'tmp'),
     _,

@@ -28,7 +28,7 @@ const NAME = 'project <start>';
  * @see https://www.npmjs.com/package/commander#automated---help
  * @since 2.0.0
  */
-const DESC = 'The description of the command';
+const DESC = 'Start the project for local development';
 
 /**
  * CANCELED String
@@ -36,45 +36,6 @@ const DESC = 'The description of the command';
  * @since 2.0.0
  */
 const CANCELED = 'Action canceled!';
-
-/**
- * confirm({ props:Object, params:Object }) Function
- * @description Prompts the user to confirm the operation
- * @since 2.0.0
- */
-const CONFIRM = ({ props, params, msg }) => {
-    const { prompt } = props;
-
-    msg = msg || chalk.white('Proceed?');
-
-    return new Promise((resolve, reject) => {
-        prompt.get(
-            {
-                properties: {
-                    confirmed: {
-                        description: `${msg} ${chalk.cyan('(Y/N):')}`,
-                        type: 'string',
-                        required: true,
-                        pattern: /^y|n|Y|N/,
-                        message: ` `,
-                        before: val => {
-                            return String(val).toUpperCase() === 'Y';
-                        },
-                    },
-                },
-            },
-            (error, input = {}) => {
-                const confirmed = op.get(input, 'confirmed', false);
-                if (error || confirmed === false) {
-                    reject(error);
-                } else {
-                    params['confirmed'] = true;
-                    resolve(params);
-                }
-            },
-        );
-    });
-};
 
 /**
  * conform(input:Object) Function
@@ -110,7 +71,7 @@ Example:
  * @description Array of flags passed from the commander options.
  * @since 2.0.18
  */
-const FLAGS = ['sample', 'overwrite'];
+const FLAGS = [];
 
 /**
  * FLAGS_TO_PARAMS Function
@@ -130,42 +91,6 @@ const FLAGS_TO_PARAMS = ({ opt = {} }) =>
     }, {});
 
 /**
- * PREFLIGHT Function
- */
-const PREFLIGHT = ({ msg, params, props }) => {
-    msg = msg || 'Preflight checklist:';
-
-    message(msg);
-
-    // Transform the preflight object instead of the params object
-    const preflight = { ...params };
-
-    console.log(
-        prettier.format(JSON.stringify(preflight), {
-            parser: 'json-stringify',
-        }),
-    );
-};
-
-/**
- * SCHEMA Function
- * @description used to describe the input for the prompt function.
- * @see https://www.npmjs.com/package/prompt
- * @since 2.0.0
- */
-const SCHEMA = ({ props }) => {
-    return {
-        properties: {
-            sample: {
-                description: chalk.white('Sample:'),
-                required: true,
-                default: true,
-            },
-        },
-    };
-};
-
-/**
  * ACTION Function
  * @description Function used as the commander.action() callback.
  * @see https://www.npmjs.com/package/commander
@@ -175,38 +100,14 @@ const SCHEMA = ({ props }) => {
  */
 const ACTION = ({ arcli, opt, props }) => {
     const { cwd, prompt } = props;
-    const schema = SCHEMA({ props });
-    const ovr = FLAGS_TO_PARAMS({ opt });
-
-    prompt.override = ovr;
-    prompt.start();
 
     let params = {};
 
-    return new Promise((resolve, reject) => {
-        prompt.get(schema, (err, input = {}) => {
-            if (err) {
-                prompt.stop();
-                reject(`${NAME} ${err.message}`);
-                return;
-            }
-
-            input = { ...ovr, ...input };
-            params = CONFORM({ input, props });
-
-            PREFLIGHT({ params, props });
-
-            resolve();
-        });
-    })
-        .then(() => CONFIRM({ props, params }))
-        .then(() => GENERATOR({ arcli, params, props }))
-        .then(() => prompt.stop())
+    return GENERATOR({ arcli, params, props })
         .then(results => {
-            console.log('');
+            process.exit();
         })
         .catch(err => {
-            prompt.stop();
             message(op.get(err, 'message', CANCELED));
         });
 };
@@ -220,8 +121,6 @@ const COMMAND = ({ arcli, program, props }) =>
         .command(NAME)
         .description(DESC)
         .action(opt => ACTION({ arcli, opt, props }))
-        .option('-s, --sample [sample]', 'Sample parameter.')
-        .option('-o, --overwrite [overwrite]', 'Overwrite existing file.')
         .on('--help', HELP);
 
 /**
