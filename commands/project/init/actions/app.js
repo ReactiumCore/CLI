@@ -62,5 +62,13 @@ module.exports = (DIR = 'APP') => {
         electron: () => {
             if (!op.get(params, 'app') === 'electron') return;
         },
+        npm: () => {
+            Spinner.stop();
+            console.log(chalk.cyan('+'), 'Installing', chalk.cyan(DIR), 'dependencies...');
+            console.log('');
+            return arcli
+                .runCommand('npm', ['install'], { cwd: normalize(cwd, DIR) })
+                .catch(() => process.exit());
+        },
     };
 };

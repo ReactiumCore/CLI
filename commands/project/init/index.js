@@ -13,6 +13,8 @@ const GENERATOR = require('./generator');
 const mod = path.dirname(require.main.filename);
 const { appTypes, projectTypes } = require('../enums');
 const { error, message } = require(`${mod}/lib/messenger`);
+const slugify = require('slugify');
+const camelcase = require('camelcase');
 
 const { arcli, Hook } = global;
 const props = arcli.props;
@@ -113,6 +115,10 @@ const CONFORM = async params => {
     return Object.keys(params).reduce((obj, key) => {
         let val = params[key];
         switch (key) {
+            case 'pluginName':
+                val = camelcase(slugify(val), { pascalCase: true });
+                obj[key] = val;
+
             default:
                 obj[key] = val;
                 break;
@@ -182,7 +188,9 @@ const PROJECT_IMPORT_PROMPT = () =>
                     itemType: 'file',
                     rootPath: path.resolve('/'),
                     excludePath: p =>
-                        p.includes('node_modules') || p.startsWith('/Volumes/') || p.includes('.Trash'),
+                        p.includes('node_modules') ||
+                        p.startsWith('/Volumes/') ||
+                        p.includes('.Trash'),
                     excludeFilter: p => !p.endsWith('/project.json'),
                     depthLimit: 4,
                 },
@@ -246,6 +254,17 @@ const ADMIN_PROMPT = () =>
         },
     ]);
 
+const ADMIN_PLUGIN_PROMPT = () =>
+    inquirer.prompt([
+        {
+            prefix,
+            name: 'pluginName',
+            type: 'input',
+            message: 'Plugin Name:',
+            default: 'AdminPlugin',
+        },
+    ]);
+
 const ACTION = async (action, params) => {
     console.log('');
 
@@ -305,14 +324,24 @@ const ACTION = async (action, params) => {
         params.type = type;
     }
 
-    if (params.type === 'full-stack') {
-        const { app } = await APP_PROMPT();
+    // 1.3 - fullstack
+    if (params.type === 'full-stack' || params.type === 'admin-plugin') {
         params.admin = true;
         params.api = true;
-        params.app = app;
+
+        if (params.type === 'admin-plugin') {
+            // 1.3.2 - admin plugin
+            const { pluginName } = await ADMIN_PLUGIN_PROMPT();
+            params.app = 'web';
+            params.pluginName = pluginName;
+        } else {
+            // 1.3.3 - fullstack
+            const { app } = await APP_PROMPT();
+            params.app = app;
+        }
     }
 
-    // 1.3 - params.app
+    // 1.4 - params.app
     if (!op.has(params, 'app') && params.type === 'app') {
         const { app } = await APP_PROMPT();
         const { api } = await API_PROMPT();
@@ -320,7 +349,7 @@ const ACTION = async (action, params) => {
         params.app = app;
     }
 
-    // 1.4 - params.admin
+    // 1.5 - params.admin
     if (
         !op.has(params, 'admin') &&
         (op.get(params, 'api') === true || params.type === 'api')
@@ -364,6 +393,9 @@ const COMMAND = ({ program, ...args }) =>
         .option('--unattended [unattended]', 'Run the command without prompts.')
         .option('--admin [admin]', 'Add Admin to project.')
         .option('--api [api]', 'Add Actinium to project')
+        .option('--pluginName [pluginName]', `When project type is ${chalk.cyan(
+            'admin-plugin',
+        )}, specify the pluginName.`)
         .on('--help', HELP);
 
 module.exports = {

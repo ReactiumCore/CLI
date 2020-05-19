@@ -2,11 +2,13 @@ const op = require('object-path');
 const ActionSequence = require('action-sequence');
 
 const { arcli, Hook, Spinner } = global;
+const { props, normalizePath:normalize } = arcli;
 
 module.exports = params => {
     console.log('');
 
     let actions = require('./actions')();
+    let cwd = op.get(props, 'cwd');
 
     switch (op.get(params, 'type')) {
         case 'app':
@@ -45,6 +47,16 @@ module.exports = params => {
                 require('./actions/app')(),
                 require('./actions/admin')(),
                 require('./actions/api')(),
+            );
+            break;
+
+        case 'admin-plugin':
+            actions = arcli.mergeActions(
+                actions,
+                require('./actions/app')(),
+                require('./actions/admin')(),
+                require('./actions/api')(),
+                require('./actions/admin-plugin')()
             );
             break;
     }

@@ -40,5 +40,13 @@ module.exports = () => {
                 },
             });
         },
+        npm: () => {
+            Spinner.stop();
+            console.log(chalk.cyan('+'), 'Installing', chalk.cyan('API'), 'dependencies...');
+            console.log('');
+            return arcli
+                .runCommand('npm', ['install'], { cwd: normalize(cwd, 'API') })
+                .catch(() => process.exit());
+        },
     };
 };

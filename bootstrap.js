@@ -30,6 +30,30 @@ const tar = require('tar');
 const request = require('request');
 const deleteEmpty = require('delete-empty').sync;
 const ActionSequence = require('action-sequence');
+const { spawn } = require('child_process');
+
+const runCommand = (cmd, args = [], options = {}) =>
+    new Promise((resolve, reject) => {
+        options.shell = true;
+        options.stdio = 'inherit';
+
+        const ps = spawn(cmd, args, options);
+
+        ps.on('error', err => {
+            console.log(`Error executing ${cmd}`);
+            console.log(err);
+            reject();
+        });
+
+        ps.on('close', code => {
+            if (code !== 0) {
+                console.log(`Error executing ${cmd}`);
+                reject();
+            } else {
+                resolve();
+            }
+        });
+    });
 
 const mergeActions = (...args) =>
     args.reduce((output, actions, i) => {
@@ -42,7 +66,6 @@ const mergeActions = (...args) =>
 const normalizePath = (...args) => path.normalize(path.join(...args));
 
 const initialize = props => {
-
     // require arlic-hooks.js files
     globby([path.join(cwd, '/**/arcli-hooks.js')]).forEach(path =>
         require(path),
@@ -117,9 +140,10 @@ global.arcli = {
     npm,
     normalizePath,
     prettier,
-    semver,
     props,
     request,
+    runCommand,
+    semver,
     tar,
     tmp: normalizePath(homedir, 'tmp'),
     _,
