@@ -32,6 +32,8 @@ const deleteEmpty = require('delete-empty').sync;
 const ActionSequence = require('action-sequence');
 const { spawn } = require('child_process');
 
+let props = { config, cwd, homedir, root, ver }; 
+
 const runCommand = (cmd, args = [], options = {}) =>
     new Promise((resolve, reject) => {
         options.shell = true;
@@ -137,7 +139,7 @@ global.arcli = {
     npm,
     normalizePath,
     prettier,
-    props: { config, cwd, homedir, root, ver },
+    props,
     request,
     runCommand,
     semver,
