@@ -30,7 +30,7 @@ module.exports = () => {
             fs.writeJsonSync(pkgPath, pkg);
         },
         updateConfig: ({ action, params, props }) => {
-            const { homedir } = arcli; 
+            const { homedir } = arcli;
             const configFilePath = normalize(homedir, '.arcli', 'config.json');
 
             const config = op.get(props, 'config', {});
@@ -41,6 +41,7 @@ module.exports = () => {
 
             op.set(config, ['projects', params.project, 'path'], cwd);
             op.set(params, 'newConfig', config);
+            arcli.props.config = config;
             return update({ action: 'update', params, props });
         },
     };
