@@ -12,6 +12,8 @@ const deleteEmpty = require('delete-empty').sync;
 const targetApp = require(`${mod}/lib/targetApp`);
 const ActionSequence = require('action-sequence');
 
+const { arcli } = global;
+
 module.exports = spinner => {
     let app, cwd, dir, filepath, name, plugin, sessionToken, tmp, url, version;
 
@@ -159,7 +161,7 @@ module.exports = spinner => {
         },
         postinstall: async ({ params, props }) => {
             if (op.get(params, 'no-npm') === true) return;
-            
+
             const actionFiles= globby([`${dir}/**/arcli-install.js`]);
             if (actionFiles.length < 1) return;
 
@@ -186,21 +188,7 @@ module.exports = spinner => {
 
             const pkg = [cwd, `${app}_modules`, slugify(name), '_npm'].join('/');
 
-            await new Promise((resolve, reject) =>
-                npm.load(err => {
-                    if (err) reject(err);
-
-                    npm.commands.install([pkg], err => {
-                        if (err) reject(err);
-                        else resolve();
-                    });
-                }),
-            )
-                .then(() => console.log(''))
-                .catch(err => {
-                    console.log(err);
-                    process.exit();
-                });
+            await arcli.runCommand('npm', ['install'], { cwd: pkg });
         },
         complete: () => {
             console.log('');
