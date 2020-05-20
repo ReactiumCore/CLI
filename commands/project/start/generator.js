@@ -75,7 +75,7 @@ module.exports = ({ arcli, params, props }) => {
     let actions = {};
     apps.forEach(app => {
         const { name, cwd, portRange, prepareEnv } = app;
-        if (op.get(params, `project.${name}`, params)) {
+        if (op.get(params, `project.${name}`, false)) {
             op.set(params, name, {
                 portRange,
                 prepareEnv,
