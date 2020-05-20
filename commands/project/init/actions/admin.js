@@ -32,17 +32,9 @@ module.exports = () => {
                 },
             });
         },
-        pluginInstall: () => {
-            const actions = require(`${mod}/commands/package/install/actions`)(
-                Spinner,
-            );
-            return ActionSequence({
-                actions,
-                options: {
-                    params: { ...params, name: '@atomic-reactor/admin', 'no-npm': true },
-                    props: { ...props, cwd: normalize(cwd, 'ADMIN') },
-                },
-            });
-        },
+        pluginInstall: () =>
+            arcli.runCommand('arcli', ['install', '@atomic-reactor/admin'], {
+                cwd: normalize(cwd, 'ADMIN'),
+            }),
     };
 };
