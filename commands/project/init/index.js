@@ -317,6 +317,12 @@ const ACTION = async (action, params) => {
     if (importPath) {
         params.import = importPath;
         params = PROJECT_IMPORT(params);
+
+        while (NAME_VALIDATE(params.project) !== true) {
+            const { project } = await NAME_PROMPT();
+            params.project = project;
+        }
+        
         if (op.get(params, 'unattended') === true) return UNATTENDED(params);
     }
 
