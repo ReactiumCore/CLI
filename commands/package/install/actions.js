@@ -186,9 +186,11 @@ module.exports = spinner => {
 
             console.log('');
 
-            const pkg = [cwd, `${app}_modules`, slugify(name), '_npm'].join('/');
+            const pkg = [`${app}_modules`, slugify(name), '_npm'].join('/');
 
-            await arcli.runCommand('npm', ['install'], { cwd: pkg });
+            console.log(pkg);
+
+            await arcli.runCommand('npm', ['install', pkg]);
         },
         complete: () => {
             console.log('');
