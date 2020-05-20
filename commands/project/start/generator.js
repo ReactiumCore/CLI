@@ -7,16 +7,8 @@ const { arcli, Hook, Spinner } = global;
 module.exports = ({ arcli, params, props }) => {
     console.log('');
 
-    // TODO: get project config from command
-    params.project = fs.readJSONSync(
-        arcli.normalizePath(props.cwd, 'project.json'),
-        { throws: false },
-    );
-
-    let actions = {};
-
     const onError = error => {
-        console.log({error});
+        console.log({ error });
         let message = op.get(error, 'message', error);
         Hook.runSync('project-start-error', {
             arcli,
@@ -29,17 +21,72 @@ module.exports = ({ arcli, params, props }) => {
         return new Error(message);
     };
 
-    if (op.get(params, 'project.api', false)) {
-        actions = arcli.mergeActions(actions, require('./actions/api')());
-    }
+    // TODO: get project config from command
+    params.project = fs.readJSONSync(
+        arcli.normalizePath(props.cwd, 'project.json'),
+        { throws: false },
+    );
 
-    if (op.get(params, 'project.admin', false)) {
-        actions = arcli.mergeActions(actions, require('./actions/admin')());
-    }
+    const namespace = (params.namespace = op.get(params, 'project.project'));
+    const defaultConfig = {
+        namespace,
+        script: 'npm',
+        args: ['run', 'local'],
+        watch: false,
+        env: {
+            NODE_ENV: 'development',
+        },
+    };
 
-    if (op.get(params, 'project.app', false)) {
-        actions = arcli.mergeActions(actions, require('./actions/app')());
-    }
+    const prepareEnvFactory = type => (config, port) => {
+        op.set(config, 'env.PORT', port);
+        if (type === 'reactium') {
+            op.set(config, 'env.APP_PORT', port);
+            op.set(config, 'env.BROWSERSYNC_PORT', port + 1);
+        }
+    };
+
+    const apps = [
+        {
+            name: 'api',
+            cwd: './API',
+            portRange: [9000, 9100],
+            prepareEnv: prepareEnvFactory('actinium'),
+        },
+        {
+            name: 'admin',
+            cwd: './ADMIN',
+            portRange: [3000, 3100],
+            prepareEnv: prepareEnvFactory('reactium'),
+        },
+        {
+            name: 'app',
+            cwd: './APP',
+            portRange: [4000, 4100],
+            prepareEnv: prepareEnvFactory('reactium'),
+        },
+    ];
+
+    let actions = {};
+    apps.forEach(app => {
+        const { name, cwd, portRange, prepareEnv } = app;
+        if (op.get(params, `project.${name}`, params)) {
+            op.set(params, name, {
+                portRange,
+                prepareEnv,
+                config: {
+                    ...defaultConfig,
+                    name,
+                    cwd,
+                },
+            });
+
+            actions = arcli.mergeActions(
+                actions,
+                require(`./actions/local`)(name),
+            );
+        }
+    });
 
     actions = arcli.mergeActions(actions, require('./actions/close')());
 

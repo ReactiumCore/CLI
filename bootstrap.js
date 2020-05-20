@@ -28,6 +28,7 @@ const pm2 = require('pm2');
 const portscanner = require('portscanner');
 const generator = require('./lib/generator');
 const npm = require('npm');
+const table = require('text-table');
 const tar = require('tar');
 const slugify = require('slugify');
 const request = require('request');
@@ -35,7 +36,7 @@ const deleteEmpty = require('delete-empty').sync;
 const ActionSequence = require('action-sequence');
 const { spawn } = require('child_process');
 
-let props = { config, cwd, homedir, root, ver }; 
+let props = { config, cwd, homedir, root, ver };
 
 const runCommand = (cmd, args = [], options = {}) =>
     new Promise((resolve, reject) => {
@@ -150,6 +151,7 @@ global.arcli = {
     semver,
     slugify,
     tar,
+    table,
     tmp: normalizePath(homedir, 'tmp'),
     _,
     op,
