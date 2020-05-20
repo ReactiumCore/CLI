@@ -9,6 +9,7 @@ const fs = require('fs-extra');
 const chalk = require('chalk');
 const _ = require('underscore');
 const op = require('object-path');
+const globby = require('globby').sync;
 const GENERATOR = require('./generator');
 const mod = path.dirname(require.main.filename);
 const { appTypes, projectTypes } = require('../enums');
@@ -22,7 +23,7 @@ const prefix = arcli.prefix;
 
 const { inquirer } = props;
 
-const isEmpty = cwd => fs.readdirSync(cwd).length < 1;
+const isEmpty = cwd => globby(['*']).length < 1;
 
 const normalize = (...args) => path.normalize(path.join(...args));
 
@@ -92,21 +93,19 @@ const PREFLIGHT = async params => {
     console.log(JSON.stringify(preflight, null, 2));
     console.log('');
 
-    if (!op.has(params, 'overwrite') && !isEmpty(props.cwd)) {
-        const { confirm } = await inquirer.prompt([
-            {
-                prefix,
-                name: 'confirm',
-                type: 'confirm',
-                message: 'Proceed?:',
-                default: true,
-            },
-        ]);
+    const { confirm } = await inquirer.prompt([
+        {
+            prefix,
+            name: 'confirm',
+            type: 'confirm',
+            message: 'Proceed?:',
+            default: true,
+        },
+    ]);
 
-        if (confirm !== true) {
-            message(CANCELED);
-            process.exit();
-        }
+    if (confirm !== true) {
+        message(CANCELED);
+        process.exit();
     }
 };
 
@@ -276,7 +275,13 @@ const NAME_VALIDATE = name => {
     const { name: key } = CONFORM({ name });
 
     if (op.has(arcli, `props.config.projects.${key}`)) {
-        return `${name} already exists`;
+        const { path: projectPath } = op.get(
+            arcli,
+            `props.config.projects.${key}`,
+        );
+
+        const isProject = fs.existsSync(projectPath) && !isEmpty(projectPath); 
+        return  isProject ? `${name} already exists` : true;
     }
 
     return true;
@@ -322,7 +327,7 @@ const ACTION = async (action, params) => {
             const { project } = await NAME_PROMPT();
             params.project = project;
         }
-        
+
         if (op.get(params, 'unattended') === true) return UNATTENDED(params);
     }
 

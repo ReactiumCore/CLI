@@ -26,6 +26,7 @@ module.exports = () => {
 
         check: ({ arcli, params, props }) => {
             Spinner.message('Checking project status...')
+            Spinner.stop();
 
             const namespace = op.get(params, 'namespace');
             params.apps = [];
