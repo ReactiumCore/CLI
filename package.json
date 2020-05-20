@@ -66,6 +66,7 @@
     "semver": "^6.3.0",
     "slugify": "^1.4.0",
     "tar": "^6.0.2",
+    "text-table": "^0.2.0",
     "underscore": "^1.10.2"
   },
   "devDependencies": {
