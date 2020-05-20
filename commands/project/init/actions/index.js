@@ -20,7 +20,7 @@ module.exports = () => {
             if (fs.existsSync(pkgPath)) return;
 
             Spinner.message('Creating', chalk.cyan('package.json') + '...');
-            
+
             const pkg = require(`${mod}/commands/project/init/template/package`);
 
             pkg.name = params.project;
@@ -28,6 +28,20 @@ module.exports = () => {
             Hook.runSync('project-package', pkg);
 
             fs.writeJsonSync(pkgPath, pkg);
+        },
+        updateConfig: ({ action, params, props }) => {
+            const { homedir } = arcli; 
+            const configFilePath = normalize(homedir, '.arcli', 'config.json');
+
+            const config = op.get(props, 'config', {});
+
+            const { update } = require(`${mod}/commands/config/set/actions`)(
+                Spinner,
+            );
+
+            op.set(config, ['projects', params.project, 'path'], cwd);
+            op.set(params, 'newConfig', config);
+            return update({ action: 'update', params, props });
         },
     };
 };

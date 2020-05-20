@@ -53,7 +53,7 @@ module.exports = (DIR = 'APP') => {
                         font: true,
                         images: true,
                         style: true,
-                        toolkt: true,
+                        toolkit: true,
                     },
                     props: { ...props, cwd: normalize(cwd, DIR) },
                 },
