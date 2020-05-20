@@ -59,6 +59,7 @@ const FLAGS = () => {
         'admin',
         'api',
         'app',
+        'name',
         'overwrite',
         'import',
         'type',
@@ -109,15 +110,18 @@ const PREFLIGHT = async params => {
     }
 };
 
-const CONFORM = async params => {
+const CONFORM = params => {
     Hook.runSync('project-init-conform', { arcli, params, props });
 
     return Object.keys(params).reduce((obj, key) => {
         let val = params[key];
         switch (key) {
+            case 'name':
+            case 'project':
             case 'pluginName':
                 val = camelcase(slugify(val), { pascalCase: true });
                 obj[key] = val;
+                break;
 
             default:
                 obj[key] = val;
@@ -265,6 +269,30 @@ const ADMIN_PLUGIN_PROMPT = () =>
         },
     ]);
 
+// validate name
+const NAME_VALIDATE = name => {
+    if (!name) return 'Project name is required';
+
+    const { name: key } = CONFORM({ name });
+
+    if (op.has(arcli, `props.config.projects.${key}`)) {
+        return `${name} already exists`;
+    }
+
+    return true;
+};
+
+const NAME_PROMPT = () =>
+    inquirer.prompt([
+        {
+            prefix,
+            name: 'project',
+            type: 'input',
+            message: 'Project name:',
+            validate: val => NAME_VALIDATE(val),
+        },
+    ]);
+
 const ACTION = async (action, params) => {
     console.log('');
 
@@ -300,16 +328,20 @@ const ACTION = async (action, params) => {
     // 1.1 - input hook
     Hook.runSync('project-init-input', { arcli, params, props });
 
+    // 1.2 - params.project
+    if (op.has(params, 'name')) {
+        op.set(params, 'project', params.name);
+        op.del(params, 'name');
+    }
+
+    while (NAME_VALIDATE(params.project) !== true) {
+        const { project } = await NAME_PROMPT();
+        params.project = project;
+    }
+
     // 1.2 - params.project, params.type
     if (!op.has(params, 'type')) {
-        const { project, type } = await inquirer.prompt([
-            {
-                prefix,
-                name: 'project',
-                type: 'input',
-                message: 'Project name:',
-                validate: val => (!val ? 'Project name is required' : true),
-            },
+        const { type } = await inquirer.prompt([
             {
                 prefix,
                 name: 'type',
@@ -320,7 +352,6 @@ const ACTION = async (action, params) => {
                 filter: val => _.findWhere(projectTypes, { value: val }).key,
             },
         ]);
-        params.project = project;
         params.type = type;
     }
 
@@ -359,7 +390,7 @@ const ACTION = async (action, params) => {
     }
 
     // 2.0 - conform the params
-    params = await CONFORM(params);
+    params = CONFORM(params);
 
     // 3.0 - preflight
     await PREFLIGHT(params);
@@ -390,12 +421,16 @@ const COMMAND = ({ program, ...args }) =>
         )
         .option('-i, --import [import]', 'Import a project.json file')
         .option('-o, --overwrite [overwrite]', 'Overwrite existing project.')
+        .option('-n, --name [name]', 'The project name')
         .option('--unattended [unattended]', 'Run the command without prompts.')
         .option('--admin [admin]', 'Add Admin to project.')
         .option('--api [api]', 'Add Actinium to project')
-        .option('--pluginName [pluginName]', `When project type is ${chalk.cyan(
-            'admin-plugin',
-        )}, specify the pluginName.`)
+        .option(
+            '--pluginName [pluginName]',
+            `When project type is ${chalk.cyan(
+                'admin-plugin',
+            )}, specify the pluginName.`,
+        )
         .on('--help', HELP);
 
 module.exports = {
