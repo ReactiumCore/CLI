@@ -43,6 +43,11 @@ module.exports = ({ arcli, params, props }) => {
         if (type === 'reactium') {
             op.set(config, 'env.APP_PORT', port);
             op.set(config, 'env.BROWSERSYNC_PORT', port + 1);
+            op.set(
+                config,
+                'env.REST_API_URL',
+                `http://localhost:${op.get(params, 'api.port', 9000)}/api`,
+            );
         }
     };
 
