@@ -59,8 +59,7 @@ module.exports = ({ arcli, params, props }) => {
                     message,
                     success,
                 });
-
-                Spinner.succeed(message);
+                console.log('');
             } catch (error) {
                 return onError(error);
             }

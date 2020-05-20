@@ -10,21 +10,22 @@ module.exports = () => {
 
     return {
         pm2Init: ({ arcli, params, props }) => {
-            Spinner.message('Connecting to pm2...');
+            Spinner.message('Connection...');
+
             return new Promise((resolve, reject) => {
                 pm2.connect(err => {
                     if (err) {
                         reject(err);
                         return;
                     }
-
+                    Spinner.stopAndPersist({ text: 'Connected', symbol: chalk.green('✔') });
                     resolve();
                 });
             });
         },
 
         check: ({ arcli, params, props }) => {
-            Spinner.message('Checking project status...');
+            Spinner.message('Checking project status...')
 
             const namespace = op.get(params, 'namespace');
             params.apps = [];
@@ -38,17 +39,22 @@ module.exports = () => {
                     params.apps = description.filter(
                         app => op.get(app, 'pm2_env.namespace') === namespace,
                     );
-
                     resolve();
                 });
             });
         },
 
         list: ({ arcli, params, props }) => {
+            const apps = op.get(params, 'apps', []);
+            if (apps.length < 1) {
+                Spinner.stopAndPersist({ text: 'No running apps', symbol: chalk.red('✖') });
+                return;
+            }
+
             const table = arcli.table(
                 [
                     ['name', 'project', 'status', 'pid'],
-                    ...op.get(params, 'apps', []).map(app => {
+                    ...apps.map(app => {
                         return [
                             op.get(app, 'name'),
                             op.get(app, 'pm2_env.namespace'),
@@ -62,7 +68,7 @@ module.exports = () => {
 
             const output = table.split('\n');
             const [header, ...body] = output;
-            console.log(`\n\n${arcli.chalk.cyan(header)}`);
+            console.log(`\n${arcli.chalk.cyan(header)}`);
             console.log(
                 `${body
                     .map(line =>
@@ -76,7 +82,7 @@ module.exports = () => {
 
         close: ({ arcli, params, props }) => {
             pm2.disconnect();
-            console.log('disconnect');
+            Spinner.stopAndPersist({ text: 'Disconnected', symbol: chalk.green('✔') });
         },
     };
 };

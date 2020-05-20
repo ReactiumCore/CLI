@@ -59,12 +59,12 @@ module.exports = (DIR = 'APP') => {
                 actions,
                 options: {
                     params: {
-                        ...params,
-                        demo: true,
+                        demo: false,
                         font: true,
                         images: true,
                         style: true,
                         toolkit: true,
+                        ...params,
                     },
                     props: { ...props, cwd: normalize(cwd, DIR) },
                 },
