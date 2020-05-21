@@ -113,5 +113,34 @@ module.exports = type => {
                 });
             });
         },
+
+        connect: async ({arcli, params, props}) => {
+            const port = op.get(params, `${type}.port`);
+            Spinner.message(
+                `Waiting for ${arcli.chalk.cyan(type)} on port ${arcli.chalk.cyan(
+                    port,
+                )}...`,
+            )
+            let attempts = 0;
+            let err;
+            while (attempts < 10) {
+                try {
+                    await arcli.axios(`http://localhost:${port}`);
+                    err = false;
+                    break;
+                } catch (error) {
+                    if (op.get(error, 'response.data') || op.get(error, 'response.status')) {
+                        err = false;
+                        break
+                    };
+                    err = error;
+                }
+
+                await new Promise(res => setTimeout(res, 10000));
+                attempts++;
+            }
+
+            if (err) return Promise.reject(err);
+        },
     };
 };

@@ -12,6 +12,7 @@ Spinner.message = (...args) => Spinner.start(args.join(' '));
 // Imports
 const root = __dirname;
 const _ = require('underscore');
+const axios = require('axios');
 const op = require('object-path');
 const config = require('./config');
 const ver = require('./package').version;
@@ -128,6 +129,7 @@ const commands = () => {
 };
 
 global.arcli = {
+    axios,
     ActionSequence,
     Actinium,
     chalk,
