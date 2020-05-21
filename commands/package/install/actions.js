@@ -180,15 +180,13 @@ module.exports = spinner => {
             if (op.get(params, 'no-npm') === true) return;
 
             spinner.stopAndPersist({
-                text: `Installing ${chalk.cyan('dependencies')}...`,
+                text: `Installing ${chalk.cyan(name)} dependencies...`,
                 symbol: chalk.cyan('+'),
             });
 
             console.log('');
 
             const pkg = [`${app}_modules`, slugify(name), '_npm'].join('/');
-
-            console.log(pkg);
 
             await arcli.runCommand('npm', ['install', pkg]);
         },
