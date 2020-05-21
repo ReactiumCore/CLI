@@ -32,6 +32,9 @@ module.exports = () => {
                 },
             });
         },
+        gulpConfigUpdate: () => {
+
+        },
         pluginInstall: () =>
             arcli.runCommand('arcli', ['install', '@atomic-reactor/admin'], {
                 cwd: normalize(cwd, 'ADMIN'),

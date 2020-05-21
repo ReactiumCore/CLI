@@ -274,13 +274,14 @@ const NAME_VALIDATE = name => {
 
     const { name: key } = CONFORM({ name });
 
+    return true;
     if (op.has(arcli, `props.config.projects.${key}`)) {
         const { path: projectPath } = op.get(
             arcli,
             `props.config.projects.${key}`,
         );
 
-        const isProject = fs.existsSync(projectPath) && !isEmpty(projectPath); 
+        const isProject = fs.existsSync(projectPath) && !isEmpty(projectPath);
         return  isProject ? `${name} already exists` : true;
     }
 
