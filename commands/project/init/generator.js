@@ -1,28 +1,108 @@
-const ora = require('ora');
+const op = require('object-path');
 const ActionSequence = require('action-sequence');
 
-module.exports = ({ params, props }) => {
+const { arcli, Hook, Spinner } = global;
+const { props, normalizePath:normalize } = arcli;
+
+module.exports = params => {
     console.log('');
-    const spinner = ora({
-        spinner: 'dots',
-        color: 'cyan',
-    });
 
-    spinner.start();
+    let actions = require('./actions')();
+    let cwd = op.get(props, 'cwd');
 
-    const actions = require('./actions')(spinner);
+    switch (op.get(params, 'type')) {
+        case 'app':
+            actions = arcli.mergeActions(actions, require('./actions/app')());
+
+            // Add api actions
+            if (op.get(params, 'api') === true) {
+                actions = arcli.mergeActions(
+                    actions,
+                    require('./actions/api')(),
+                );
+            }
+
+            if (op.get(params, 'admin') === true) {
+                actions = arcli.mergeActions(
+                    actions,
+                    require('./actions/admin')(),
+                );
+            }
+            break;
+
+        case 'api':
+            actions = arcli.mergeActions(actions, require('./actions/api')());
+
+            if (op.get(params, 'admin') === true) {
+                actions = arcli.mergeActions(
+                    actions,
+                    require('./actions/admin')(),
+                );
+            }
+            break;
+
+        case 'full-stack':
+            actions = arcli.mergeActions(
+                actions,
+                require('./actions/admin')(),
+                require('./actions/app')(),
+                require('./actions/api')(),
+            );
+            break;
+
+        case 'admin-plugin':
+            actions = arcli.mergeActions(
+                actions,
+                require('./actions/admin')(),
+                require('./actions/app')(),
+                require('./actions/api')(),
+                require('./actions/admin-plugin')()
+            );
+            break;
+    }
+
+    const onError = error => {
+        Spinner.stop();
+        console.log(error);
+
+        let message = op.get(error, 'message', op.get(error, 'msg', error));
+
+        if (message) {
+            Hook.runSync('project-init-error', { message, params });
+            Spinner.fail(message);
+            return new Error(message);
+        } else {
+            return new Error(error);
+        }
+    };
+
+    // Run actions hook
+    try {
+        Hook.runSync('project-init-actions', { actions, params });
+    } catch (error) {
+        onError(error);
+    }
 
     return ActionSequence({
-        actions,
-        options: { params, props },
+        actions: actions,
+        options: { params },
     })
         .then(success => {
-            spinner.succeed('complete!');
-            console.log('');
+            let message = 'project init complete!';
+
+            // Run complete hook
+            try {
+                Hook.runSync('project-init-complete', {
+                    params,
+                    message,
+                    success,
+                });
+                Spinner.succeed(message);
+            } catch (error) {
+                return onError(error);
+            }
+
             return success;
         })
-        .catch(error => {
-            spinner.fail('error!');
-            return error;
-        });
+        .catch(onError);
 };

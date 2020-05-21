@@ -173,28 +173,33 @@ const ACTION = ({ opt, props }) => {
 
         message(`Actinium will be installed in the current directory: ${cwd}`);
 
-        CONFIRM({ props, params })
-            .then(confirmed => {
-                if (confirmed) {
-                    params['confirm'] = confirmed;
-                    console.log('');
-                    generator({ params, props }).then(success => {
-                        message(
-                            `Run: ${chalk.cyan(
-                                '$ npm install && npm run local',
-                            )} to launch the development environment`,
-                        );
-                    });
-                } else {
+        if (overwrite === true) {
+            console.log('');
+            generator({ params, props });
+        } else {
+            CONFIRM({ props, params })
+                .then(confirmed => {
+                    if (confirmed) {
+                        params['confirm'] = confirmed;
+                        console.log('');
+                        generator({ params, props }).then(success => {
+                            message(
+                                `Run: ${chalk.cyan(
+                                    '$ npm install && npm run local',
+                                )} to launch the development environment`,
+                            );
+                        });
+                    } else {
+                        prompt.stop();
+                        message(CANCELED);
+                    }
+                })
+                .then(() => prompt.stop())
+                .catch(() => {
                     prompt.stop();
                     message(CANCELED);
-                }
-            })
-            .then(() => prompt.stop())
-            .catch(() => {
-                prompt.stop();
-                message(CANCELED);
-            });
+                });
+        }
     });
 };
 

@@ -1,13 +1,14 @@
 {
   "name": "@atomic-reactor/cli",
-  "version": "2.2.8",
+  "version": "2.2.9",
   "description": "A CLI for creating Atomic Reactor Awesomeness",
-  "main": "arcli.js",
+  "main": "arcli-node.js",
   "scripts": {
     "test": "run-s test:*",
     "test:reactium-install": "mocha ./test/reactium-install.spec.js",
     "test:config-set": "mocha ./test/config-set.spec.js",
-    "test:reactium-update": "mocha ./test/reactium-update.spec.js"
+    "test:reactium-update": "mocha ./test/reactium-update.spec.js",
+    "test:project-init": "mocha ./test/project-init.spec.js"
   },
   "author": "Reactium LLC",
   "license": "MIT",
@@ -17,7 +18,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Atomic-Reactor/CLI.git"
+    "url": "git+https://github.com/Atomic-Reactor/CLI.git"
   },
   "bin": {
     "arcli": "arcli.js"
@@ -34,6 +35,7 @@
   ],
   "dependencies": {
     "@atomic-reactor/decompress": "^4.2.3",
+    "@atomic-reactor/reactium-sdk-core": "0.0.66",
     "action-sequence": "^1.1.1",
     "axios": "^0.19.2",
     "camelcase": "^5.3.1",
@@ -47,22 +49,37 @@
     "fs-readdir-recursive": "^1.1.0",
     "globby": "^10.0.2",
     "handlebars": "^4.7.6",
+    "inquirer": "^7.1.0",
+    "inquirer-autocomplete-prompt": "^1.0.2",
+    "inquirer-fuzzy-path": "^2.3.0",
+    "memory-cache": "^0.2.0",
     "moment": "^2.25.3",
     "npm": "^6.14.5",
     "object-path": "^0.11.4",
     "ora": "^3.4.0",
     "parse": "^2.13.0",
+    "pm2": "^4.4.0",
+    "portscanner": "^2.2.0",
     "prettier": "^1.19.1",
     "prompt": "^1.0.0",
     "request": "^2.88.2",
     "semver": "^6.3.0",
     "slugify": "^1.4.0",
     "tar": "^6.0.2",
+    "text-table": "^0.2.0",
     "underscore": "^1.10.2"
   },
   "devDependencies": {
     "chai": "^4.2.0",
     "mocha": "^7.1.2",
     "npm-run-all": "^4.1.5"
+  },
+  "bugs": {
+    "url": "https://github.com/Atomic-Reactor/CLI/issues"
+  },
+  "homepage": "https://github.com/Atomic-Reactor/CLI#readme",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
   }
 }

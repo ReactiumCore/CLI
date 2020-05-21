@@ -4,234 +4,449 @@
  * -----------------------------------------------------------------------------
  */
 
-const chalk = require('chalk');
-const prettier = require('prettier');
 const path = require('path');
+const fs = require('fs-extra');
+const chalk = require('chalk');
+const _ = require('underscore');
 const op = require('object-path');
-const mod = path.dirname(require.main.filename);
-const { error, message } = require(`${mod}/lib/messenger`);
+const globby = require('globby').sync;
 const GENERATOR = require('./generator');
+const mod = path.dirname(require.main.filename);
+const { appTypes, projectTypes } = require('../enums');
+const { error, message } = require(`${mod}/lib/messenger`);
+const slugify = require('slugify');
+const camelcase = require('camelcase');
 
-/**
- * NAME String
- * @description Constant defined as the command name. Value passed to the commander.command() function.
- * @example $ arcli project &lt;init&gt;
- * @see https://www.npmjs.com/package/commander#command-specific-options
- * @since 2.0.0
- */
-const NAME = 'project &lt;init&gt;';
+const { arcli, Hook } = global;
+const props = arcli.props;
+const prefix = arcli.prefix;
 
-/**
- * DESC String
- * @description Constant defined as the command description. Value passed to
- * the commander.desc() function. This string is also used in the --help flag output.
- * @see https://www.npmjs.com/package/commander#automated---help
- * @since 2.0.0
- */
-const DESC = 'The description of the command';
+const { inquirer } = props;
 
-/**
- * CANCELED String
- * @description Message sent when the command is canceled
- * @since 2.0.0
- */
-const CANCELED = 'Action canceled!';
+const isEmpty = cwd => globby(['*']).length < 1;
 
-/**
- * confirm({ props:Object, params:Object }) Function
- * @description Prompts the user to confirm the operation
- * @since 2.0.0
- */
-const CONFIRM = ({ props, params, msg }) => {
-    const { prompt } = props;
+const normalize = (...args) => path.normalize(path.join(...args));
 
-    msg = msg || chalk.white('Proceed?');
+const NAME = 'project <init>';
 
-    return new Promise((resolve, reject) => {
-        prompt.get(
-            {
-                properties: {
-                    confirmed: {
-                        description: `${msg} ${chalk.cyan('(Y/N):')}`,
-                        type: 'string',
-                        required: true,
-                        pattern: /^y|n|Y|N/,
-                        message: ` `,
-                        before: val => {
-                            return String(val).toUpperCase() === 'Y';
-                        },
-                    },
-                },
-            },
-            (error, input = {}) => {
-                const confirmed = op.get(input, 'confirmed', false);
-                if (error || confirmed === false) {
-                    reject(error);
-                } else {
-                    params['confirmed'] = true;
-                    resolve(params);
-                }
-            },
-        );
-    });
+const DESC = 'Create a new Atomic Reactor project';
+
+const CANCELED = 'Project creation canceled!';
+
+const HELP = () => {
+    console.log('');
+    console.log(`Project Types:`);
+    console.log(
+        ' ',
+        _.pluck(projectTypes, 'key')
+            .sort()
+            .map(key => chalk.cyan(key))
+            .join(' | '),
+    );
+    console.log('');
+    console.log('App Types:');
+    console.log(
+        ' ',
+        _.pluck(appTypes, 'key')
+            .sort()
+            .map(key => chalk.cyan(key))
+            .join(' | '),
+    );
+    console.log('');
 };
 
-/**
- * conform(input:Object) Function
- * @description Reduces the input object.
- * @param input Object The key value pairs to reduce.
- * @since 2.0.0
- */
-const CONFORM = ({ input, props }) =>
-    Object.keys(input).reduce((obj, key) => {
-        let val = input[key];
+const FLAGS = () => {
+    let flags = [
+        'admin',
+        'api',
+        'app',
+        'name',
+        'overwrite',
+        'import',
+        'type',
+        'unattended',
+    ];
+    Hook.runSync('project-init-flags', flags);
+    return flags;
+};
+
+const FLAGS_TO_PARAMS = opt =>
+    FLAGS().reduce((obj, key) => {
+        let val = opt[key];
+        val = typeof val === 'function' ? undefined : val;
+
+        if (val) obj[key] = val;
+
+        return obj;
+    }, {});
+
+const PREFLIGHT = async params => {
+    const { inquirer } = props;
+
+    // Transform the preflight object instead of the params object
+    const preflight = { ...params };
+
+    // Output messge
+    const msg =
+        'A new project will be created using the following configuration:';
+    message(msg);
+    console.log(JSON.stringify(preflight, null, 2));
+    console.log('');
+
+    const { confirm } = await inquirer.prompt([
+        {
+            prefix,
+            name: 'confirm',
+            type: 'confirm',
+            message: 'Proceed?:',
+            default: true,
+        },
+    ]);
+
+    if (confirm !== true) {
+        message(CANCELED);
+        process.exit();
+    }
+};
+
+const CONFORM = params => {
+    Hook.runSync('project-init-conform', { arcli, params, props });
+
+    return Object.keys(params).reduce((obj, key) => {
+        let val = params[key];
         switch (key) {
+            case 'name':
+            case 'project':
+            case 'pluginName':
+                val = camelcase(slugify(val), { pascalCase: true });
+                obj[key] = val;
+                break;
+
             default:
                 obj[key] = val;
                 break;
         }
         return obj;
     }, {});
+};
 
-/**
- * HELP Function
- * @description Function called in the commander.on('--help', callback) callback.
- * @see https://www.npmjs.com/package/commander#automated---help
- * @since 2.0.0
- */
-const HELP = () =>
-    console.log(`
-Example:
-  $ arcli project &lt;init&gt; -h
-`);
+const UNATTENDED = async params => {
+    params = await CONFORM(params);
 
-/**
- * FLAGS
- * @description Array of flags passed from the commander options.
- * @since 2.0.18
- */
-const FLAGS = ['sample', 'overwrite'];
+    await GENERATOR(params);
 
-/**
- * FLAGS_TO_PARAMS Function
- * @description Create an object used by the prompt.override property.
- * @since 2.0.18
- */
-const FLAGS_TO_PARAMS = ({ opt = {} }) =>
-    FLAGS.reduce((obj, key) => {
-        let val = opt[key];
-        val = typeof val === 'function' ? undefined : val;
+    if (!op.get(params, 'import')) {
+        fs.writeJsonSync(normalize(props.cwd, 'project.json'), params);
+    }
 
-        if (val) {
-            obj[key] = val;
+    console.log('');
+    return params;
+};
+
+const PROJECT_IMPORT = params => {
+    const fromImport = op.get(params, 'import');
+
+    if (!fromImport) return params;
+
+    if (typeof fromImport === 'boolean') {
+        let projectPath = normalize(props.cwd, 'project.json');
+
+        if (fs.existsSync(projectPath)) {
+            params = require(projectPath);
+            op.set(params, 'unattended', true);
         }
+    } else {
+        params = require(params.import);
+        op.set(params, 'unattended', true);
+    }
 
-        return obj;
-    }, {});
-
-/**
- * PREFLIGHT Function
- */
-const PREFLIGHT = ({ msg, params, props }) => {
-    msg = msg || 'Preflight checklist:';
-
-    message(msg);
-
-    // Transform the preflight object instead of the params object
-    const preflight = { ...params };
-
-    console.log(
-        prettier.format(JSON.stringify(preflight), {
-            parser: 'json-stringify',
-        }),
-    );
+    return params;
 };
 
-/**
- * SCHEMA Function
- * @description used to describe the input for the prompt function.
- * @see https://www.npmjs.com/package/prompt
- * @since 2.0.0
- */
-const SCHEMA = ({ props }) => {
-    return {
-        properties: {
-            sample: {
-                description: chalk.white('Sample:'),
-                required: true,
-                default: true,
+const PROJECT_IMPORT_PROMPT = () =>
+    inquirer
+        .prompt([
+            {
+                prefix,
+                name: 'doImport',
+                type: 'confirm',
+                message: 'Import from project.json file?:',
+                default: false,
             },
-        },
-    };
-};
+        ])
+        .then(input => {
+            const { doImport } = input;
 
-/**
- * ACTION Function
- * @description Function used as the commander.action() callback.
- * @see https://www.npmjs.com/package/commander
- * @param opt Object The commander options passed into the function.
- * @param props Object The CLI props passed from the calling class `orcli.js`.
- * @since 2.0.0
- */
-const ACTION = ({ opt, props }) => {
-    const { cwd, prompt } = props;
-    const schema = SCHEMA({ props });
-    const ovr = FLAGS_TO_PARAMS({ opt });
-
-    prompt.override = ovr;
-    prompt.start();
-
-    let params = {};
-
-    return new Promise((resolve, reject) => {
-        prompt.get(schema, (err, input = {}) => {
-            if (err) {
-                prompt.stop();
-                reject(`${NAME} ${err.message}`);
+            if (doImport !== true) {
+                console.log('');
                 return;
             }
 
-            input = { ...ovr, ...input };
-            params = CONFORM({ input, props });
-
-            PREFLIGHT({ params, props });
-
-            resolve();
-        });
-    })
-        .then(() => CONFIRM({ props, params }))
-        .then(() => GENERATOR({ params, props }))
-        .then(() => prompt.stop())
-        .then(results => {
-            console.log('');
+            return inquirer.prompt([
+                {
+                    prefix,
+                    name: 'importPath',
+                    type: 'fuzzypath',
+                    message: 'Import file path:',
+                    itemType: 'file',
+                    rootPath: path.resolve('/'),
+                    excludePath: p =>
+                        p.includes('node_modules') ||
+                        p.startsWith('/Volumes/') ||
+                        p.includes('.Trash'),
+                    excludeFilter: p => !p.endsWith('/project.json'),
+                    depthLimit: 4,
+                },
+            ]);
         })
-        .catch(err => {
-            prompt.stop();
-            message(op.get(err, 'message', CANCELED));
-        });
+        .then(input => op.get(input, 'importPath'));
+
+const OVERWRITE_PROMPT = async params => {
+    if (!op.has(params, 'overwrite') && !isEmpty(props.cwd)) {
+        const { overwrite } = await inquirer.prompt([
+            {
+                prefix,
+                name: 'overwrite',
+                type: 'confirm',
+                message: 'The current directory is not empty!\n\t  Ovewrite?:',
+                default: false,
+            },
+        ]);
+
+        if (overwrite !== true) {
+            message(CANCELED);
+            process.exit();
+        }
+
+        console.log('');
+    }
 };
 
-/**
- * COMMAND Function
- * @description Function that executes program.command()
- */
-const COMMAND = ({ program, props }) =>
+const APP_PROMPT = () =>
+    inquirer.prompt([
+        {
+            prefix,
+            name: 'app',
+            type: 'list',
+            message: 'What type of app?:',
+            choices: _.pluck(appTypes, 'value'),
+            default: _.findIndex(appTypes, { key: 'web' }),
+            filter: val => _.findWhere(appTypes, { value: val }).key,
+        },
+    ]);
+
+const API_PROMPT = () =>
+    inquirer.prompt([
+        {
+            prefix,
+            name: 'api',
+            type: 'confirm',
+            message: 'Need an API?:',
+            default: false,
+        },
+    ]);
+
+const ADMIN_PROMPT = () =>
+    inquirer.prompt([
+        {
+            prefix,
+            name: 'admin',
+            type: 'confirm',
+            message: 'Need an Admin?:',
+            default: false,
+        },
+    ]);
+
+const ADMIN_PLUGIN_PROMPT = () =>
+    inquirer.prompt([
+        {
+            prefix,
+            name: 'pluginName',
+            type: 'input',
+            message: 'Plugin Name:',
+            default: 'AdminPlugin',
+        },
+    ]);
+
+// validate name
+const NAME_VALIDATE = name => {
+    if (!name) return 'Project name is required';
+
+    const { name: key } = CONFORM({ name });
+
+    return true;
+    if (op.has(arcli, `props.config.projects.${key}`)) {
+        const { path: projectPath } = op.get(
+            arcli,
+            `props.config.projects.${key}`,
+        );
+
+        const isProject = fs.existsSync(projectPath) && !isEmpty(projectPath);
+        return  isProject ? `${name} already exists` : true;
+    }
+
+    return true;
+};
+
+const NAME_PROMPT = () =>
+    inquirer.prompt([
+        {
+            prefix,
+            name: 'project',
+            type: 'input',
+            message: 'Project name:',
+            validate: val => NAME_VALIDATE(val),
+        },
+    ]);
+
+const ACTION = async (action, params) => {
+    console.log('');
+
+    props.command = action;
+
+    params = PROJECT_IMPORT(params);
+
+    if (!op.get(params, 'import')) {
+        Hook.runSync('project-init-params', { arcli, params, props });
+    }
+
+    // Run unattended from params
+    if (op.get(params, 'unattended') === true) {
+        return UNATTENDED(params);
+    }
+
+    // 0.0 - Check current directory
+    await OVERWRITE_PROMPT(params);
+
+    // 0.1 - Ask to import
+    const importPath = await PROJECT_IMPORT_PROMPT();
+    if (importPath) {
+        params.import = importPath;
+        params = PROJECT_IMPORT(params);
+
+        while (NAME_VALIDATE(params.project) !== true) {
+            const { project } = await NAME_PROMPT();
+            params.project = project;
+        }
+
+        if (op.get(params, 'unattended') === true) return UNATTENDED(params);
+    }
+
+    /**
+     * -------------------------------------------------------------------------
+     * 1.0 - Gather input
+     * -------------------------------------------------------------------------
+     */
+    // 1.1 - input hook
+    Hook.runSync('project-init-input', { arcli, params, props });
+
+    // 1.2 - params.project
+    if (op.has(params, 'name')) {
+        op.set(params, 'project', params.name);
+        op.del(params, 'name');
+    }
+
+    while (NAME_VALIDATE(params.project) !== true) {
+        const { project } = await NAME_PROMPT();
+        params.project = project;
+    }
+
+    // 1.2 - params.project, params.type
+    if (!op.has(params, 'type')) {
+        const { type } = await inquirer.prompt([
+            {
+                prefix,
+                name: 'type',
+                type: 'list',
+                message: 'What type of project would you like to create?:',
+                choices: _.pluck(projectTypes, 'value'),
+                default: _.findIndex(projectTypes, { key: 'full-stack' }),
+                filter: val => _.findWhere(projectTypes, { value: val }).key,
+            },
+        ]);
+        params.type = type;
+    }
+
+    // 1.3 - fullstack
+    if (params.type === 'full-stack' || params.type === 'admin-plugin') {
+        params.admin = true;
+        params.api = true;
+
+        if (params.type === 'admin-plugin') {
+            // 1.3.2 - admin plugin
+            const { pluginName } = await ADMIN_PLUGIN_PROMPT();
+            params.app = 'web';
+            params.pluginName = pluginName;
+        } else {
+            // 1.3.3 - fullstack
+            const { app } = await APP_PROMPT();
+            params.app = app;
+        }
+    }
+
+    // 1.4 - params.app
+    if (!op.has(params, 'app') && params.type === 'app') {
+        const { app } = await APP_PROMPT();
+        const { api } = await API_PROMPT();
+        params.api = api;
+        params.app = app;
+    }
+
+    // 1.5 - params.admin
+    if (
+        !op.has(params, 'admin') &&
+        (op.get(params, 'api') === true || params.type === 'api')
+    ) {
+        const { admin } = await ADMIN_PROMPT();
+        params.admin = admin;
+    }
+
+    // 2.0 - conform the params
+    params = CONFORM(params);
+
+    // 3.0 - preflight
+    await PREFLIGHT(params);
+
+    // 5.0 - execute
+    await GENERATOR(params);
+
+    console.log('');
+
+    // 6.0 - write the project.json file
+    fs.writeJsonSync(normalize(props.cwd, 'project.json'), params);
+
+    // 7.0 - return the params for usage in another command
+    return params;
+};
+
+const COMMAND = ({ program, ...args }) =>
     program
         .command(NAME)
         .description(DESC)
-        .action(opt => ACTION({ opt, props }))
-        .option('-s, --sample [sample]', 'Sample parameter.')
-        .option('-o, --overwrite [overwrite]', 'Overwrite existing file.')
+        .action((action, opt) => ACTION(action, FLAGS_TO_PARAMS(opt)))
+        .option('-t, --type [type]', 'The project type.')
+        .option(
+            '-a, --app [app]',
+            `When project type is ${chalk.cyan(
+                'app',
+            )}, specify which app type.`,
+        )
+        .option('-i, --import [import]', 'Import a project.json file')
+        .option('-o, --overwrite [overwrite]', 'Overwrite existing project.')
+        .option('-n, --name [name]', 'The project name')
+        .option('--unattended [unattended]', 'Run the command without prompts.')
+        .option('--admin [admin]', 'Add Admin to project.')
+        .option('--api [api]', 'Add Actinium to project')
+        .option(
+            '--pluginName [pluginName]',
+            `When project type is ${chalk.cyan(
+                'admin-plugin',
+            )}, specify the pluginName.`,
+        )
         .on('--help', HELP);
 
-/**
- * Module Constructor
- * @description Internal constructor of the module that is being exported.
- * @param program Class Commander.program reference.
- * @param props Object The CLI props passed from the calling class `arcli.js`.
- * @since 2.0.0
- */
 module.exports = {
+    ACTION,
     COMMAND,
     ID: NAME,
 };

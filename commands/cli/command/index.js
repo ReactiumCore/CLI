@@ -9,12 +9,17 @@ const fs = require('fs-extra');
 const path = require('path');
 const chalk = require('chalk');
 const op = require('object-path');
-const generator = require('./generator');
 const globby = require('globby').sync;
 const prettier = require('prettier');
 const slugify = require('slugify');
 const mod = path.dirname(require.main.filename);
 const { error, message } = require(`${mod}/lib/messenger`);
+
+const generator = fs.existsSync(
+    path.normalize(path.join(__dirname, 'generator.js')),
+)
+    ? require('./generator')
+    : require(`${mod}/lib/generator`);
 
 const formatDestination = (val, props) => {
     const { cwd, root } = props;
@@ -136,7 +141,9 @@ const HELP = () =>
     console.log(`
 Shortcuts:
   When creating a command, there are 3 --destination shortcuts available:
-  ${chalk.cyan('cwd/')} | ${chalk.cyan('app/')} | ${chalk.cyan('core/')} | ${chalk.cyan('root/')}
+  ${chalk.cyan('cwd/')} | ${chalk.cyan('app/')} | ${chalk.cyan(
+        'core/',
+    )} | ${chalk.cyan('root/')}
 
     ${chalk.cyan('cwd/')}
       Creates a command in the ${chalk.cyan(
@@ -213,6 +220,14 @@ const SCHEMA = ({ props }) => {
                     'Destination is a required parameter. Example: ~/mycommand',
                 required: true,
             },
+            generator: {
+                required: true,
+                pattern: /^y|n|Y|N/,
+                message: ' ',
+                default: 'N',
+                description: chalk.white('Include generator.js?: (Y/N)'),
+                before: val => String(val).toLowerCase() === 'y',
+            },
             overwrite: {
                 required: true,
                 pattern: /^y|n|Y|N/,
@@ -234,9 +249,7 @@ const SCHEMA = ({ props }) => {
                         return false;
                     }
                 },
-                before: val => {
-                    return String(val).toLowerCase() === 'y';
-                },
+                before: val => String(val).toLowerCase() === 'y',
             },
         },
     };
@@ -329,6 +342,7 @@ const COMMAND = ({ program, props }) =>
             '-d, --destination [destination]',
             'Path where the command is saved',
         )
+        .option('-g, --generator [generator]', 'Include generator.js file.')
         .option('-c, --command [command]', 'Command prompt.')
         .option(
             '-o, --overwrite [overwrite]',

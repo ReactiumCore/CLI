@@ -5,13 +5,17 @@
  */
 
 const chalk              = require('chalk');
+const fs                 = require('fs-extra');
 const prettier           = require('prettier');
 const path               = require('path');
 const op                 = require('object-path');
 const mod                = path.dirname(require.main.filename);
 const { error, message } = require(`${mod}/lib/messenger`);
-const GENERATOR          = require('./generator');
-
+const GENERATOR          = fs.existsSync(
+    path.normalize(path.join(__dirname, 'generator.js')),
+)
+    ? require('./generator')
+    : require(`${mod}/lib/generator`);
 
 /**
  * NAME String

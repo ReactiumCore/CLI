@@ -13,11 +13,11 @@ const HELP = props => {
     console.log(' ', actions.map(act => chalk.cyan(act)).join(', '));
     console.log('');
     console.log('Example:');
-    actions.forEach(act => console.log(`  $ arcl`, chalk.magenta(NAME), chalk.cyan(act), '-h'));
+    actions.forEach(act => console.log(`  $ arcli`, chalk.magenta(NAME), chalk.cyan(act), '-h'));
     console.log('');
 };
 
-const COMMAND = ({ program, props }) => {
+const COMMAND = ({ program, props, arcli }) => {
     const ACT = props.args[3];
     const { subcommands = {} } = props;
 
@@ -33,7 +33,7 @@ const COMMAND = ({ program, props }) => {
             process.exit();
         }
 
-        return subcommands[NAME][ACT]['COMMAND']({ program, props });
+        return subcommands[NAME][ACT]['COMMAND']({ program, props, arcli });
     } else {
         return program
             .command(`${NAME} <action>`)

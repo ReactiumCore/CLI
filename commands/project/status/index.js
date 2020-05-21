@@ -15,11 +15,11 @@ const GENERATOR = require('./generator');
 /**
  * NAME String
  * @description Constant defined as the command name. Value passed to the commander.command() function.
- * @example $ arcli project start
+ * @example $ arcli project status
  * @see https://www.npmjs.com/package/commander#command-specific-options
  * @since 2.0.0
  */
-const NAME = 'project <start>';
+const NAME = 'project <status>';
 
 /**
  * DESC String
@@ -28,7 +28,7 @@ const NAME = 'project <start>';
  * @see https://www.npmjs.com/package/commander#automated---help
  * @since 2.0.0
  */
-const DESC = 'Start the project for local development';
+const DESC = 'Check the status of project for local development';
 
 /**
  * CANCELED String
@@ -63,7 +63,7 @@ const CONFORM = ({ input, props }) =>
 const HELP = () =>
     console.log(`
 Example:
-  $ arcli project start -h
+  $ arcli project status -h
 `);
 
 /**

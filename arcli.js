@@ -2,92 +2,41 @@
 
 'use strict';
 
-// Globals
-global.Actinium = require('parse/node');
-
 // Imports
-const config = require(__dirname + '/config.json');
-const ver = require('./package').version;
 const chalk = require('chalk');
-const path = require('path');
 const fs = require('fs-extra');
-const program = require('commander');
-const prompt = require('prompt');
-const globby = require('globby').sync;
-const op = require('object-path');
 const axios = require('axios');
+const _ = require('underscore');
 const moment = require('moment');
-const cwd = path.resolve(process.cwd());
 const semver = require('semver');
-const homedir = require('os').homedir();
-const prettier = require('prettier');
+const prompt = require('prompt');
+const op = require('object-path');
+const program = require('commander');
+const inquirer = require('inquirer');
+const bootstrap = require('./bootstrap');
 
-// Build the props object
-const props = { cwd, root: __dirname, prompt, config };
+// Extend inquirer
+inquirer.registerPrompt('fuzzypath', require('inquirer-fuzzy-path'));
+inquirer.registerPrompt(
+    'autocomplete',
+    require('inquirer-autocomplete-prompt'),
+);
 
-// Get application config
-const appConfigFile = path.normalize(`${cwd}/.core/.cli/config.json`);
-if (fs.existsSync(appConfigFile)) {
-    const appConfig = require(appConfigFile);
-    props.config = Object.assign(props.config, appConfig);
-}
+// Extend arcli props
+global.arcli.props.inquirer = inquirer;
+global.arcli.props.prompt = prompt;
+global.arcli.prefix = chalk.cyan(
+    String(arcli.props.config.prompt.prefix).trim(),
+);
 
-// Get local config
-const localConfigFile = path.join(homedir, '.arcli', 'config.json');
-if (fs.existsSync(localConfigFile)) {
-    const localConfig = require(localConfigFile);
-    props.config = Object.assign(props.config, localConfig);
-} else {
-    // Create the localized config if it doesn't exist
-    const contents = prettier.format(JSON.stringify(props.config), {
-        parser: 'json-stringify',
-    });
+const { props } = bootstrap;
+const { config, ver } = props;
 
-    fs.ensureFileSync(localConfigFile);
-    fs.writeFileSync(localConfigFile, contents);
-}
-
-// Get project config
-const projConfigFile = path.normalize(`${cwd}/.cli/config.json`);
-if (fs.existsSync(projConfigFile)) {
-    const projConfig = require(projConfigFile);
-    props.config = Object.assign(props.config, projConfig);
-}
-
-const lastCheck = op.get(props.config, 'updated', Date.now());
-
-function initialize() {
-    console.log('');
-
-    // Configure prompt
-    prompt.message = chalk[config.prompt.prefixColor](config.prompt.prefix);
-    prompt.delimiter = config.prompt.delimiter;
-
-    // Initialize the CLI
-    program.version(ver, '-v, --version');
-    program.usage('<command> [options]');
-
-    // Find commands
-    const dirs = config.commands || [];
-    const globs = dirs.map(dir =>
-        // globby only allows posix separators
-        path.normalize(String(`${dir}/**/*index.js`)
-            .replace(/\[root\]/gi, props.root)
-            .replace(/\[cwd\]/gi, props.cwd))
-            .split(/[\\\/]/g).join(path.posix.sep)
-    );
-
-    /**
-     * Since commands is an Object, you can replace pre-defined commands with custom ones.
-     * The order in which commands are aggregated:
-     * 1. CLI Root : ./commands
-     * 2. Core     : ~/PROJECT/.core/.cli/commands -> overwrites CLI Root.
-     * 3. Project  : ~/PROJECT/.cli/commands       -> overwrites CLI Root & Core.
-     */
+const cmds = () => {
     const commands = {};
     const subcommands = {};
 
-    globby(globs).forEach(cmd => {
+    bootstrap.commands().forEach(cmd => {
         const req = require(cmd);
         if (op.has(req, 'COMMAND') && typeof req.COMMAND === 'function') {
             if (op.has(req, 'NAME')) {
@@ -96,28 +45,35 @@ function initialize() {
                 if (op.has(req, 'ID')) {
                     let { ID } = req;
                     ID = String(ID)
-                        .split('<')
-                        .join('')
-                        .split('>')
-                        .join('')
-                        .split(' ')
-                        .join('.');
-
+                        .replace(/\<|\>/g, '')
+                        .replace(/\s/g, '.');
                     op.set(subcommands, ID, req);
                 }
             }
         }
     });
 
-    props.args = process.argv.filter(item => {
-        return String(item).substr(0, 1) !== '-';
-    });
+    return { commands, subcommands };
+};
 
+const initialize = () => {
+    const { commands, subcommands } = cmds();
+    props.args = process.argv.filter(item => String(item).substr(0, 1) !== '-');
     props.commands = commands;
     props.subcommands = subcommands;
 
     // Apply commands
-    Object.values(commands).forEach(req => req.COMMAND({ program, props }));
+    Object.values(commands).forEach(req =>
+        req.COMMAND({ program, props, arcli: bootstrap }),
+    );
+
+    // Configure prompt
+    prompt.message = chalk[config.prompt.prefixColor](config.prompt.prefix);
+    prompt.delimiter = config.prompt.delimiter;
+
+    // Initialize the CLI
+    program.version(ver, '-v, --version');
+    program.usage('<command> [options]');
 
     // Is valid command?
     if (process.argv.length > 2) {
@@ -142,14 +98,14 @@ function initialize() {
     program.parse(process.argv);
 
     // Output the help if nothing is passed
-    if (!process.argv.slice(2).length) {
-        program.help();
-    }
-}
+    if (!process.argv.slice(2).length) program.help();
+};
 
+const lastCheck = op.get(props.config, 'updated', Date.now());
 const lastUpdateCheck = moment().diff(moment(new Date(lastCheck)), 'days');
 
 if (lastUpdateCheck > 1) {
+
     axios
         .get(
             'https://raw.githubusercontent.com/Atomic-Reactor/CLI/master/package.json',
@@ -170,12 +126,9 @@ if (lastUpdateCheck > 1) {
         .then(() => {
             props.config.checked = Date.now();
             props.config.updated = Date.now();
-            const contents = prettier.format(JSON.stringify(props.config), {
-                parser: 'json-stringify',
-            });
-
-            fs.ensureFileSync(localConfigFile);
-            fs.writeFileSync(localConfigFile, contents);
+            const contents = JSON.stringify(props.config, null, 2);
+            fs.ensureFileSync(props.localConfigFile);
+            fs.writeFileSync(props.localConfigFile, contents);
         })
         .then(() => initialize())
         .catch(err => {

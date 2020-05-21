@@ -87,13 +87,15 @@ module.exports = spinner => {
                 templateFile: 'actions.js',
             }),
 
-        generator: ({ action, params, props }) =>
+        generator: ({ action, params, props }) => {
+            if (op.get(params, 'generator') !== true) return;
             generate({
                 action,
                 params,
                 props,
                 templateFile: 'generator.js',
-            }),
+            });
+        },
 
         templatedir: ({ action, params, props }) => {
             const { destination } = params;

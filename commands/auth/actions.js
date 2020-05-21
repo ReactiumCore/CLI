@@ -8,6 +8,7 @@ const _ = require('underscore');
 const chalk = require('chalk');
 const fs = require('fs-extra');
 
+const { arcli } = global;
 
 module.exports = spinner => {
     const message = text => {
@@ -43,8 +44,9 @@ module.exports = spinner => {
                 if (op.get(params, 'server')) {
                     op.set(config, 'registry.server', params.server);
                 }
-                
+
                 op.set(config, 'registry.sessionToken', sessionToken);
+                arcli.props.config = config;
                 op.set(params, 'newConfig', config);
                 return update({ action: 'update', params, props });
             }

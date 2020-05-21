@@ -10,12 +10,14 @@ const mod = path.dirname(require.main.filename);
 const targetApp = require(`${mod}/lib/targetApp`);
 const ActionSequence = require('action-sequence');
 
+const { arcli } = global;
+
 module.exports = spinner => {
     let app, cwd, plugins;
 
     const actions = require('./actions')(spinner);
 
-    op.del(actions, 'npm');
+    // op.del(actions, 'npm');
     op.del(actions, 'complete');
     op.del(actions, 'registerPkg');
 
@@ -53,7 +55,7 @@ module.exports = spinner => {
                     symbol: chalk.cyan('+'),
                 });
 
-                await ActionSequence({
+                return ActionSequence({
                     actions,
                     options: { params: { ...params, name, unattended: true }, props },
                 });
