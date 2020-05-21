@@ -37,7 +37,11 @@ const cmds = () => {
     const subcommands = {};
 
     bootstrap.commands().forEach(cmd => {
-        const req = require(cmd);
+        let req;
+
+        try { req = require(cmd); }
+        catch (err) { req = () => {}; }
+
         if (op.has(req, 'COMMAND') && typeof req.COMMAND === 'function') {
             if (op.has(req, 'NAME')) {
                 commands[req.NAME] = req;
