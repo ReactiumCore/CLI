@@ -44,8 +44,8 @@ module.exports = params => {
         case 'full-stack':
             actions = arcli.mergeActions(
                 actions,
-                require('./actions/app')(),
                 require('./actions/admin')(),
+                require('./actions/app')(),
                 require('./actions/api')(),
             );
             break;
@@ -53,8 +53,8 @@ module.exports = params => {
         case 'admin-plugin':
             actions = arcli.mergeActions(
                 actions,
-                require('./actions/app')(),
                 require('./actions/admin')(),
+                require('./actions/app')(),
                 require('./actions/api')(),
                 require('./actions/admin-plugin')()
             );
