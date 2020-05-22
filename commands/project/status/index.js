@@ -11,6 +11,10 @@ const op = require('object-path');
 const mod = path.dirname(require.main.filename);
 const { error, message } = require(`${mod}/lib/messenger`);
 const GENERATOR = require('./generator');
+const fs = require('fs-extra');
+const props = arcli.props;
+const prefix = arcli.prefix;
+const { inquirer } = props;
 
 /**
  * NAME String
@@ -90,6 +94,33 @@ const FLAGS_TO_PARAMS = ({ opt = {} }) =>
         return obj;
     }, {});
 
+const PROJECT_PROMPT = () => {
+    const projects = op.get(props, 'config.projects', {});
+
+    return inquirer.prompt([
+        {
+            prefix,
+            name: 'projectObj',
+            type: 'list',
+            message: 'Select project:',
+            choices: Object.keys(projects),
+            default: 0,
+            filter: val => {
+                const projectPath = op.get(projects, [val, 'path']);
+                const projectJSON = arcli.normalizePath(
+                    projectPath,
+                    'project.json',
+                );
+
+                if (fs.existsSync(projectJSON)) {
+                    return fs.readJSONSync(projectJSON);
+                }
+                return false;
+            },
+        },
+    ]);
+};
+
 /**
  * ACTION Function
  * @description Function used as the commander.action() callback.
@@ -98,10 +129,32 @@ const FLAGS_TO_PARAMS = ({ opt = {} }) =>
  * @param props Object The CLI props passed from the calling class `orcli.js`.
  * @since 2.0.0
  */
-const ACTION = ({ arcli, opt, props }) => {
+const ACTION = async ({ arcli, opt, props }) => {
     const { cwd, prompt } = props;
 
     let params = {};
+
+    // TODO: get project config from command
+    params.project = fs.readJSONSync(
+        arcli.normalizePath(props.cwd, 'project.json'),
+        { throws: false },
+    );
+
+    if (!params.project) {
+        let project;
+        if (Object.values(op.get(props, 'config.projects', {})).length > 0) {
+            const { projectObj } = await PROJECT_PROMPT();
+            project = projectObj
+        }
+
+        if (!project) {
+            console.log();
+            message(`No project found.`);
+            process.exit();
+        }
+
+        params.project = project;
+    }
 
     return GENERATOR({ arcli, params, props })
         .then(results => {

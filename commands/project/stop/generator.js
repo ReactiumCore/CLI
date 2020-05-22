@@ -20,11 +20,11 @@ module.exports = ({ arcli, params, props }) => {
     };
 
     const namespace = (params.namespace = op.get(params, 'project.project'));
-    const actions = namespace ? require(`./actions/status`)() : {};
+    const actions = params.project ? require(`./actions/stop`)() : {};
 
     // Run actions hook
     try {
-        Hook.runSync('project-status-actions', {
+        Hook.runSync('project-stop-actions', {
             actions,
             arcli,
             params,
@@ -39,11 +39,11 @@ module.exports = ({ arcli, params, props }) => {
         options: { arcli, params, props },
     })
         .then(success => {
-            let message = 'project status complete!';
+            let message = 'project stop complete!';
 
             // Run complete hook
             try {
-                Hook.runSync('project-status-complete', {
+                Hook.runSync('project-stop-complete', {
                     arcli,
                     params,
                     props,

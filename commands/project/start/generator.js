@@ -1,7 +1,5 @@
 const op = require('object-path');
 const ActionSequence = require('action-sequence');
-const fs = require('fs-extra');
-
 const { arcli, Hook, Spinner } = global;
 
 module.exports = ({ arcli, params, props }) => {
@@ -20,12 +18,6 @@ module.exports = ({ arcli, params, props }) => {
         Spinner.fail(message);
         return new Error(message);
     };
-
-    // TODO: get project config from command
-    params.project = fs.readJSONSync(
-        arcli.normalizePath(props.cwd, 'project.json'),
-        { throws: false },
-    );
 
     const namespace = (params.namespace = op.get(params, 'project.project'));
     const defaultConfig = {
@@ -54,26 +46,26 @@ module.exports = ({ arcli, params, props }) => {
     const apps = [
         {
             name: 'api',
-            cwd: './API',
+            cwd: arcli.normalizePath(params.project.path, './API'),
             portRange: [9000, 9100],
             prepareEnv: prepareEnvFactory('actinium'),
         },
         {
             name: 'admin',
-            cwd: './ADMIN',
+            cwd: arcli.normalizePath(params.project.path, './ADMIN'),
             portRange: [3000, 3100],
             prepareEnv: prepareEnvFactory('reactium'),
         },
         {
             name: 'app',
-            cwd: './APP',
+            cwd: arcli.normalizePath(params.project.path, './APP'),
             portRange: [4000, 4100],
             prepareEnv: prepareEnvFactory('reactium'),
         },
     ];
 
     let actions = {};
-    apps.forEach(app => {
+    if (params.project) apps.forEach(app => {
         const { name, cwd, portRange, prepareEnv } = app;
         if (op.get(params, `project.${name}`, false)) {
             op.set(params, name, {
@@ -81,7 +73,7 @@ module.exports = ({ arcli, params, props }) => {
                 prepareEnv,
                 config: {
                     ...defaultConfig,
-                    name,
+                    name: `${arcli.slugify(namespace)}.${name}`,
                     cwd,
                 },
             });

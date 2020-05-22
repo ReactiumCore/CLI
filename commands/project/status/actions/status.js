@@ -29,6 +29,7 @@ module.exports = () => {
             Spinner.stop();
 
             const namespace = op.get(params, 'namespace');
+
             params.apps = [];
             return new Promise((resolve, reject) => {
                 pm2.list((err, description) => {

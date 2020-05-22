@@ -19,11 +19,11 @@ const { inquirer } = props;
 /**
  * NAME String
  * @description Constant defined as the command name. Value passed to the commander.command() function.
- * @example $ arcli project start
+ * @example $ arcli project status
  * @see https://www.npmjs.com/package/commander#command-specific-options
  * @since 2.0.0
  */
-const NAME = 'project <start>';
+const NAME = 'project <stop>';
 
 /**
  * DESC String
@@ -32,7 +32,7 @@ const NAME = 'project <start>';
  * @see https://www.npmjs.com/package/commander#automated---help
  * @since 2.0.0
  */
-const DESC = 'Start the project for local development';
+const DESC = 'Stop the running project';
 
 /**
  * CANCELED String
@@ -67,7 +67,7 @@ const CONFORM = ({ input, props }) =>
 const HELP = () =>
     console.log(`
 Example:
-  $ arcli project start -h
+  $ arcli project stop -h
 `);
 
 /**
@@ -113,9 +113,7 @@ const PROJECT_PROMPT = () => {
                 );
 
                 if (fs.existsSync(projectJSON)) {
-                    const project = fs.readJSONSync(projectJSON);
-                    project.path = projectPath;
-                    return project;
+                    return fs.readJSONSync(projectJSON);
                 }
                 return false;
             },
@@ -136,11 +134,11 @@ const ACTION = async ({ arcli, opt, props }) => {
 
     let params = {};
 
+    // TODO: get project config from command
     params.project = fs.readJSONSync(
         arcli.normalizePath(props.cwd, 'project.json'),
         { throws: false },
     );
-    if (params.project) params.project.path = props.cwd;
 
     if (!params.project) {
         let project;
