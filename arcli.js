@@ -123,7 +123,7 @@ if (lastUpdateCheck > 1) {
                         `Yo... you're using ARCLI version: ${ver}. You should update to ${currentVersion}`,
                     ),
                 );
-                console.log(chalk.cyan('  $ npm i -g atomic-reactor-cli'));
+                console.log(chalk.cyan('  $ npm i -g @atomic-reactor/cli'));
                 console.log('\n');
             }
         })
