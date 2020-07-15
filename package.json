@@ -1,6 +1,6 @@
 {
   "name": "@atomic-reactor/cli",
-  "version": "2.2.12",
+  "version": "2.2.13",
   "description": "A CLI for creating Atomic Reactor Awesomeness",
   "main": "arcli-node.js",
   "scripts": {
@@ -47,7 +47,7 @@
     "folder-zipper": "^1.0.0",
     "fs-extra": "^8.1.0",
     "fs-readdir-recursive": "^1.1.0",
-    "globby": "^10.0.2",
+    "globby": "^11.0.1",
     "handlebars": "^4.7.6",
     "inquirer": "^7.1.0",
     "inquirer-autocomplete-prompt": "^1.0.2",

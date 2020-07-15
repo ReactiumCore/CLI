@@ -8,7 +8,9 @@
     "[root]/commands",
     "[cwd]/.core/.cli/commands",
     "[cwd]/.cli/commands",
-    "[cwd]/node_modules/**/.cli/commands"
+    "[cwd]/actinium_modules/**/.cli",
+    "[cwd]/node_modules/**/.cli",
+    "[cwd]/reactium_modules/**/.cli"
   ],
   "reactium": {
     "repo": "https://github.com/Atomic-Reactor/Reactium/archive/master.zip",

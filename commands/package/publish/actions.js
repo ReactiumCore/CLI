@@ -196,6 +196,18 @@ module.exports = spinner => {
                 exit();
             }
         },
+        prepublish: async ({ params, props }) => {
+            const actionFiles = globby([`${props.cwd}/**/arcli-publish.js`]);
+            if (actionFiles.length < 1) return;
+
+            const actions = actionFiles.reduce((obj, file, i) => {
+                const acts = require(normalize(file))(spinner);
+                Object.keys(acts).forEach(key => op.set(obj, `prepublish_${i}_${key}`, acts[key]));
+                return obj;
+            }, {});
+
+            await ActionSequence({ actions, options: { params, props } });
+        },
         tmp: () => {
             spinner.stop();
             fs.ensureDirSync(tmpDir);
