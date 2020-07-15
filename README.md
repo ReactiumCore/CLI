@@ -6,7 +6,7 @@ A CLI for creating Atomic Reactor Awesomeness!
 
 # Installation
 ```
-$ npm install -g atomic-reactor-cli
+$ npm install -g @atomic-reactor/cli
 ```
 
 
@@ -36,7 +36,7 @@ Commands:
   element [action] [options]    Toolkit:  Manage toolkit elements.
                                           Available actions: create | updated | remove.
   group [action] [options]      Toolkit:  Manage toolkit groups.
-                                          Available actions: create | updated | remove.  
+                                          Available actions: create | updated | remove.
 ```
 
 
