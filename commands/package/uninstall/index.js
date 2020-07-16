@@ -27,7 +27,7 @@ const NAME = 'uninstall <name>';
  * @see https://www.npmjs.com/package/commander#automated---help
  * @since 2.0.0
  */
-const DESC = 'Install a Reactium Plugin';
+const DESC = 'Uninstall an Actinium or Reactium Plugin';
 
 /**
  * CANCELED String

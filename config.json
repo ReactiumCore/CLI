@@ -12,6 +12,7 @@
     "[cwd]/node_modules/**/.cli",
     "[cwd]/reactium_modules/**/.cli"
   ],
+  "depth": 25,
   "reactium": {
     "repo": "https://github.com/Atomic-Reactor/Reactium/archive/master.zip",
     "types": [

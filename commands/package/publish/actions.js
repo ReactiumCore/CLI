@@ -4,9 +4,10 @@ const fs = require('fs-extra');
 const chalk = require('chalk');
 const _ = require('underscore');
 const crypto = require('crypto');
-const globby = require('globby');
+const globby = require('globby').sync;
 const op = require('object-path');
 const mod = path.dirname(require.main.filename);
+const ActionSequence = require('action-sequence');
 const bytesToSize = require(`${mod}/lib/bytesToSize`);
 
 module.exports = spinner => {
@@ -198,7 +199,7 @@ module.exports = spinner => {
         },
         prepublish: async ({ params, props }) => {
             const actionFiles = globby([`${props.cwd}/**/arcli-publish.js`]);
-            if (actionFiles.length < 1) return;
+            if (actionFiles.length < 1 || !Array.isArray(actionFiles)) return;
 
             const actions = actionFiles.reduce((obj, file, i) => {
                 const acts = require(normalize(file))(spinner);
@@ -206,7 +207,10 @@ module.exports = spinner => {
                 return obj;
             }, {});
 
-            await ActionSequence({ actions, options: { params, props } });
+            await ActionSequence({ actions, options: { params, props } }).catch(err => {
+                console.log('Prepublish Error:', err);
+                exit();
+            });
         },
         tmp: () => {
             spinner.stop();
@@ -214,13 +218,13 @@ module.exports = spinner => {
             fs.emptyDirSync(tmpDir);
             fs.copySync(cwd, tmpDir);
         },
-        transform: async () => {
+        transform: () => {
             spinner.start();
             message(`Compiling...`);
 
             const regex = new RegExp(`components/${path.basename(cwd)}`, 'g');
             const replacer = `reactium_modules/${pkg.name}`;
-            const files = await globby([`${tmpDir}/**/*.js`, `${tmpDir}/**/*.jsx`, `!${tmpDir}/**/*.json`]);
+            const files = globby([`${tmpDir}/**/*.js`, `${tmpDir}/**/*.jsx`, `!${tmpDir}/**/*.json`]);
 
             for (const i in files) {
                 const file = files[i];

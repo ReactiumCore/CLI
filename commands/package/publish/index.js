@@ -42,7 +42,7 @@ const NAME = 'publish';
  * @see https://www.npmjs.com/package/commander#automated---help
  * @since 2.0.0
  */
-const DESC = 'Publish a reactium module';
+const DESC = 'Publish an Actinium or Reactium module';
 
 /**
  * CANCELED String

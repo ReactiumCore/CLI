@@ -125,7 +125,8 @@ const commands = () => {
             .join(path.posix.sep),
     );
 
-    return globby(globs);
+    const deep = op.get(config, 'depth', 25); 
+    return globby(globs, { deep });
 };
 
 global.arcli = {
