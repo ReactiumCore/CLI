@@ -1,6 +1,6 @@
 {
   "name": "@atomic-reactor/cli",
-  "version": "2.2.15",
+  "version": "2.2.16",
   "description": "A CLI for creating Atomic Reactor Awesomeness",
   "main": "arcli-node.js",
   "scripts": {
@@ -35,7 +35,7 @@
   ],
   "dependencies": {
     "@atomic-reactor/decompress": "^4.2.3",
-    "@atomic-reactor/reactium-sdk-core": "0.0.78",
+    "@atomic-reactor/reactium-sdk-core": "1.0.1",
     "action-sequence": "^1.1.1",
     "axios": "^0.19.2",
     "camelcase": "^5.3.1",
@@ -64,14 +64,14 @@
     "prompt": "^1.0.0",
     "request": "^2.88.2",
     "semver": "^7.3.2",
-    "slugify": "^1.4.4",
+    "slugify": "^1.4.5",
     "tar": "^6.0.2",
     "text-table": "^0.2.0",
     "underscore": "^1.10.2"
   },
   "devDependencies": {
     "chai": "^4.2.0",
-    "mocha": "^8.0.1",
+    "mocha": "^8.1.0",
     "npm-run-all": "^4.1.5"
   },
   "bugs": {
