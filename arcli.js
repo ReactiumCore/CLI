@@ -11,7 +11,7 @@ const moment = require('moment');
 const semver = require('semver');
 const prompt = require('prompt');
 const op = require('object-path');
-const program = require('commander');
+const { createCommand } = require('commander');
 const inquirer = require('inquirer');
 const bootstrap = require('./bootstrap');
 
@@ -32,15 +32,21 @@ global.arcli.prefix = chalk.cyan(
 const { props } = bootstrap;
 const { config, ver } = props;
 
-const cmds = () => {
-    const commands = {};
-    const subcommands = {};
+props.commands = {};
+props.subcommands = {};
 
-    bootstrap.commands().forEach(cmd => {
+const cmds = globs => {
+    const commands = props.commands;
+    const subcommands = props.subcommands;
+
+    globs.forEach(cmd => {
         let req;
 
-        try { req = require(cmd); }
-        catch (err) { req = () => {}; }
+        try {
+            req = require(cmd);
+        } catch (err) {
+            req = () => {};
+        }
 
         if (op.has(req, 'COMMAND') && typeof req.COMMAND === 'function') {
             if (op.has(req, 'NAME')) {
@@ -56,19 +62,17 @@ const cmds = () => {
             }
         }
     });
-
-    return { commands, subcommands };
 };
 
-const initialize = () => {
-    const { commands, subcommands } = cmds();
-    props.args = process.argv.filter(item => String(item).substr(0, 1) !== '-');
-    props.commands = commands;
-    props.subcommands = subcommands;
+const attachCommands = ({ program, props, arcli }) => {
+    program.storeOptionsAsProperties(false);
+    program.addHelpCommand(false);
+
+    const commands = props.commands;
 
     // Apply commands
     Object.values(commands).forEach(req =>
-        req.COMMAND({ program, props, arcli: bootstrap }),
+        req.COMMAND({ program, props, arcli }),
     );
 
     // Configure prompt
@@ -78,6 +82,10 @@ const initialize = () => {
     // Initialize the CLI
     program.version(ver, '-v, --version');
     program.usage('<command> [options]');
+};
+
+const validArguments = program => {
+    const commands = props.commands;
 
     // Is valid command?
     if (process.argv.length > 2) {
@@ -94,9 +102,61 @@ const initialize = () => {
             console.log(chalk.red('Invalid command:'), chalk.cyan(command));
             console.log('\n');
             program.help();
-            return;
+            return false;
         }
     }
+
+    return true;
+};
+
+const shortInit = () => {
+    return new Promise((resolve, reject) => {
+        const program = createCommand();
+
+        // prevent exit on error
+        program.exitOverride();
+
+        // root commands only
+        cmds(bootstrap.rootCommands());
+
+        // go to long init if help
+        const { unknown: flags = [] } = program.parseOptions(process.argv);
+        if (
+            flags.length === 0 ||
+            flags.find(flag => flag === '-h' || flag === '--help')
+        ) {
+            reject('help');
+            return;
+        }
+
+        try {
+            // attach all root commands
+            attachCommands({ program, props, arcli });
+
+            program.parse(process.argv);
+            resolve();
+        } catch (error) {
+            // ignore commander.version error
+            if (error.code === 'commander.version') {
+                resolve();
+                return;
+            }
+
+            reject(error);
+        }
+    });
+};
+
+const longInit = () => {
+    const program = createCommand();
+
+    // search for commands
+    cmds(bootstrap.commands());
+
+    // attach all commands to commander
+    attachCommands({ program, props, arcli });
+
+    if (!validArguments(program)) process.exit(1);
 
     // Start the CLI
     program.parse(process.argv);
@@ -105,11 +165,24 @@ const initialize = () => {
     if (!process.argv.slice(2).length) program.help();
 };
 
+const initialize = () => {
+    props.args = process.argv.filter(item => String(item).substr(0, 1) !== '-');
+
+    // try short init before looking for commands everywhere
+    shortInit()
+        // do nothing if short init satisfied request
+        .then(() => {})
+
+        // short init failed, full long init
+        .catch(error => {
+            longInit();
+        });
+};
+
 const lastCheck = op.get(props.config, 'updated', Date.now());
 const lastUpdateCheck = moment().diff(moment(new Date(lastCheck)), 'days');
 
 if (lastUpdateCheck > 1) {
-
     axios
         .get(
             'https://raw.githubusercontent.com/Atomic-Reactor/CLI/master/package.json',

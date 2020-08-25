@@ -109,23 +109,29 @@ const initialize = props => {
     return props;
 };
 
+const normalizeCommandPath = dir =>
+    path
+        .normalize(
+            String(`${dir}/**/*index.js`)
+                .replace(/\[root\]/gi, arcli.props.root)
+                .replace(/\[cwd\]/gi, arcli.props.cwd),
+        )
+        .split(/[\\\/]/g)
+        .join(path.posix.sep);
+
+const rootCommands = () => {
+    return globby(normalizeCommandPath('[root]/commands'));
+};
+
 // Glob the functions
 const commands = () => {
     // Find commands
     const dirs = config.commands || [];
-    const globs = dirs.map(dir =>
-        // globby only allows posix separators
-        path
-            .normalize(
-                String(`${dir}/**/*index.js`)
-                    .replace(/\[root\]/gi, arcli.props.root)
-                    .replace(/\[cwd\]/gi, arcli.props.cwd),
-            )
-            .split(/[\\\/]/g)
-            .join(path.posix.sep),
-    );
+    const globs = dirs
+        .filter(dir => dir !== '[root]/commands')
+        .map(dir => normalizeCommandPath(dir));
 
-    const deep = op.get(config, 'depth', 25); 
+    const deep = op.get(config, 'depth', 25);
     return globby(globs, { deep });
 };
 
@@ -134,6 +140,7 @@ global.arcli = {
     ActionSequence,
     Actinium,
     chalk,
+    rootCommands,
     commands,
     deleteEmpty,
     fs,
