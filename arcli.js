@@ -66,6 +66,7 @@ const cmds = globs => {
 
 const attachCommands = ({ program, props, arcli }) => {
     program.storeOptionsAsProperties(false);
+    program.passCommandToAction(false);
     program.addHelpCommand(false);
 
     const commands = props.commands;
@@ -113,6 +114,9 @@ const shortInit = () => {
     return new Promise((resolve, reject) => {
         const program = createCommand();
 
+        // allow unknown options for short init
+        program.allowUnknownOption(true);
+
         // prevent exit on error
         program.exitOverride();
 
@@ -120,7 +124,9 @@ const shortInit = () => {
         cmds(bootstrap.rootCommands());
 
         // go to long init if help
-        const { unknown: flags = [] } = program.parseOptions(process.argv);
+        const { operands = [], unknown: flags = [] } = program.parseOptions([
+            ...process.argv,
+        ]);
         if (
             flags.length === 0 ||
             flags.find(flag => flag === '-h' || flag === '--help')
@@ -132,6 +138,14 @@ const shortInit = () => {
         try {
             // attach all root commands
             attachCommands({ program, props, arcli });
+
+            // ignore unknown command for short init
+            const [, , commandOperand] = operands;
+            // private commander api, may change
+            if (commandOperand && !program._findCommand(commandOperand)) {
+                reject('unknown command');
+                return;
+            }
 
             program.parse(process.argv);
             resolve();
