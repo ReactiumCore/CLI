@@ -1,6 +1,6 @@
 {
   "name": "@atomic-reactor/cli",
-  "version": "2.2.18",
+  "version": "2.2.19",
   "description": "A CLI for creating Atomic Reactor Awesomeness",
   "main": "arcli-node.js",
   "scripts": {
@@ -34,15 +34,15 @@
     "cli"
   ],
   "dependencies": {
-    "@atomic-reactor/decompress": "^4.2.3",
-    "@atomic-reactor/reactium-sdk-core": "1.0.6",
+    "@atomic-reactor/decompress": "^4.2.4",
+    "@atomic-reactor/reactium-sdk-core": "1.0.17",
     "action-sequence": "^1.1.1",
-    "axios": "^0.20.0",
-    "camelcase": "^5.3.1",
+    "axios": "^0.21.0",
+    "camelcase": "^6.1.0",
     "chalk": "^4.1.0",
-    "cli-spinners": "^2.4.0",
-    "commander": "^6.0.0",
-    "decamelize": "^3.2.0",
+    "cli-spinners": "^2.5.0",
+    "commander": "^6.1.0",
+    "decamelize": "^4.0.0",
     "delete-empty": "^3.0.0",
     "folder-zipper": "^1.0.0",
     "fs-extra": "^9.0.1",
@@ -53,12 +53,12 @@
     "inquirer-autocomplete-prompt": "^1.0.2",
     "inquirer-fuzzy-path": "^2.3.0",
     "memory-cache": "^0.2.0",
-    "moment": "^2.27.0",
-    "npm": "^6.14.8",
-    "object-path": "^0.11.4",
-    "ora": "^3.4.0",
-    "parse": "^2.15.0",
-    "pm2": "^4.4.1",
+    "moment": "^2.29.1",
+    "npm": "^7.0.5",
+    "object-path": "^0.11.5",
+    "ora": "^5.1.0",
+    "parse": "^2.17.0",
+    "pm2": "^4.5.0",
     "portscanner": "^2.2.0",
     "prettier": "^1.19.1",
     "prompt": "^1.0.0",
@@ -67,11 +67,11 @@
     "slugify": "^1.4.5",
     "tar": "^6.0.5",
     "text-table": "^0.2.0",
-    "underscore": "^1.10.2"
+    "underscore": "^1.11.0"
   },
   "devDependencies": {
     "chai": "^4.2.0",
-    "mocha": "^8.1.1",
+    "mocha": "^8.2.0",
     "npm-run-all": "^4.1.5"
   },
   "bugs": {
