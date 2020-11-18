@@ -104,25 +104,6 @@ module.exports = (DIR = 'APP') => {
                     props: { ...props, cwd: normalize(cwd, DIR) },
                 },
             });
-        },
-        empty: () => {
-            const actions = require(`${mod}/commands/reactium/empty/actions`)(
-                Spinner,
-            );
-            return ActionSequence({
-                actions,
-                options: {
-                    params: {
-                        demo: DIR === 'ADMIN',
-                        font: true,
-                        images: true,
-                        style: true,
-                        toolkit: true,
-                        ...params,
-                    },
-                    props: { ...props, cwd: normalize(cwd, DIR) },
-                },
-            });
-        },
+        }
     };
 };
