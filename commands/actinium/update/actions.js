@@ -106,10 +106,10 @@ module.exports = spinner => {
             // Add files to src
             add.filter(({ version }) =>
                 semver.satisfies(actiniumVersion, version),
-            ).forEach(({ destination, force, source }) => {
+            ).forEach(({ destination, overwrite, source }) => {
                 destination = path.normalize(`${cwd}/${destination}`);
                 source = path.normalize(`${cwd}/${source}`);
-                if (!fs.existsSync(destination) || force === true) {
+                if (!fs.existsSync(destination) || overwrite === true) {
                     fs.copySync(source, destination);
                 }
             });
