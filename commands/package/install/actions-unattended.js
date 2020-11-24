@@ -38,7 +38,7 @@ module.exports = spinner => {
             const pkgPath = normalize(cwd, 'package.json');
             const pkg = require(pkgPath);
             const depKey = `${app}Dependencies`;
-            const deps = op.get(pkg, depKey);
+            const deps = op.get(pkg, depKey, {});
 
             plugins = Object.entries(deps).map(
                 ([name, version]) => `${name}@${version}`,
@@ -61,10 +61,21 @@ module.exports = spinner => {
                 });
             }
         },
+        npm: async ({ params, props }) => {
+            if (op.get(params, 'no-npm') === true) return;
+            spinner.stopAndPersist({
+                text: `Installing npm dependencies...`,
+                symbol: chalk.cyan('+'),
+            });
+            console.log('');
+            await arcli.runCommand('npm', ['install']);
+        },
         complete: () => {
             console.log('');
             spinner.start();
-            spinner.succeed(`Installed:`);
+            if (plugins.length > 0) {
+                spinner.succeed(`Installed:`);
+            } else spinner.succeed('complete!')
             spinner.stop();
             plugins.forEach(plugin => console.log('   ', chalk.cyan(plugin)));
         }

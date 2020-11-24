@@ -177,7 +177,7 @@ module.exports = spinner => {
             await ActionSequence({ actions, options: { params, props } });
         },
         npm: async ({ params }) => {
-            if (op.get(params, 'no-npm') === true) return;
+            if (op.get(params, 'no-npm') === true || op.get(params, 'unattended') === true) return;
 
             spinner.stopAndPersist({
                 text: `Installing ${chalk.cyan(name)} dependencies...`,
