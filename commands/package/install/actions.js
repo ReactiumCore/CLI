@@ -133,7 +133,7 @@ module.exports = spinner => {
             fs.copySync(tmp, dir);
             fs.removeSync(tmp);
             fs.ensureDirSync(normalize(dir, 'npm'));
-            fs.moveSync(
+            fs.copySync(
                 normalize(dir, 'package.json'),
                 normalize(dir, '_npm', 'package.json'),
                 { overwrite: true },
