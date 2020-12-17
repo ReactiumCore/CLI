@@ -12,7 +12,7 @@ module.exports = spinner => {
     };
 
     return {
-        style: ({ action, params, props }) => {
+        style: async ({ action, params, props }) => {
             const { style } = params;
 
             if (style) {
@@ -43,7 +43,7 @@ module.exports = spinner => {
 
             return Promise.resolve({ action, status: 200 });
         },
-        manifest: ({ action, params, props }) => {
+        manifest: async ({ action, params, props }) => {
             const { toolkit } = params;
 
             if (toolkit) {
@@ -55,18 +55,20 @@ module.exports = spinner => {
                     `${cwd}/src/app/toolkit/index.js`,
                 );
 
-                let cont = fs.readFileSync(manifestFile);
-                cont = String(cont).replace(
-                    /menu: {((.|\n|\r)*)},/,
-                    'menu: {},',
-                );
+                if (fs.existsSync(manifestFile)) {
+                    let cont = fs.readFileSync(manifestFile);
+                    cont = String(cont).replace(
+                        /menu: {((.|\n|\r)*)},/,
+                        'menu: {},',
+                    );
 
-                fs.writeFileSync(manifestFile, cont);
+                    fs.writeFileSync(manifestFile, cont);
+                }
             }
 
             return Promise.resolve({ action, status: 200 });
         },
-        empty: ({ action, params, props }) => {
+        empty: async ({ action, params, props }) => {
             const { cwd } = props;
             const { demo, font, images, toolkit } = params;
 
@@ -106,18 +108,6 @@ module.exports = spinner => {
                 ].forEach(p => fs.removeSync(p));
             }
 
-            if (toolkit) {
-                message(`Removing ${chalk.cyan('toolkit elements')}...`);
-
-                const toolkitPath = path.normalize(`${cwd}/src/app/toolkit`);
-                const toolkitExclude = ['index.js', 'overview'];
-
-                fs.readdirSync(toolkitPath)
-                    .filter(file => Boolean(!toolkitExclude.includes(file)))
-                    .forEach(file =>
-                        fs.removeSync(path.normalize(`${toolkitPath}/${file}`)),
-                    );
-            }
 
             return Promise.resolve({ action, status: 200 });
         },

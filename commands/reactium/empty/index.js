@@ -5,11 +5,17 @@
  */
 
 const chalk = require('chalk');
-const generator = require('./generator');
+const fs = require('fs-extra');
 const prettier = require('prettier');
 const path = require('path');
+const op = require('object-path');
 const mod = path.dirname(require.main.filename);
 const { error, message } = require(`${mod}/lib/messenger`);
+const GENERATOR = fs.existsSync(
+    path.normalize(path.join(__dirname, 'generator.js')),
+)
+    ? require('./generator')
+    : require(`${mod}/lib/generator`);
 
 /**
  * NAME String
@@ -43,6 +49,8 @@ const CANCELED = 'Reactium empty canceled!';
  */
 const CONFIRM = ({ props, params }) => {
     const { prompt } = props;
+    if (op.get(prompt, 'override.confirm', false) === true)
+        return Promise.resolve(true);
 
     return new Promise((resolve, reject) => {
         prompt.get(
@@ -142,6 +150,30 @@ const SCHEMA = ({ props }) => {
 };
 
 /**
+ * FLAGS
+ * @description Array of flags passed from the commander options.
+ * @since 2.0.18
+ */
+const FLAGS = ['confirm', 'demo', 'font', 'images', 'style', 'toolkit'];
+
+/**
+ * FLAGS_TO_PARAMS Function
+ * @description Create an object used by the prompt.override property.
+ * @since 2.0.18
+ */
+const FLAGS_TO_PARAMS = ({ opt = {} }) =>
+    FLAGS.reduce((obj, key) => {
+        let val = opt[key];
+        val = typeof val === 'function' ? undefined : val;
+
+        if (val) {
+            obj[key] = val;
+        }
+
+        return obj;
+    }, {});
+
+/**
  * ACTION Function
  * @description Function used as the commander.action() callback.
  * @see https://www.npmjs.com/package/commander
@@ -151,47 +183,37 @@ const SCHEMA = ({ props }) => {
  */
 const ACTION = ({ opt, props }) => {
     const { cwd, prompt } = props;
-
     const schema = SCHEMA({ props });
-
-    const ovr = ['demo', 'font', 'images', 'style', 'toolkit'].reduce(
-        (obj, key) => {
-            let val = opt[key];
-            val = typeof val === 'function' ? null : val;
-            if (val) {
-                obj[key] = val;
-            }
-            return obj;
-        },
-        {},
-    );
+    const ovr = FLAGS_TO_PARAMS({ opt });
 
     prompt.override = ovr;
     prompt.start();
-    prompt.get(schema, (err, input) => {
-        // Keep this conditional as the first line in this function.
-        // Why? because you will get a js error if you try to set or use anything related to the input object.
-        if (err) {
-            prompt.stop();
-            error(`${NAME} ${err.message}`);
-            return;
-        }
 
-        const params = { ...CONFORM({ input, props }), ...ovr };
+    let params = {};
 
-        CONFIRM({ props, params })
-            .then(() => {
-                console.log('');
-                generator({ params, props }).then(success => {
-                    console.log('');
-                });
-            })
-            .then(() => prompt.stop())
-            .catch(err => {
+    return new Promise((resolve, reject) => {
+        prompt.get(schema, (err, input = {}) => {
+            if (err) {
                 prompt.stop();
-                message(CANCELED);
-            });
-    });
+                reject(`${NAME} ${err.message}`);
+                return;
+            }
+
+            input = { ...ovr, ...input };
+            params = CONFORM({ input, props });
+            resolve();
+        });
+    })
+        .then(() => CONFIRM({ props, params }))
+        .then(() => GENERATOR({ params, props }))
+        .then(() => prompt.stop())
+        .then(results => {
+            console.log('');
+        })
+        .catch(err => {
+            prompt.stop();
+            message(op.get(err, 'message', CANCELED));
+        });
 };
 
 /**
@@ -202,24 +224,25 @@ const COMMAND = ({ program, props }) =>
     program
         .command(NAME)
         .description(DESC)
-        .action(opt => ACTION({ opt, props }))
-        .option('-D, --no-demo [demo]', 'Keep the demo site and components.')
+        .action((commandName, opt) => ACTION({ opt, props }))
+        .option('-D, --no-demo', 'Keep the demo site and components.')
         .option(
-            '-T, --no-toolkit [toolkit]',
+            '-T, --no-toolkit',
             'Keep the default toolkit elements.',
         )
         .option(
-            '-S, --no-style [style]',
+            '-S, --no-style',
             'Do not empty the ~/src/assets/style/style.scss file.',
         )
         .option(
-            '-F, --no-font [font]',
+            '-F, --no-font',
             'Do not empty the ~/src/assets/fonts directory.',
         )
         .option(
-            '-I, --no-images [images]',
+            '-I, --no-images',
             'Do not empty the ~/src/assets/images directory.',
         )
+        .option('-y, --confirm', 'Skip confirmation.')
         .on('--help', HELP);
 
 /**
