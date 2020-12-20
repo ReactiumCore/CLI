@@ -36,6 +36,7 @@ module.exports = ({ params, props }) => {
         return success;
     }).catch((error) => {
         spinner.fail('Reactium install error!');
+        console.error(error);
         return error;
     });
 };

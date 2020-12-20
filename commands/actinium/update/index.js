@@ -38,45 +38,6 @@ const DESC = 'Actinium: Update core';
 const CANCELED = 'Actinium update canceled!';
 
 /**
- * confirm({ props:Object, params:Object }) Function
- * @description Prompts the user to confirm the operation
- * @since 2.0.0
- */
-const CONFIRM = ({ props, params, msg }) => {
-    const { prompt } = props;
-
-    msg = msg || chalk.white('Proceed?');
-
-    return new Promise((resolve, reject) => {
-        prompt.get(
-            {
-                properties: {
-                    confirmed: {
-                        description: `${msg} ${chalk.cyan('(Y/N):')}`,
-                        type: 'string',
-                        required: true,
-                        pattern: /^y|n|Y|N/,
-                        message: ` `,
-                        before: val => {
-                            return String(val).toUpperCase() === 'Y';
-                        },
-                    },
-                },
-            },
-            (error, input = {}) => {
-                const confirmed = op.get(input, 'confirmed', false);
-                if (error || confirmed === false) {
-                    reject(error);
-                } else {
-                    params['confirmed'] = true;
-                    resolve(params);
-                }
-            },
-        );
-    });
-};
-
-/**
  * conform(input:Object) Function
  * @description Reduces the input object.
  * @param input Object The key value pairs to reduce.
@@ -110,7 +71,7 @@ Example:
  * @description Array of flags passed from the commander options.
  * @since 2.0.18
  */
-const FLAGS = ['overwrite'];
+const FLAGS = ['confirm'];
 
 /**
  * FLAGS_TO_PARAMS Function
@@ -138,7 +99,7 @@ const FLAGS_TO_PARAMS = ({ opt = {} }) =>
 const SCHEMA = () => {
     return {
         properties: {
-            overwrite: {
+            confirm: {
                 description: `${chalk.white(
                     'Are you sure you want to update?',
                 )} ${chalk.cyan('(Y/N):')}`,
@@ -196,8 +157,8 @@ const COMMAND = ({ program, props }) =>
     program
         .command(NAME)
         .description(DESC)
-        .action(opt => ACTION({ opt, props }))
-        .option('-o, --overwrite [overwrite]', 'Overwrite existing files.')
+        .action((action, opt) => ACTION({ opt, props }))
+        .option('-y, --confirm', 'Skip confirmation.')
         .on('--help', HELP);
 
 /**

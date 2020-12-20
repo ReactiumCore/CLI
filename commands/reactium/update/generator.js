@@ -30,6 +30,7 @@ module.exports = ({ params, props }) => {
         return success;
     }).catch((error) => {
         spinner.fail('Reactium update error!');
+        console.error(error);
         return error;
     });
 };

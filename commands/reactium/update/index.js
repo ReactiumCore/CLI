@@ -119,7 +119,7 @@ const HELP = () => {
  */
 const SCHEMA = {
     properties: {
-        overwrite: {
+        confirm: {
             description: `${chalk.white('Are you sure you want to update?')} ${chalk.cyan('(Y/N):')}`,
             before: (val) => {
                 return (String(val).toLowerCase() === 'y');
@@ -164,10 +164,10 @@ const ACTION = ({ action, opt, props }) => {
             params['core'] = true;
         }
 
-        const { overwrite } = params;
+        const { confirm } = params;
 
-        // Exit if overwrite or confirm !== true
-        if (!overwrite) {
+        // Exit if confirm !== true
+        if (!confirm) {
             prompt.stop();
             message(CANCELED);
             return;
@@ -193,6 +193,7 @@ const COMMAND = ({ program, props }) => program.command(NAME)
     .option('-o, --overwrite [overwrite]', 'Overwrite the current directory.')
     .option('-e, --empty [empty]', 'Update without demo site and components.')
     .option('-c, --core [core]', 'Update the Reactium core only.')
+    .option('-y, --confirm', 'Skip confirmation.')
     .on('--help', HELP);
 
 

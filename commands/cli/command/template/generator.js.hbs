@@ -23,6 +23,7 @@ module.exports = ({ params, props }) => {
         })
         .catch(error => {
             spinner.fail('error!');
+            console.error(error);
             return error;
         });
 };
