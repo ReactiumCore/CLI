@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --no-warnings
+#!/usr/bin/env NODE_NO_WARNINGS=1 node
 
 'use strict';
 
