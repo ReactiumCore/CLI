@@ -50,6 +50,9 @@ module.exports = spinner => {
             name = _.compact(String(name).split('@'))[0];
             name = String(params.name).substr(0, 1) === '@' ? `@${name}` : name;
 
+            // Ensure module dir
+            fs.ensureDirSync(normalize(cwd, app + '_modules'));
+
             const appID = op.get(props, 'config.registry.app', 'ReactiumRegistry');
             const serverURL = op.get(props, 'config.registry.server', 'https://v1.reactium.io/api');
 
@@ -96,9 +99,6 @@ module.exports = spinner => {
         },
         download: () => {
             message(`Downloading ${chalk.cyan(`${name}@${version}`)}...`);
-
-            // Set module dir
-            dir = normalize(cwd, app + '_modules', slugify(name));
 
             // Create tmp directory
             tmp = normalize(dir + '_tmp');

@@ -45,6 +45,7 @@ const cmds = globs => {
         try {
             req = require(cmd);
         } catch (err) {
+            console.log(err);
             req = () => {};
         }
 
