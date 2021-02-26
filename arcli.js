@@ -128,6 +128,11 @@ const shortInit = () => {
         const { operands = [], unknown: flags = [] } = program.parseOptions([
             ...process.argv,
         ]);
+        
+        if (String(_.last(operands)).endsWith('arcli') && flags.length === 0) {
+            reject('help');
+            return;
+        }
 
         if (flags.find(flag => flag === '-h' || flag === '--help')) {
             reject('help');
