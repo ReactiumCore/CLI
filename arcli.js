@@ -128,10 +128,8 @@ const shortInit = () => {
         const { operands = [], unknown: flags = [] } = program.parseOptions([
             ...process.argv,
         ]);
-        if (
-            flags.length === 0 ||
-            flags.find(flag => flag === '-h' || flag === '--help')
-        ) {
+
+        if (flags.find(flag => flag === '-h' || flag === '--help')) {
             reject('help');
             return;
         }

@@ -50,17 +50,26 @@ module.exports = spinner => {
             name = _.compact(String(name).split('@'))[0];
             name = String(params.name).substr(0, 1) === '@' ? `@${name}` : name;
 
+            dir = normalize(cwd, app + '_modules', slugify(name));
+
             // Ensure module dir
             fs.ensureDirSync(normalize(cwd, app + '_modules'));
 
-            const appID = op.get(props, 'config.registry.app', 'ReactiumRegistry');
-            const serverURL = op.get(props, 'config.registry.server', 'https://v1.reactium.io/api');
+            const appID = op.get(
+                props,
+                'config.registry.app',
+                'ReactiumRegistry',
+            );
+            const serverURL = op.get(
+                props,
+                'config.registry.server',
+                'https://v1.reactium.io/api',
+            );
 
             Actinium.serverURL = serverURL;
             Actinium.initialize(appID);
         },
         check: () => {
-
             if (!app) {
                 spinner.fail(
                     `Current working directory ${chalk.cyan(
@@ -162,7 +171,7 @@ module.exports = spinner => {
         postinstall: async ({ params, props }) => {
             if (op.get(params, 'no-npm') === true) return;
 
-            const actionFiles= globby([`${dir}/**/arcli-install.js`]);
+            const actionFiles = globby([`${dir}/**/arcli-install.js`]);
             if (actionFiles.length < 1) return;
 
             const actions = actionFiles.reduce((obj, file, i) => {
@@ -177,7 +186,11 @@ module.exports = spinner => {
             await ActionSequence({ actions, options: { params, props } });
         },
         npm: async ({ params }) => {
-            if (op.get(params, 'no-npm') === true || op.get(params, 'unattended') === true) return;
+            if (
+                op.get(params, 'no-npm') === true ||
+                op.get(params, 'unattended') === true
+            )
+                return;
 
             spinner.stopAndPersist({
                 text: `Installing ${chalk.cyan(name)} dependencies...`,
