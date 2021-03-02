@@ -23,6 +23,7 @@ module.exports = spinner => {
 
     const message = text => {
         if (spinner) {
+            spinner.start();
             spinner.text = text;
         }
     };
@@ -49,35 +50,58 @@ module.exports = spinner => {
         install: async ({ params, props }) => {
             for (const i in plugins) {
                 const name = plugins[i];
+                spinner.start();
+                message(`Downloading ${chalk.cyan(name)}...`);
 
-                spinner.stopAndPersist({
-                    text: `Installing ${chalk.cyan(name)}...`,
-                    symbol: chalk.cyan('+'),
-                });
-
-                return ActionSequence({
+                await ActionSequence({
                     actions,
-                    options: { params: { ...params, name, unattended: true }, props },
+                    options: {
+                        params: { ...params, name, unattended: true },
+                        props,
+                    },
                 });
             }
+
+            spinner.stopAndPersist({
+                text: `Downloaded ${chalk.cyan('plugins')}`,
+                symbol: chalk.green('✓'),
+            });
         },
         npm: async ({ params, props }) => {
             if (op.get(params, 'no-npm') === true) return;
+
             spinner.stopAndPersist({
                 text: `Installing npm dependencies...`,
                 symbol: chalk.cyan('+'),
             });
+
             console.log('');
+
+            const packageJsonPath = normalize(cwd, 'package.json');
+            const pkg = require(packageJsonPath);
+
+            for (const i in plugins) {
+                const nameArr = plugins[i].split('@');
+                nameArr.pop();
+
+                const name = nameArr.join('@');
+
+                const pkgPath = normalize(`${app}_modules`, name);
+                op.set(pkg, `dependencies.${name}`, `file:${pkgPath}`);
+            }
+
+            // Update the package.json file
+            fs.writeFileSync(packageJsonPath, JSON.stringify(pkg, null, 2))
+
+            // Run npm install
             await arcli.runCommand('npm', ['install']);
         },
         complete: () => {
             console.log('');
-            spinner.start();
-            if (plugins.length > 0) {
-                spinner.succeed(`Installed:`);
-            } else spinner.succeed('complete!')
-            spinner.stop();
+            if (plugins.length > 0) spinner.succeed(`Installed:`);
+            else spinner.succeed('complete!');
+
             plugins.forEach(plugin => console.log('   ', chalk.cyan(plugin)));
-        }
+        },
     };
 };

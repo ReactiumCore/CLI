@@ -19,6 +19,7 @@ module.exports = spinner => {
 
     const message = text => {
         if (spinner) {
+            spinner.start();
             spinner.text = text;
         }
     };
@@ -107,6 +108,8 @@ module.exports = spinner => {
                     : _.last(versions);
         },
         download: () => {
+            if (!op.get(plugin, 'file')) return;
+
             message(`Downloading ${chalk.cyan(`${name}@${version}`)}...`);
 
             // Create tmp directory
@@ -117,14 +120,14 @@ module.exports = spinner => {
             filepath = normalize(tmp, plugin.file.name());
 
             // Pipe download to tmp path
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve, reject) =>
                 request(plugin.file.url())
                     .pipe(fs.createWriteStream(filepath))
                     .on('error', error => reject(error))
-                    .on('close', () => resolve({ action, status: 200 }));
-            });
+                    .on('close', () => resolve({ action, status: 200 })),
+            );
         },
-        extract: () => {
+        extract: async () => {
             message(`Extracting ${chalk.cyan(`${name}@${version}`)}...`);
 
             tar.extract({
@@ -135,18 +138,10 @@ module.exports = spinner => {
         },
         move: () => {
             message(`Copying ${chalk.cyan('files')}...`);
-            fs.ensureDirSync(dir);
             fs.removeSync(filepath);
-            fs.removeSync(dir);
             fs.ensureDirSync(dir);
-            fs.copySync(tmp, dir);
-            fs.removeSync(tmp);
-            fs.ensureDirSync(normalize(dir, 'npm'));
-            fs.copySync(
-                normalize(dir, 'package.json'),
-                normalize(dir, '_npm', 'package.json'),
-                { overwrite: true },
-            );
+            fs.emptyDirSync(dir);
+            fs.moveSync(tmp, dir, { overwrite: true });
         },
         static: () => {
             spinner.stop();
@@ -189,8 +184,9 @@ module.exports = spinner => {
             if (
                 op.get(params, 'no-npm') === true ||
                 op.get(params, 'unattended') === true
-            )
+            ) {
                 return;
+            }
 
             spinner.stopAndPersist({
                 text: `Installing ${chalk.cyan(name)} dependencies...`,
@@ -199,14 +195,18 @@ module.exports = spinner => {
 
             console.log('');
 
-            const pkg = [`${app}_modules`, slugify(name), '_npm'].join('/');
+            const pkg = normalize(`${app}_modules`, slugify(name));
 
             await arcli.runCommand('npm', ['install', pkg]);
         },
         complete: () => {
             console.log('');
-            spinner.start();
-            spinner.succeed(`Installed ${chalk.cyan(`${name}@${version}`)}`);
+            if (spinner) {
+                spinner.start();
+                spinner.succeed(
+                    `Installed ${chalk.cyan(`${name}@${version}`)}`,
+                );
+            }
         },
     };
 };
