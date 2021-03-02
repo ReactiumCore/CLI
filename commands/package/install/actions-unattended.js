@@ -70,6 +70,8 @@ module.exports = spinner => {
         npm: async ({ params, props }) => {
             if (op.get(params, 'no-npm') === true) return;
 
+            spinner.start();
+
             spinner.stopAndPersist({
                 text: `Installing npm dependencies...`,
                 symbol: chalk.cyan('+'),
@@ -77,21 +79,23 @@ module.exports = spinner => {
 
             console.log('');
 
-            const packageJsonPath = normalize(cwd, 'package.json');
-            const pkg = require(packageJsonPath);
+            if (op.get(params, 'save')) {
+                const packageJsonPath = normalize(cwd, 'package.json');
+                const pkg = require(packageJsonPath);
 
-            for (const i in plugins) {
-                const nameArr = plugins[i].split('@');
-                nameArr.pop();
+                for (const i in plugins) {
+                    const nameArr = plugins[i].split('@');
+                    nameArr.pop();
 
-                const name = nameArr.join('@');
+                    const name = nameArr.join('@');
 
-                const pkgPath = normalize(`${app}_modules`, name);
-                op.set(pkg, `dependencies.${name}`, `file:${pkgPath}`);
+                    const pkgPath = normalize(`${app}_modules`, name, '_npm');
+                    op.set(pkg, `dependencies.${name}`, `file:${pkgPath}`);
+                }
+
+                // Update the package.json file
+                fs.writeFileSync(packageJsonPath, JSON.stringify(pkg, null, 2));
             }
-
-            // Update the package.json file
-            fs.writeFileSync(packageJsonPath, JSON.stringify(pkg, null, 2))
 
             // Run npm install
             await arcli.runCommand('npm', ['install']);

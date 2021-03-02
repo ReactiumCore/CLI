@@ -138,14 +138,24 @@ module.exports = spinner => {
         },
         move: () => {
             message(`Copying ${chalk.cyan('files')}...`);
+
             fs.removeSync(filepath);
+
             fs.ensureDirSync(dir);
             fs.emptyDirSync(dir);
             fs.moveSync(tmp, dir, { overwrite: true });
+
+            fs.ensureDirSync(normalize(dir, '_npm'));
+            fs.copySync(
+                normalize(dir, 'package.json'),
+                normalize(dir, '_npm', 'package.json'),
+                { overwrite: true },
+            );
         },
         static: () => {
             spinner.stop();
             fs.ensureDirSync(normalize(dir, '_static'));
+
             const assets = globby([path.join(dir, '/**/assets/**')]);
             assets.forEach(file => {
                 let newFile = file.split('/assets/').pop();
@@ -160,7 +170,7 @@ module.exports = spinner => {
             message(`Registering plugin...`);
             const pkgjson = normalize(cwd, 'package.json');
             const pkg = require(pkgjson);
-            op.set(pkg, [`${app}Dependencies`, name], version);
+            op.set(pkg, [`${app}Dependencies`, name, ''], version);
             fs.writeFileSync(pkgjson, JSON.stringify(pkg, null, 2));
         },
         postinstall: async ({ params, props }) => {
@@ -195,7 +205,7 @@ module.exports = spinner => {
 
             console.log('');
 
-            const pkg = normalize(`${app}_modules`, slugify(name));
+            const pkg = normalize(`${app}_modules`, slugify(name), '_npm');
 
             await arcli.runCommand('npm', ['install', pkg]);
         },

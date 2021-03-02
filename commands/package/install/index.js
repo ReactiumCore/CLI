@@ -70,12 +70,40 @@ const ACTION = ({ name, opt, props }) => {
         });
     }
 
-    return GENERATOR({ params: { name }, props })
+    const ovr = FLAGS_TO_PARAMS({ opt });
+
+    const params = { ...ovr, name };
+
+    return GENERATOR({ params, props })
         .then(() => process.exit())
         .catch(err =>
             message(op.get(err, 'message', op.get(err, 'msg', CANCELED))),
         );
 };
+
+/**
+ * FLAGS
+ * @description Array of flags passed from the commander options.
+ * @since 2.0.18
+ */
+const FLAGS = ['save'];
+
+/**
+ * FLAGS_TO_PARAMS Function
+ * @description Create an object used by the prompt.override property.
+ * @since 2.0.18
+ */
+const FLAGS_TO_PARAMS = ({ opt = {} }) =>
+    FLAGS.reduce((obj, key) => {
+        let val = opt[key];
+        val = typeof val === 'function' ? undefined : val;
+
+        if (val) {
+            obj[key] = val;
+        }
+
+        return obj;
+    }, {});
 
 /**
  * COMMAND Function
@@ -86,6 +114,7 @@ const COMMAND = ({ program, props }) =>
         .command(NAME)
         .description(DESC)
         .action((name, opt) => ACTION({ name, opt, props }))
+        .option('-s, --save [save]', 'Install and save dependencies')
         .on('--help', HELP);
 
 /**
