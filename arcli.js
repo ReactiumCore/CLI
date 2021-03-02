@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env node --no-warnings
 
 'use strict';
 
@@ -128,7 +128,7 @@ const shortInit = () => {
         const { operands = [], unknown: flags = [] } = program.parseOptions([
             ...process.argv,
         ]);
-        
+
         if (String(_.last(operands)).endsWith('arcli') && flags.length === 0) {
             reject('help');
             return;
@@ -183,18 +183,13 @@ const longInit = () => {
     if (!process.argv.slice(2).length) program.help();
 };
 
-const initialize = () => {
+const initialize = async () => {
     props.args = process.argv.filter(item => String(item).substr(0, 1) !== '-');
 
     // try short init before looking for commands everywhere
-    shortInit()
-        // do nothing if short init satisfied request
-        .then(() => {})
-
-        // short init failed, full long init
-        .catch(error => {
-            longInit();
-        });
+    try {
+        await shortInit().catch(longInit);
+    } catch (err) {}
 };
 
 const lastCheck = op.get(props.config, 'updated', Date.now());
@@ -225,10 +220,8 @@ if (lastUpdateCheck > 1) {
             fs.ensureFileSync(props.localConfigFile);
             fs.writeFileSync(props.localConfigFile, contents);
         })
-        .then(() => initialize())
-        .catch(err => {
-            console.log(err);
-        });
+        .then(initialize)
+        .catch(console.log);
 } else {
     initialize();
 }

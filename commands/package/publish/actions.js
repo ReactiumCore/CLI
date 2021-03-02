@@ -24,6 +24,8 @@ module.exports = spinner => {
 
     const x = chalk.magenta('✖');
 
+    const normalize = (...args) => path.normalize(path.join(...args));
+
     const message = text => {
         if (spinner) {
             spinner.text = text;
@@ -35,13 +37,14 @@ module.exports = spinner => {
         process.exit();
     };
 
-    const normalize = (...args) => path.normalize(path.join(...args));
-
     const pkgPrompt = fields =>
         new Promise((resolve, reject) => {
             const required = true;
             const type = 'string';
             const defaults = {
+                actinium: {
+                    version: '3.6.6',
+                },
                 reactium: {
                     version: '3.2.6',
                 },
@@ -81,10 +84,24 @@ module.exports = spinner => {
             pkgFile = path.normalize(`${cwd}/package.json`);
             prompt = props.prompt;
             sessionToken = op.get(props, 'config.registry.sessionToken');
-            tmpDir = normalize(require('os').homedir(), '.arcli', 'tmp', 'publish', path.basename(cwd));
+            tmpDir = normalize(
+                require('os').homedir(),
+                '.arcli',
+                'tmp',
+                'publish',
+                path.basename(cwd),
+            );
 
-            const appID = op.get(props, 'config.registry.app', 'ReactiumRegistry');
-            const serverURL = op.get(props, 'config.registry.server', 'https://v1.reactium.io/api');
+            const appID = op.get(
+                props,
+                'config.registry.app',
+                'ReactiumRegistry',
+            );
+            const serverURL = op.get(
+                props,
+                'config.registry.server',
+                'https://v1.reactium.io/api',
+            );
 
             Actinium.initialize(appID);
             Actinium.serverURL = serverURL;
@@ -96,6 +113,7 @@ module.exports = spinner => {
                 description: chalk.white('Description:'),
                 author: chalk.white('Author:'),
                 'reactium.version': chalk.white('Reactium Version:'),
+                'actinium.version': chalk.white('Actinium Version:'),
             };
 
             // Check for package.json
@@ -142,6 +160,7 @@ module.exports = spinner => {
                     'description',
                     'author',
                     'reactium.version',
+                    'actinium.version'
                 ];
 
                 for (let i in reqs) {
@@ -159,7 +178,9 @@ module.exports = spinner => {
                         pkgUpdate = true;
                         spinner.stopAndPersist({ symbol: x, text });
                         console.log('');
-                        await pkgPrompt([{ name, description: fields[name] }]).catch(err => {
+                        await pkgPrompt([
+                            { name, description: fields[name] },
+                        ]).catch(err => {
                             console.log(34, JSON.stringify(err));
                         });
                         console.log('');
@@ -192,7 +213,9 @@ module.exports = spinner => {
             const canPublish = op.get(result, 'enabled');
 
             if (canPublish !== true) {
-                spinner.fail(`${chalk.magenta('Error:')} ${JSON.stringify(canPublish)}`);
+                spinner.fail(
+                    `${chalk.magenta('Error:')} ${JSON.stringify(canPublish)}`,
+                );
                 console.log(35);
                 exit();
             }
@@ -203,14 +226,18 @@ module.exports = spinner => {
 
             const actions = actionFiles.reduce((obj, file, i) => {
                 const acts = require(normalize(file))(spinner);
-                Object.keys(acts).forEach(key => op.set(obj, `prepublish_${i}_${key}`, acts[key]));
+                Object.keys(acts).forEach(key =>
+                    op.set(obj, `prepublish_${i}_${key}`, acts[key]),
+                );
                 return obj;
             }, {});
 
-            await ActionSequence({ actions, options: { params, props } }).catch(err => {
-                console.log('Prepublish Error:', err);
-                exit();
-            });
+            await ActionSequence({ actions, options: { params, props } }).catch(
+                err => {
+                    console.log('Prepublish Error:', err);
+                    exit();
+                },
+            );
         },
         tmp: () => {
             spinner.stop();
@@ -223,13 +250,17 @@ module.exports = spinner => {
             message(`Compiling...`);
 
             const regex = new RegExp(`components/${path.basename(cwd)}`, 'g');
-            const replacer = `reactium_modules/${pkg.name}`;
-            const files = globby([`${tmpDir}/**/*.js`, `${tmpDir}/**/*.jsx`, `!${tmpDir}/**/*.json`]);
+            const replacerReactium = `reactium_modules/${pkg.name}`;
+            const files = globby([
+                `${tmpDir}/**/*.js`,
+                `${tmpDir}/**/*.jsx`,
+                `!${tmpDir}/**/*.json`,
+            ]);
 
             for (const i in files) {
                 const file = files[i];
                 let content = fs.readFileSync(file);
-                content = String(content).replace(regex, replacer);
+                content = String(content).replace(regex, replacerReactium);
                 fs.writeFileSync(file, content);
             }
         },
@@ -328,9 +359,9 @@ module.exports = spinner => {
             fs.removeSync(tmpDir);
         },
         complete: () => {
-            spinner.succeed(`published ${chalk.cyan(pkg.name)} v${chalk.cyan(
-                pkg.version,
-            )}`);
-        }
+            spinner.succeed(
+                `published ${chalk.cyan(pkg.name)} v${chalk.cyan(pkg.version)}`,
+            );
+        },
     };
 };

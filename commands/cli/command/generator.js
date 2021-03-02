@@ -17,10 +17,13 @@ module.exports = ({ params, props }) => {
         actions,
         options: { params, props }
     }).then((success) => {
+        spinner.start();
         spinner.succeed('Command creation complete!');
         return success;
     }).catch((error) => {
+        spinner.start();
         spinner.fail('Command creation error!');
+        console.log(error);
         return error;
     });
 };
