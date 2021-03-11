@@ -62,10 +62,17 @@ const CONFORM = ({ input, props }) =>
         let val = input[key];
         switch (key) {
             case 'version':
+                break;
+
+            case 'ver':
                 const incs = ['major', 'minor', 'patch'];
-                obj[key] = incs.includes(String(val).toLowerCase())
+                obj['version'] = incs.includes(String(val).toLowerCase())
                     ? semver.inc(getPackageVersion(props.cwd), val)
                     : semver.coerce(val).version;
+                break;
+
+            case 'private':
+                obj[key] = String(val).toLowerCase() === 'y' ? true : false;
                 break;
 
             default:
@@ -98,7 +105,7 @@ Example:
  * @description Array of flags passed from the commander options.
  * @since 2.0.18
  */
-const FLAGS = ['app', 'private', 'server', 'version'];
+const FLAGS = ['app', 'private', 'server', 'ver'];
 
 /**
  * FLAGS_TO_PARAMS Function
@@ -123,7 +130,9 @@ const FLAGS_TO_PARAMS = ({ opt = {} }) =>
  * @see https://www.npmjs.com/package/prompt
  * @since 2.0.0
  */
-const SCHEMA = ({ props }) => {
+const SCHEMA = ({ params, props }) => {
+    const version = op.get(params, 'ver');
+    const isPrivate = op.get(params, 'private');
     const sessionToken = op.get(props, 'config.registry.sessionToken');
 
     return {
@@ -142,20 +151,27 @@ const SCHEMA = ({ props }) => {
                 required: true,
             },
             version: {
+                ask: () => !version,
                 default: getPackageVersion(props.cwd, 'patch'),
                 description: chalk.white('Version:'),
                 message: 'Version is a required parameter',
                 required: true,
             },
             private: {
-                before: val => String(val).substr(0, 1).toUpperCase() === 'Y',
+                ask: () => typeof isPrivate === 'undefined',
+                before: val =>
+                    String(val)
+                        .substr(0, 1)
+                        .toUpperCase() === 'Y',
                 default: 'N',
-                description: `${chalk.white('Private')} ${chalk.cyan('(Y/N):')}`,
+                description: `${chalk.white('Private')} ${chalk.cyan(
+                    '(Y/N):',
+                )}`,
                 message: ' ',
                 pattern: /^y|n|Y|N/,
                 required: true,
                 type: 'string',
-            }
+            },
         },
     };
 };
@@ -169,16 +185,15 @@ const SCHEMA = ({ props }) => {
  * @since 2.0.0
  */
 const ACTION = ({ opt, props }) => {
-    const { cwd, prompt } = props;
-    const schema = SCHEMA({ props });
-    const ovr = FLAGS_TO_PARAMS({ opt });
+    let params = FLAGS_TO_PARAMS({ opt });
 
-    prompt.override = ovr;
+    const { cwd, prompt } = props;
+    const schema = SCHEMA({ props, params });
+
+    prompt.override = params;
     prompt.start();
 
-    let params = {};
-
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) =>
         prompt.get(schema, (err, input = {}) => {
             if (err) {
                 prompt.stop();
@@ -186,18 +201,17 @@ const ACTION = ({ opt, props }) => {
                 return;
             }
 
-            input = { ...ovr, ...input };
+            input = { ...params, ...input };
             params = CONFORM({ input, props });
 
+            console.log(JSON.stringify({ input, params }, null, 2));
             resolve();
-        });
-    })
+        }),
+    )
         .then(() => GENERATOR({ params, props }))
         .then(() => prompt.stop())
         .then(results => console.log(''))
-        .catch(err => {
-            console.log(10, JSON.stringify(err));
-        });
+        .catch(err => console.log(10, JSON.stringify(err)));
 };
 
 /**
@@ -215,7 +229,7 @@ const COMMAND = ({ program, props }) =>
             'Make the plugin available to ACL targets only',
         )
         .option('-s, --server [server]', 'Server URL')
-        .option('-v, --version [version]', 'Plugin semver. Defaults to 0.0.1')
+        .option('--ver [ver]', 'Plugin semver. Defaults to 0.0.1')
         .on('--help', HELP);
 
 /**

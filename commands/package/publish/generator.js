@@ -3,7 +3,7 @@ const path = require('path');
 const mod = path.dirname(require.main.filename);
 const ActionSequence = require('action-sequence');
 
-module.exports = ({ params, props }) => {
+module.exports = ({ params, props }) => {    
     const spinner = ora({ spinner: 'dots', color: 'cyan' });
 
     console.log('');
