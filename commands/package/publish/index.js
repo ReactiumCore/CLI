@@ -204,7 +204,6 @@ const ACTION = ({ opt, props }) => {
             input = { ...params, ...input };
             params = CONFORM({ input, props });
 
-            console.log(JSON.stringify({ input, params }, null, 2));
             resolve();
         }),
     )
