@@ -1,6 +1,8 @@
 const path = require('path');
-const prettier = require('prettier');
+const _ = require('underscore');
 const op = require('object-path');
+const prettier = require('prettier');
+
 
 module.exports = (props, updatePath) => {
     const { cwd } = props;
@@ -49,8 +51,10 @@ module.exports = (props, updatePath) => {
     // Update scripts object
     pkg['scripts'] = scripts;
 
+    const pkeys = _.without(Object.keys(op.get(actiniumConfig, 'update.package')), 'scripts');
+
     // Update dependencies objects
-    ['dependencies', 'devDependencies'].forEach(depType => {
+    pkeys.forEach(depType => {
         const existingDeps = op.get(pkg, depType, {});
         const addDeps = op.get(
             updatePackage,
@@ -77,6 +81,6 @@ module.exports = (props, updatePath) => {
     let pkgCont = prettier.format(JSON.stringify(pkg), {
         parser: 'json-stringify',
     });
-    
+
     return pkgCont;
 };
