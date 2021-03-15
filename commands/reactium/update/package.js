@@ -49,8 +49,10 @@ module.exports = (props, updatePath) => {
     // Update scripts object
     pkg['scripts'] = scripts;
 
-    // Update dependencies objects
-    ['dependencies', 'devDependencies'].forEach(depType => {
+    const pkeys = _.without(Object.keys(op.get(reactiumConfig, 'update.package')), 'scripts');
+
+    // Update package object
+    pkeys.forEach(depType => {
         const existingDeps = op.get(pkg, depType, {});
         const addDeps = op.get(
             updatePackage,

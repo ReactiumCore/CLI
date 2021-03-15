@@ -53,7 +53,7 @@ module.exports = (props, updatePath) => {
 
     const pkeys = _.without(Object.keys(op.get(actiniumConfig, 'update.package')), 'scripts');
 
-    // Update dependencies objects
+    // Update package objects
     pkeys.forEach(depType => {
         const existingDeps = op.get(pkg, depType, {});
         const addDeps = op.get(
