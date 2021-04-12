@@ -48,13 +48,14 @@ const runCommand = (cmd, args = [], options = {}) =>
 
         ps.on('error', err => {
             console.log(`Error executing ${cmd}`);
-            console.log(err);
-            reject();
+            console.error(err);
+            reject(err);
+            return;
         });
 
         ps.on('close', code => {
             if (code !== 0) {
-                console.log(`Error executing ${cmd}`);
+                console.error(`Error executing ${cmd}`);
                 reject();
             } else {
                 resolve();

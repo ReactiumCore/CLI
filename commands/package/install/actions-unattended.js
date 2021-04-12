@@ -98,7 +98,12 @@ module.exports = spinner => {
             }
 
             // Run npm install
-            await arcli.runCommand('npm', ['install']);
+            try {
+                await arcli.runCommand('npm', ['install']);
+            } catch (error) {
+                console.error(error);
+                process.exit(1);
+            }
         },
         complete: () => {
             console.log('');

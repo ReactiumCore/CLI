@@ -45,7 +45,7 @@ module.exports = spinner => {
 
             if (!name) {
                 spinner.fail('input plugin name');
-                process.exit();
+                process.exit(1);
             }
 
             name = _.compact(String(name).split('@'))[0];
@@ -77,7 +77,7 @@ module.exports = spinner => {
                         cwd,
                     )} is not an Actinium or Reactium project`,
                 );
-                process.exit();
+                process.exit(1);
             }
         },
         fetch: () => {
@@ -90,26 +90,32 @@ module.exports = spinner => {
             )
                 .then(result => {
                     plugin = result;
+                    if (!plugin) throw new Error('Unable to get plugin.');
                 })
                 .catch(err => {
                     spinner.fail(err.message);
-                    console.log('');
-                    process.exit();
+                    console.error(err.message);
+                    process.exit(1);
                 });
         },
         version: ({ params }) => {
             const versions = Object.values(op.get(plugin, 'version', {}));
             const nrr = _.compact(String(params.name).split('@'));
-            version = nrr.length > 1 ? nrr[1] : 'latest';
+            version = nrr.length > 1 ? _.last(nrr) : 'latest';
 
             plugin =
                 version !== 'latest'
                     ? _.findWhere(versions, { version })
                     : _.last(versions);
+
+            if (!plugin || !op.get(plugin, 'file')) {
+                console.error('Unable to find plugin version.');
+                process.exit(1);
+            }
+
+            version = plugin.version;
         },
         download: () => {
-            if (!op.get(plugin, 'file')) return;
-
             message(`Downloading ${chalk.cyan(`${name}@${version}`)}...`);
 
             // Create tmp directory
@@ -137,20 +143,25 @@ module.exports = spinner => {
             });
         },
         move: () => {
-            message(`Copying ${chalk.cyan('files')}...`);
+            try {
+                message(`Copying ${chalk.cyan('files')}...`);
 
-            fs.removeSync(filepath);
+                fs.removeSync(filepath);
 
-            fs.ensureDirSync(dir);
-            fs.emptyDirSync(dir);
-            fs.moveSync(tmp, dir, { overwrite: true });
+                fs.ensureDirSync(dir);
+                fs.emptyDirSync(dir);
+                fs.moveSync(tmp, dir, { overwrite: true });
 
-            fs.ensureDirSync(normalize(dir, '_npm'));
-            fs.copySync(
-                normalize(dir, 'package.json'),
-                normalize(dir, '_npm', 'package.json'),
-                { overwrite: true },
-            );
+                fs.ensureDirSync(normalize(dir, '_npm'));
+                fs.copySync(
+                    normalize(dir, 'package.json'),
+                    normalize(dir, '_npm', 'package.json'),
+                    { overwrite: true },
+                );
+            } catch (error) {
+                console.error(error);
+                process.exit(1);
+            }
         },
         static: () => {
             spinner.stop();
@@ -170,7 +181,7 @@ module.exports = spinner => {
             message(`Registering plugin...`);
             const pkgjson = normalize(cwd, 'package.json');
             const pkg = require(pkgjson);
-            op.set(pkg, [`${app}Dependencies`, name, ''], version);
+            op.set(pkg, [`${app}Dependencies`, name], version);
             fs.writeFileSync(pkgjson, JSON.stringify(pkg, null, 2));
         },
         postinstall: async ({ params, props }) => {
@@ -206,8 +217,12 @@ module.exports = spinner => {
             console.log('');
 
             const pkg = normalize(`${app}_modules`, slugify(name), '_npm');
-
-            await arcli.runCommand('npm', ['install', pkg]);
+            try {
+                await arcli.runCommand('npm', ['install', pkg]);
+            } catch (error) {
+                console.error({error});
+                process.exit(1);
+            }
         },
         complete: () => {
             console.log('');
