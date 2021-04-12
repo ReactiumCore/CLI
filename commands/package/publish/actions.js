@@ -34,7 +34,7 @@ module.exports = spinner => {
 
     const exit = () => {
         console.log('');
-        process.exit();
+        process.exit(1);
     };
 
     const pkgPrompt = fields =>
@@ -213,10 +213,12 @@ module.exports = spinner => {
             const canPublish = op.get(result, 'enabled');
 
             if (canPublish !== true) {
+                const errorMsg = `${chalk.magenta('Error:')} ${JSON.stringify(canPublish)}`;
                 spinner.fail(
-                    `${chalk.magenta('Error:')} ${JSON.stringify(canPublish)}`,
+                    errorMsg,
                 );
-                console.log(35);
+
+                console.error(errorMsg);
                 exit();
             }
         },

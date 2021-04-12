@@ -61,9 +61,6 @@ const CONFORM = ({ input, props }) =>
     Object.keys(input).reduce((obj, key) => {
         let val = input[key];
         switch (key) {
-            case 'version':
-                break;
-
             case 'ver':
                 const incs = ['major', 'minor', 'patch'];
                 obj['version'] = incs.includes(String(val).toLowerCase())
@@ -75,6 +72,8 @@ const CONFORM = ({ input, props }) =>
                 obj[key] = String(val).toLowerCase() === 'y' ? true : false;
                 break;
 
+            case 'version':
+                if (input['ver']) break;
             default:
                 obj[key] = val;
                 break;
