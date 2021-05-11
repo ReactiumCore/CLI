@@ -1,6 +1,7 @@
 const path = require('path');
-const prettier = require('prettier');
+const _ = require('underscore');
 const op = require('object-path');
+const prettier = require('prettier');
 
 module.exports = (props, updatePath) => {
     const { cwd } = props;
