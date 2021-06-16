@@ -184,23 +184,6 @@ module.exports = spinner => {
             op.set(pkg, [`${app}Dependencies`, name], version);
             fs.writeFileSync(pkgjson, JSON.stringify(pkg, null, 2));
         },
-        postinstall: async ({ params, props }) => {
-            if (op.get(params, 'no-npm') === true) return;
-
-            const actionFiles = globby([`${dir}/**/arcli-install.js`]);
-            if (actionFiles.length < 1) return;
-
-            const actions = actionFiles.reduce((obj, file, i) => {
-                const acts = require(normalize(file))(spinner);
-                Object.keys(acts).forEach(key => {
-                    obj[`postinstall_${i}_${key}`] = acts[key];
-                });
-                return obj;
-            }, {});
-
-            params['pluginDirectory'] = dir;
-            await ActionSequence({ actions, options: { params, props } });
-        },
         npm: async ({ params }) => {
             if (
                 op.get(params, 'no-npm') === true ||
@@ -220,9 +203,35 @@ module.exports = spinner => {
             try {
                 await arcli.runCommand('npm', ['install', pkg]);
             } catch (error) {
-                console.error({error});
+                console.error({ error });
                 process.exit(1);
             }
+        },
+        postinstall: async ({ params, props }) => {
+            if (
+                op.get(params, 'no-npm') === true ||
+                op.get(params, 'unattended') === true
+            )
+                return;
+
+            const actionFiles = globby([`${dir}/**/arcli-install.js`]);
+            if (actionFiles.length < 1) return;
+
+            const actions = actionFiles.reduce((obj, file, i) => {
+                const acts = require(normalize(file))(
+                    spinner,
+                    arcli,
+                    params,
+                    props,
+                );
+                Object.keys(acts).forEach(key => {
+                    obj[`postinstall_${i}_${key}`] = acts[key];
+                });
+                return obj;
+            }, {});
+
+            params['pluginDirectory'] = dir;
+            await ActionSequence({ actions, options: { params, props } });
         },
         complete: () => {
             console.log('');

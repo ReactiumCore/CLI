@@ -13,7 +13,7 @@ const ActionSequence = require('action-sequence');
 const { arcli } = global;
 
 module.exports = spinner => {
-    let app, cwd, plugins;
+    let deps, app, cwd, plugins, pluginsDir;
 
     const actions = require('./actions')(spinner);
 
@@ -34,12 +34,13 @@ module.exports = spinner => {
         init: ({ params, props }) => {
             cwd = op.get(props, 'cwd');
             app = targetApp(cwd);
+            pluginsDir = path.resolve(cwd, app + '_modules');
         },
         plugins: () => {
             const pkgPath = normalize(cwd, 'package.json');
             const pkg = require(pkgPath);
             const depKey = `${app}Dependencies`;
-            const deps = op.get(pkg, depKey, {});
+            deps = op.get(pkg, depKey, {});
 
             plugins = Object.entries(deps).map(
                 ([name, version]) => `${name}@${version}`,
@@ -105,6 +106,39 @@ module.exports = spinner => {
                 process.exit(1);
             }
         },
+
+        postinstall: async ({ params, props }) => {
+            if (op.get(params, 'no-npm') === true) return;
+            const plugins = Object.keys(deps);
+
+            for (const i in plugins) {
+                const name = plugins[i];
+                spinner.start();
+                message(`Post Install ${chalk.cyan(name)}...`);
+
+                const dir = normalize(pluginsDir, name);
+                const actionFiles = arcli.globby([`${dir}/**/arcli-install-unattended.js`]);
+                if (actionFiles.length < 1) return;
+
+                const actions = actionFiles.reduce((obj, file, i) => {
+                    const acts = require(normalize(file))(
+                        spinner,
+                        arcli,
+                        params,
+                        props,
+                    );
+                    Object.keys(acts).forEach(key => {
+                        obj[`postinstall_${i}_${key}`] = acts[key];
+                    });
+                    return obj;
+                }, {});
+
+                params['name'] = name;
+                params['pluginDirectory'] = dir;
+                await ActionSequence({ actions, options: { params, props } });
+            }
+        },
+
         complete: () => {
             console.log('');
             if (plugins.length > 0) spinner.succeed(`Installed:`);
