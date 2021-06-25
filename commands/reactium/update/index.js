@@ -139,6 +139,7 @@ const SCHEMA = {
  */
 const ACTION = ({ action, opt, props }) => {
     if (action !== 'update') { return; }
+    console.log('');
 
     const { cwd, prompt } = props;
 
@@ -177,7 +178,7 @@ const ACTION = ({ action, opt, props }) => {
 
         generator({ params, props }).then(success => {
             prompt.stop();
-            message(`Run: ${chalk.cyan('$ npm install')} before launching the development environment.`);
+            message(`Run: ${chalk.cyan('$ npm run local')} to launch the development environment.`);
         });
     });
 };

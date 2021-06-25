@@ -1,5 +1,6 @@
 
 const ora = require('ora');
+const chalk = require('chalk');
 const ActionSequence = require('action-sequence');
 
 
@@ -11,7 +12,7 @@ const spinner = ora({
 const actions = require('./actions')(spinner);
 
 module.exports = ({ params, props }) => {
-    spinner.start('Reactium updating...');
+    spinner.start(`Updating ${chalk.cyan('Reactium')}...`);
 
     const { core } = params;
 

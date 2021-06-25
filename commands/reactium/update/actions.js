@@ -1,11 +1,12 @@
-const fs = require('fs-extra');
 const path = require('path');
-const op = require('object-path');
-const request = require('request');
-const decompress = require('@atomic-reactor/decompress');
-const zip = require('folder-zipper');
+const chalk = require('chalk');
+const fs = require('fs-extra');
 const pkg = require('./package');
 const semver = require('semver');
+const op = require('object-path');
+const request = require('request');
+const zip = require('folder-zipper');
+const decompress = require('@atomic-reactor/decompress');
 
 module.exports = spinner => {
     const message = text => {
@@ -14,6 +15,8 @@ module.exports = spinner => {
         }
     };
 
+    const normalize = (...args) => path.normalize(path.join(...args));
+
     return {
         download: ({ params, props, action }) => {
             const { config, cwd } = props;
@@ -21,14 +24,14 @@ module.exports = spinner => {
             message('downloading payload, this may take awhile...');
 
             // Create the tmp directory if it doesn't exist.
-            fs.ensureDirSync(path.normalize(`${cwd}/tmp/update`));
+            fs.ensureDirSync(normalize(cwd, 'tmp', 'update'));
 
             // Download the most recent version of reactium
             return new Promise((resolve, reject) => {
                 request(config.reactium.repo)
                     .pipe(
                         fs.createWriteStream(
-                            path.normalize(`${cwd}/tmp/reactium.zip`),
+                            normalize(cwd, 'tmp', 'reactium.zip'),
                         ),
                     )
                     .on('error', error => reject(error))
@@ -41,8 +44,8 @@ module.exports = spinner => {
 
             message('unpacking...');
 
-            const zipFile = path.normalize(`${cwd}/tmp/reactium.zip`);
-            const updateDir = path.normalize(`${cwd}/tmp/update`);
+            const zipFile = normalize(cwd, 'tmp', 'reactium.zip');
+            const updateDir = normalize(cwd, 'tmp', 'update');
 
             // Create the update directory
             fs.ensureDirSync(updateDir);
@@ -59,8 +62,8 @@ module.exports = spinner => {
 
             message('updating core...');
 
-            const coreDir = path.normalize(`${cwd}/.core/`);
-            const updateDir = path.normalize(`${cwd}/tmp/update/.core/`);
+            const coreDir = normalize(cwd, '.core');
+            const updateDir = normalize(cwd, 'tmp', 'update', '.core');
 
             fs.ensureDirSync(coreDir);
             fs.emptyDirSync(coreDir);
@@ -80,11 +83,13 @@ module.exports = spinner => {
             const { cwd } = props;
 
             // babel.config.js file
-            const babelFilePath = path.normalize(`${cwd}/babel.config.js`);
+            const babelFilePath = normalize(cwd, 'babel.config.js');
 
             if (!fs.existsSync(babelFilePath)) {
-                const templateFilePath = path.normalize(
-                    `${__dirname}/template/babel.config.js`,
+                const templateFilePath = normalize(
+                    __dirname,
+                    'template',
+                    'babel.config.js',
                 );
                 const template = fs.readFileSync(templateFilePath);
 
@@ -98,9 +103,11 @@ module.exports = spinner => {
             const { cwd } = props;
 
             // gulpfile.js file
-            const gulpFilePath = path.normalize(`${cwd}/gulpfile.js`);
-            const templateFilePath = path.normalize(
-                `${__dirname}/template/gulpfile.js`,
+            const gulpFilePath = normalize(cwd, 'gulpfile.js');
+            const templateFilePath = normalize(
+                __dirname,
+                'template',
+                'gulpfile.js',
             );
             const template = fs.readFileSync(templateFilePath);
 
@@ -111,14 +118,11 @@ module.exports = spinner => {
 
         package: ({ params, props, action }) => {
             const { cwd } = props;
-            const newPackage = pkg(
-                props,
-                path.normalize(`${cwd}/tmp/update/`),
-            );
+            const newPackage = pkg(props, normalize(cwd, 'tmp', 'update'));
 
             message('updating package.json...');
 
-            const packageFile = path.normalize(`${cwd}/package.json`);
+            const packageFile = normalize(cwd, 'package.json');
 
             return new Promise((resolve, reject) => {
                 fs.writeFile(packageFile, newPackage, 'utf8', error => {
@@ -134,9 +138,14 @@ module.exports = spinner => {
         files: ({ params, props, action }) => {
             // Add/Remove src files
             const { cwd } = props;
-            const reactium = require(path.normalize(
-                `${cwd}/tmp/update/.core/reactium-config`,
+            const reactium = require(normalize(
+                cwd,
+                'tmp',
+                'update',
+                '.core',
+                'reactium-config',
             ));
+
             const reactiumVersion = op.get(reactium, 'version');
             const add = op.get(reactium, 'update.files.add') || [];
             const remove = op.get(reactium, 'update.files.remove') || [];
@@ -153,7 +162,7 @@ module.exports = spinner => {
                     semver.satisfies(reactiumVersion, version),
                 )
                 .forEach(({ source }) => {
-                    source = path.normalize(`${cwd}/${source}`);
+                    source = normalize(cwd, source);
                     if (fs.existsSync(source)) {
                         fs.removeSync(source);
                     }
@@ -163,8 +172,8 @@ module.exports = spinner => {
             add.filter(({ version }) =>
                 semver.satisfies(reactiumVersion, version),
             ).forEach(({ destination, overwrite, source }) => {
-                destination = path.normalize(`${cwd}/${destination}`);
-                source = path.normalize(`${cwd}/${source}`);
+                destination = normalize(cwd, destination);
+                source = normalize(cwd, source);
                 if (!fs.existsSync(destination) || overwrite === true) {
                     fs.copySync(source, destination);
                 }
@@ -179,7 +188,7 @@ module.exports = spinner => {
             message('removing temp files...');
 
             return new Promise((resolve, reject) => {
-                fs.remove(path.normalize(`${cwd}/tmp`), error => {
+                fs.remove(normalize(cwd, 'tmp'), error => {
                     if (error) {
                         reject(error);
                     } else {
@@ -187,6 +196,18 @@ module.exports = spinner => {
                     }
                 });
             });
+        },
+
+        npm: async ({ props }) => {
+            if (spinner) spinner.stop();
+            console.log('');
+            console.log(
+                'Installing',
+                chalk.cyan('Reactium'),
+                'dependencies...',
+            );
+            console.log('');
+            await arcli.runCommand('arcli', ['install']);
         },
     };
 };

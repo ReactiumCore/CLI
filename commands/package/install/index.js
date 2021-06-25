@@ -63,11 +63,7 @@ This will install any previously installed plugins registered in the package.jso
  */
 const ACTION = ({ name, opt, props }) => {
     if (name === 'actinium' || name === 'reactium') {
-        return require(`${mod}/commands/${name}/install`).ACTION({
-            action: 'install',
-            opt,
-            props,
-        });
+        return arcli.runCommand('arcli', [name, 'install']);
     }
 
     const ovr = FLAGS_TO_PARAMS({ opt });
@@ -114,7 +110,7 @@ const COMMAND = ({ program, props }) =>
         .command(NAME)
         .description(DESC)
         .action((name, opt) => ACTION({ name, opt, props }))
-        .option('-s, --save [save]', 'Install and save dependencies')
+        .option('-s, --save [save]', 'Install and save dependencies to package.json')
         .on('--help', HELP);
 
 /**

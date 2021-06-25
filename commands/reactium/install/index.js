@@ -180,24 +180,28 @@ const ACTION = ({ action, opt, props }) => {
         }
 
         message(
-            `Reactium will be installed in the current directory: ${chalk.cyan(
+            `Reactium will be installed in the current directory:\n\t  ${chalk.cyan(
                 cwd,
             )}`,
         );
 
         if (overwrite === true) {
-            console.log('');
-            generator({ params, props });
+            generator({ params, props }).then(success => {
+                message(
+                    `Run: ${chalk.cyan(
+                        '$ npm run local',
+                    )} to launch the development environment`,
+                );
+            });
         } else {
             CONFIRM({ props, params })
                 .then(params => {
                     const { confirmed } = params;
                     if (confirmed) {
-                        console.log('');
                         generator({ params, props }).then(success => {
                             message(
                                 `Run: ${chalk.cyan(
-                                    '$ npm install && npm run local',
+                                    '$ npm run local',
                                 )} to launch the development environment`,
                             );
                         });
