@@ -1,4 +1,5 @@
 const path = require('path');
+const chalk = require('chalk');
 const fs = require('fs-extra');
 const pkg = require('./package');
 const semver = require('semver');
@@ -13,6 +14,8 @@ module.exports = spinner => {
         }
     };
 
+    const normalize = (...args) => path.normalize(path.join(...args));
+
     return {
         download: ({ params, props, action }) => {
             message('downloading payload, this may take awhile...');
@@ -20,14 +23,14 @@ module.exports = spinner => {
             const { config, cwd } = props;
 
             // Create the tmp directory.
-            fs.ensureDirSync(path.normalize(`${cwd}/tmp/update`));
+            fs.ensureDirSync(normalize(cwd, 'tmp', 'update'));
 
             // Download the most recent version of actinium
             return new Promise((resolve, reject) => {
                 request(config.actinium.repo)
                     .pipe(
                         fs.createWriteStream(
-                            path.normalize(`${cwd}/tmp/update/actinium.zip`),
+                            normalize(cwd, 'tmp', 'update', 'actinium.zip'),
                         ),
                     )
                     .on('error', error => reject(error))
@@ -40,8 +43,8 @@ module.exports = spinner => {
 
             const { config, cwd } = props;
 
-            const zipFile = path.normalize(`${cwd}/tmp/update/actinium.zip`);
-            const updateDir = path.normalize(`${cwd}/tmp/update`);
+            const zipFile = normalize(cwd, 'tmp', 'update', 'actinium.zip');
+            const updateDir = normalize(cwd, 'tmp', 'update');
 
             // Create the update directory
             fs.ensureDirSync(updateDir);
@@ -58,8 +61,8 @@ module.exports = spinner => {
 
             const { cwd } = props;
 
-            const coreDir = path.normalize(`${cwd}/.core/`);
-            const updateDir = path.normalize(`${cwd}/tmp/update/.core/`);
+            const coreDir = normalize(cwd, '.core');
+            const updateDir = normalize(cwd, 'tmp', 'update', '.core');
 
             fs.ensureDirSync(coreDir);
             fs.emptyDirSync(coreDir);
@@ -78,8 +81,12 @@ module.exports = spinner => {
         files: ({ params, props, action }) => {
             // Add/Remove src files
             const { cwd } = props;
-            const actinium = require(path.normalize(
-                `${cwd}/tmp/update/.core/actinium-config`,
+            const actinium = require(normalize(
+                cwd,
+                'tmp',
+                'update',
+                '.core',
+                'actinium-config',
             ));
             const actiniumVersion = op.get(actinium, 'version');
             const add = op.get(actinium, 'update.files.add') || [];
@@ -97,7 +104,7 @@ module.exports = spinner => {
                     semver.satisfies(actiniumVersion, version),
                 )
                 .forEach(({ source }) => {
-                    source = path.normalize(`${cwd}/${source}`);
+                    source = normalize(cwd, src);
                     if (fs.existsSync(source)) {
                         fs.removeSync(source);
                     }
@@ -107,8 +114,8 @@ module.exports = spinner => {
             add.filter(({ version }) =>
                 semver.satisfies(actiniumVersion, version),
             ).forEach(({ destination, overwrite, source }) => {
-                destination = path.normalize(`${cwd}/${destination}`);
-                source = path.normalize(`${cwd}/${source}`);
+                destination = normalize(cwd, destination);
+                source = normalize(cwd, source);
                 if (!fs.existsSync(destination) || overwrite === true) {
                     fs.copySync(source, destination);
                 }
@@ -121,8 +128,8 @@ module.exports = spinner => {
             message('updating package.json...');
 
             const { cwd } = props;
-            const newPackage = pkg(props, path.normalize(`${cwd}/tmp/update/`));
-            const oldPackage = path.normalize(`${cwd}/package.json`);
+            const newPackage = pkg(props, normalize(cwd, 'tmp', 'update'));
+            const oldPackage = normalize(cwd, 'package.json');
 
             fs.writeFileSync(oldPackage, newPackage);
 
@@ -135,7 +142,7 @@ module.exports = spinner => {
             const { cwd } = props;
 
             return new Promise((resolve, reject) => {
-                fs.remove(path.normalize(`${cwd}/tmp`), error => {
+                fs.remove(normalize(cwd, 'tmp'), error => {
                     if (error) {
                         reject(error);
                     } else {
@@ -143,6 +150,18 @@ module.exports = spinner => {
                     }
                 });
             });
+        },
+
+        npm: async ({ props }) => {
+            if (spinner) spinner.stop();
+            console.log('');
+            console.log(
+                'Installing',
+                chalk.cyan('Actinium'),
+                'dependencies...',
+            );
+            console.log('');
+            await arcli.runCommand('arcli', ['install']);
         },
     };
 };

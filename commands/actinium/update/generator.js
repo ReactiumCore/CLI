@@ -2,6 +2,8 @@ const ora = require('ora');
 const ActionSequence = require('action-sequence');
 
 module.exports = ({ params, props }) => {
+    if (params.confirm === false) process.exit();
+
     const spinner = ora({
         spinner: 'dots',
         color: 'cyan',

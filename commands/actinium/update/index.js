@@ -120,6 +120,8 @@ const SCHEMA = () => {
  * @since 2.0.0
  */
 const ACTION = ({ opt, props }) => {
+    console.log('');
+    
     const { cwd, prompt } = props;
     const schema = SCHEMA({ props });
     const ovr = FLAGS_TO_PARAMS({ opt });
@@ -142,6 +144,13 @@ const ACTION = ({ opt, props }) => {
         });
     })
         .then(params => generator({ params, props }))
+        .then(() => {
+            message(
+                `Run: ${chalk.cyan(
+                    '$ npm run local',
+                )} to launch the development environment`,
+            );
+        })
         .then(() => prompt.stop())
         .catch(err => {
             prompt.stop();
