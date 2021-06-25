@@ -4,9 +4,11 @@
  * -----------------------------------------------------------------------------
  */
 
-const fs = require('fs-extra');
+
 const path = require('path');
 const chalk = require('chalk');
+const fs = require('fs-extra');
+const op = require('object-path');
 const generator = require('./generator');
 const mod = path.dirname(require.main.filename);
 const { error, message } = require(`${mod}/lib/messenger`);
@@ -150,6 +152,8 @@ const ACTION = ({ opt, props }) => {
         }
     });
 
+    const tag = op.get(opt, 'tag');
+
     prompt.override = ovr;
     prompt.start();
     prompt.get(SCHEMA, (err, input) => {
@@ -161,7 +165,8 @@ const ACTION = ({ opt, props }) => {
             return;
         }
 
-        const params = CONFORM(input);
+        const params = { ...CONFORM(input), tag };
+
         const { overwrite } = params;
 
         // Exit if overwrite or confirm !== true
@@ -216,6 +221,14 @@ const COMMAND = ({ program, props }) =>
         .command(NAME)
         .description(DESC)
         .action((action, opt) => ACTION({ action, opt, props }))
+        .option(
+            '-o, --overwrite [overwrite]',
+            'Overwrite the current directory.',
+        )
+        .option(
+            '-t, --tag [tag]',
+            'Install a specific Actinium version.',
+        )
         .on('--help', HELP);
 
 /**

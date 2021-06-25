@@ -16,16 +16,29 @@ module.exports = spinner => {
 
     return {
         download: ({ params, props, action }) => {
-            const { config, cwd } = props;
+            const { cwd } = props;
+            const { tag } = params;
 
             message('downloading payload, this may take awhile...');
 
-            // Create the tmp directory.
+            // Create the tmp directory if it doesn't exist.
             fs.ensureDirSync(normalize(cwd, 'tmp'));
 
-            // Download the most recent version of actinium
+            // Get the download url
+            let URL = String(
+                op.get(
+                    props,
+                    'config.actinium.repo',
+                    'https://github.com/Atomic-Reactor/Actinium/archive/master.zip',
+                ),
+            );
+            if (tag && tag !== 'latest' && URL.endsWith('/master.zip')) {
+                URL = URL.replace('/master.zip', `/refs/tags/${tag}.zip`);
+            }
+
+            // Download
             return new Promise((resolve, reject) => {
-                request(config.actinium.repo)
+                request(URL)
                     .pipe(
                         fs.createWriteStream(
                             normalize(cwd, 'tmp', 'actinium.zip'),
@@ -37,7 +50,7 @@ module.exports = spinner => {
         },
 
         unzip: ({ params, props, action }) => {
-            const { config, cwd } = props;
+            const { cwd } = props;
 
             message('unpacking...');
 
@@ -51,7 +64,7 @@ module.exports = spinner => {
         },
 
         cleanup: ({ params, props, action }) => {
-            const { config, cwd } = props;
+            const { cwd } = props;
 
             message('removing temp files...');
 

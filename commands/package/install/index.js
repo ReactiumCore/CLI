@@ -62,8 +62,16 @@ This will install any previously installed plugins registered in the package.jso
  * @since 2.0.0
  */
 const ACTION = ({ name, opt, props }) => {
-    if (name === 'actinium' || name === 'reactium') {
-        return arcli.runCommand('arcli', [name, 'install']);
+    if (
+        name === 'actinium' ||
+        name === 'reactium' ||
+        String(name).startsWith('actinium@') ||
+        String(name).startsWith('reactium@')
+    ) {
+        let tag = name.split('@').pop();
+        tag = tag === 'actinium' ? 'latest' : tag;
+
+        return arcli.runCommand('arcli', [name.split('@').shift(), 'install', '-t', tag]);
     }
 
     const ovr = FLAGS_TO_PARAMS({ opt });
@@ -110,7 +118,10 @@ const COMMAND = ({ program, props }) =>
         .command(NAME)
         .description(DESC)
         .action((name, opt) => ACTION({ name, opt, props }))
-        .option('-s, --save [save]', 'Install and save dependencies to package.json')
+        .option(
+            '-s, --save [save]',
+            'Install and save dependencies to package.json',
+        )
         .on('--help', HELP);
 
 /**

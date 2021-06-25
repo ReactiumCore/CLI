@@ -151,12 +151,11 @@ const ACTION = ({ action, opt, props }) => {
 
     const ovr = {};
     Object.keys(SCHEMA.properties).forEach(key => {
-        if (opt[key]) {
-            ovr[key] = opt[key];
-        }
+        if (opt[key]) ovr[key] = opt[key];
     });
 
     const empty = op.get(opt, 'empty');
+    const tag = op.get(opt, 'tag');
 
     prompt.override = ovr;
     prompt.start();
@@ -169,7 +168,7 @@ const ACTION = ({ action, opt, props }) => {
             return;
         }
 
-        const params = { ...CONFORM(input), empty };
+        const params = { ...CONFORM(input), empty, tag };
         const { overwrite } = params;
 
         // Exit if overwrite or confirm !== true
@@ -231,6 +230,10 @@ const COMMAND = ({ program, props }) => {
         .option(
             '-o, --overwrite [overwrite]',
             'Overwrite the current directory.',
+        )
+        .option(
+            '-t, --tag [tag]',
+            'Install a specific Reactium version.',
         )
         .option(
             '-e, --empty [empty]',
