@@ -2,8 +2,6 @@ const ora = require('ora');
 const ActionSequence = require('action-sequence');
 
 module.exports = ({ params, props }) => {
-    if (params.confirm === false) process.exit();
-
     const spinner = ora({
         spinner: 'dots',
         color: 'cyan',
@@ -19,8 +17,7 @@ module.exports = ({ params, props }) => {
         options: { params, props },
     })
         .then(success => {
-            spinner.succeed('complete!');
-            console.log('');
+            spinner.succeed('Actinium update complete!');
             return success;
         })
         .catch(error => {

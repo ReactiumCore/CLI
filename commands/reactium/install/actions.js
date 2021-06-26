@@ -45,6 +45,7 @@ module.exports = spinner => {
                         ),
                     )
                     .on('error', error => {
+                        spinner.stop();
                         console.log(error);
                         process.exit();
                     })
@@ -59,11 +60,7 @@ module.exports = spinner => {
 
             const zipFile = normalize(cwd, 'tmp', 'reactium.zip');
 
-            return new Promise((resolve, reject) => {
-                decompress(zipFile, cwd, { strip: 1 })
-                    .then(() => resolve({ action, status: 200 }))
-                    .catch(error => reject(error));
-            });
+            return decompress(zipFile, cwd, { strip: 1 });
         },
 
         prettier: ({ params, props, action }) => {
@@ -75,8 +72,6 @@ module.exports = spinner => {
             const cont = fs.readFileSync(prettierFile);
 
             fs.writeFileSync(prettierFile, `.core\n${cont}`);
-
-            return Promise.resolve({ action, status: 200 });
         },
 
         cleanup: ({ params, props, action }) => {
@@ -95,16 +90,12 @@ module.exports = spinner => {
             });
         },
 
-        npm: async ({ props }) => {
+        deps: ({ props }) => {
             if (spinner) spinner.stop();
             console.log('');
-            console.log(
-                'Installing',
-                chalk.cyan('Reactium'),
-                'dependencies...',
-            );
+            console.log(`Installing ${chalk.cyan('Reactium')} dependencies...`);
             console.log('');
-            await arcli.runCommand('arcli', ['install']);
+            return arcli.runCommand('arcli', ['install', '-s']);
         },
     };
 };

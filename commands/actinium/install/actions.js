@@ -32,6 +32,7 @@ module.exports = spinner => {
                     'https://github.com/Atomic-Reactor/Actinium/archive/master.zip',
                 ),
             );
+
             if (tag && tag !== 'latest' && URL.endsWith('/master.zip')) {
                 URL = URL.replace('/master.zip', `/refs/tags/${tag}.zip`);
             }
@@ -54,44 +55,23 @@ module.exports = spinner => {
 
         unzip: ({ params, props, action }) => {
             const { cwd } = props;
-
             message('unpacking...');
-
             const zipFile = normalize(cwd, 'tmp', 'actinium.zip');
-
-            return new Promise((resolve, reject) => {
-                decompress(zipFile, cwd, { strip: 1 })
-                    .then(() => resolve({ action, status: 200 }))
-                    .catch(error => reject(error));
-            });
+            return decompress(zipFile, cwd, { strip: 1 });
         },
 
         cleanup: ({ params, props, action }) => {
             const { cwd } = props;
-
             message('removing temp files...');
-
-            return new Promise((resolve, reject) => {
-                fs.remove(normalize(cwd, 'tmp'), error => {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve({ action, status: 200 });
-                    }
-                });
-            });
+            fs.removeSync(normalize(cwd, 'tmp'));
         },
 
-        npm: async ({ props }) => {
+        deps: ({ props }) => {
             if (spinner) spinner.stop();
             console.log('');
-            console.log(
-                'Installing',
-                chalk.cyan('Actinium'),
-                'dependencies...',
-            );
+            console.log(`Installing ${chalk.cyan('Actinium')} dependencies...`);
             console.log('');
-            await arcli.runCommand('arcli', ['install']);
+            return arcli.runCommand('arcli', ['install', '-s']);
         },
     };
 };

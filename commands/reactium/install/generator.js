@@ -12,7 +12,7 @@ module.exports = ({ params, props }) => {
 
     const { empty } = params;
 
-    let actions = require('./actions')(spinner);
+    let { deps, ...actions } = require('./actions')(spinner);
 
     if (empty) {
         params['demo'] = true;
@@ -24,6 +24,8 @@ module.exports = ({ params, props }) => {
         const emptyActions = require('../empty/actions')(spinner);
         actions = { ...actions, ...emptyActions };
     }
+
+    actions = { ...actions, deps };
 
     return ActionSequence({
         actions,

@@ -23,14 +23,27 @@ module.exports = spinner => {
         download: ({ params, props, action }) => {
             message('downloading payload, this may take awhile...');
 
-            const { config, cwd } = props;
+            const { cwd } = props;
+            const { tag } = params;
 
             // Create the tmp directory.
             fs.ensureDirSync(normalize(cwd, 'tmp', 'update'));
 
+            // Get the download url
+            let URL = String(
+                op.get(
+                    props,
+                    'config.actinium.repo',
+                    'https://github.com/Atomic-Reactor/Actinium/archive/master.zip',
+                ),
+            );
+            if (tag && tag !== 'latest' && URL.endsWith('/master.zip')) {
+                URL = URL.replace('/master.zip', `/refs/tags/${tag}.zip`);
+            }
+
             // Download the most recent version of actinium
             return new Promise((resolve, reject) => {
-                request(config.actinium.repo)
+                request(URL)
                     .pipe(
                         fs.createWriteStream(
                             normalize(cwd, 'tmp', 'update', 'actinium.zip'),
@@ -55,11 +68,8 @@ module.exports = spinner => {
             // Create the update directory
             fs.ensureDirSync(updateDir);
 
-            return new Promise((resolve, reject) => {
-                decompress(zipFile, updateDir, { strip: 1 })
-                    .then(() => resolve({ action, status: 200 }))
-                    .catch(error => reject(error));
-            });
+            // Extract contents
+            return decompress(zipFile, updateDir, { strip: 1 });
         },
 
         confirm: async ({ props }) => {
@@ -119,16 +129,7 @@ module.exports = spinner => {
 
             fs.ensureDirSync(coreDir);
             fs.emptyDirSync(coreDir);
-
-            return new Promise((resolve, reject) => {
-                fs.copy(updateDir, coreDir, error => {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve({ action, status: 200 });
-                    }
-                });
-            });
+            fs.copySync(updateDir, coreDir);
         },
 
         files: ({ params, props, action }) => {
@@ -147,11 +148,8 @@ module.exports = spinner => {
             const add = op.get(actinium, 'update.files.add') || [];
             const remove = op.get(actinium, 'update.files.remove') || [];
 
-            if (add.length > 0 || remove.length > 0) {
-                message('updating files...');
-            } else {
-                return Promise.resolve({ action, status: 200 });
-            }
+            if (add.length < 1 && remove.length < 1) return;
+            message('updating files...');
 
             // Remove files from src
             remove
@@ -175,8 +173,6 @@ module.exports = spinner => {
                     fs.copySync(source, destination);
                 }
             });
-
-            return Promise.resolve({ action, status: 200 });
         },
 
         package: ({ params, props, action }) => {
@@ -189,38 +185,23 @@ module.exports = spinner => {
             const oldPackage = normalize(cwd, 'package.json');
 
             fs.writeFileSync(oldPackage, newPackage);
-
-            return Promise.resolve({ action, status: 200 });
         },
 
         cleanup: ({ params, props, action }) => {
-            message('removing temp files...');
-
             const { cwd } = props;
-
-            return new Promise((resolve, reject) => {
-                fs.remove(normalize(cwd, 'tmp'), error => {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve({ action, status: 200 });
-                    }
-                });
-            });
+            message('removing temp files...');
+            fs.removeSync(normalize(cwd, 'tmp'));
         },
 
-        npm: async ({ props }) => {
-            if (cancelled === true) return;
-
+        deps: ({ props }) => {
+            if (cancelled) return;
             if (spinner) spinner.stop();
+
             console.log('');
-            console.log(
-                'Installing',
-                chalk.cyan('Actinium'),
-                'dependencies...',
-            );
+            console.log(`Installing ${chalk.cyan('Actinium')} dependencies...`);
             console.log('');
-            await arcli.runCommand('arcli', ['install']);
+
+            return arcli.runCommand('arcli', ['install', '-s']);
         },
 
         cancelled: () => {

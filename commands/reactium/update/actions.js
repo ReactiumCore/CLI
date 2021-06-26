@@ -21,16 +21,29 @@ module.exports = spinner => {
 
     return {
         download: ({ params, props, action }) => {
-            const { config, cwd } = props;
+            const { cwd } = props;
+            const { tag } = params;
 
             message('downloading payload, this may take awhile...');
 
             // Create the tmp directory if it doesn't exist.
             fs.ensureDirSync(normalize(cwd, 'tmp', 'update'));
 
+            // Get the download url
+            let URL = String(
+                op.get(
+                    props,
+                    'config.reactium.repo',
+                    'https://github.com/Atomic-Reactor/Reactium/archive/master.zip',
+                ),
+            );
+            if (tag && tag !== 'latest' && URL.endsWith('/master.zip')) {
+                URL = URL.replace('/master.zip', `/refs/tags/${tag}.zip`);
+            }
+
             // Download the most recent version of reactium
             return new Promise((resolve, reject) => {
-                request(config.reactium.repo)
+                request(URL)
                     .pipe(
                         fs.createWriteStream(
                             normalize(cwd, 'tmp', 'reactium.zip'),
@@ -55,11 +68,8 @@ module.exports = spinner => {
             // Create the update directory
             fs.ensureDirSync(updateDir);
 
-            return new Promise((resolve, reject) => {
-                decompress(zipFile, updateDir, { strip: 1 })
-                    .then(() => resolve({ action, status: 200 }))
-                    .catch(error => reject(error));
-            });
+            // Extract contents
+            return decompress(zipFile, updateDir, { strip: 1 });
         },
 
         confirm: async ({ props }) => {
@@ -120,16 +130,7 @@ module.exports = spinner => {
 
             fs.ensureDirSync(coreDir);
             fs.emptyDirSync(coreDir);
-
-            return new Promise((resolve, reject) => {
-                fs.copy(updateDir, coreDir, error => {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve({ action, status: 200 });
-                    }
-                });
-            });
+            fs.copySync(updateDir, coreDir);
         },
 
         babel: ({ params, props, action }) => {
@@ -150,8 +151,6 @@ module.exports = spinner => {
 
                 fs.writeFileSync(babelFilePath, template);
             }
-
-            return Promise.resolve({ action, status: 200 });
         },
 
         gulpfile: ({ params, props, action }) => {
@@ -169,29 +168,6 @@ module.exports = spinner => {
             const template = fs.readFileSync(templateFilePath);
 
             fs.writeFileSync(gulpFilePath, template);
-
-            return Promise.resolve({ action, status: 200 });
-        },
-
-        package: ({ params, props, action }) => {
-            if (cancelled === true) return;
-
-            const { cwd } = props;
-            const newPackage = pkg(props, normalize(cwd, 'tmp', 'update'));
-
-            message('updating package.json...');
-
-            const packageFile = normalize(cwd, 'package.json');
-
-            return new Promise((resolve, reject) => {
-                fs.writeFile(packageFile, newPackage, 'utf8', error => {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve({ action, status: 200 });
-                    }
-                });
-            });
         },
 
         files: ({ params, props, action }) => {
@@ -211,11 +187,8 @@ module.exports = spinner => {
             const add = op.get(reactium, 'update.files.add') || [];
             const remove = op.get(reactium, 'update.files.remove') || [];
 
-            if (add.length > 0 || remove.length > 0) {
-                message('updating app source...');
-            } else {
-                return Promise.resolve({ action, status: 200 });
-            }
+            if (add.length < 1 && remove.length < 1) return;
+            message('updating files...');
 
             // Remove files from src
             remove
@@ -239,38 +212,35 @@ module.exports = spinner => {
                     fs.copySync(source, destination);
                 }
             });
+        },
 
-            return Promise.resolve({ action, status: 200 });
+        package: ({ params, props, action }) => {
+            if (cancelled === true) return;
+
+            message('updating package.json...');
+
+            const { cwd } = props;
+            const newPackage = pkg(props, normalize(cwd, 'tmp', 'update'));
+            const oldPackage = normalize(cwd, 'package.json');
+
+            fs.writeFileSync(oldPackage, newPackage);
         },
 
         cleanup: ({ params, props, action }) => {
-            const { config, cwd } = props;
-
+            const { cwd } = props;
             message('removing temp files...');
-
-            return new Promise((resolve, reject) => {
-                fs.remove(normalize(cwd, 'tmp'), error => {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve({ action, status: 200 });
-                    }
-                });
-            });
+            fs.removeSync(normalize(cwd, 'tmp'));
         },
 
-        npm: async ({ props }) => {
-            if (cancelled === true) return;
-
+        deps: ({ props }) => {
+            if (cancelled) return;
             if (spinner) spinner.stop();
+
             console.log('');
-            console.log(
-                'Installing',
-                chalk.cyan('Reactium'),
-                'dependencies...',
-            );
+            console.log(`Installing ${chalk.cyan('Reactium')} dependencies...`);
             console.log('');
-            await arcli.runCommand('arcli', ['install']);
+
+            return arcli.runCommand('arcli', ['install']);
         },
 
         cancelled: () => {
