@@ -2,8 +2,8 @@ const path = require('path');
 const chalk = require('chalk');
 const fs = require('fs-extra');
 const semver = require('semver');
-const op = require('object-path');
 const pkg = require('./package');
+const op = require('object-path');
 const inquirer = require('inquirer');
 
 const utils = {
@@ -45,7 +45,6 @@ const versionUpdater = async () => {
             type,
             prefix,
             suffix,
-            type: 'input',
             name: 'version',
             default: defaultVer,
             message: chalk.cyan('Version'),

@@ -4,11 +4,10 @@
  * -----------------------------------------------------------------------------
  */
 
-const chalk = require('chalk');
-const generator = require('./generator');
-const prettier = require('prettier');
 const path = require('path');
+const chalk = require('chalk');
 const op = require('object-path');
+const generator = require('./generator');
 const mod = path.dirname(require.main.filename);
 const { error, message } = require(`${mod}/lib/messenger`);
 
@@ -35,24 +34,7 @@ const DESC = 'Actinium: Update core';
  * @description Message sent when the command is canceled
  * @since 2.0.0
  */
-const CANCELED = 'Actinium update canceled!';
-
-/**
- * conform(input:Object) Function
- * @description Reduces the input object.
- * @param input Object The key value pairs to reduce.
- * @since 2.0.0
- */
-const CONFORM = ({ input, props }) =>
-    Object.keys(input).reduce((obj, key) => {
-        let val = input[key];
-        switch (key) {
-            default:
-                obj[key] = val;
-                break;
-        }
-        return obj;
-    }, {});
+const CANCELED = ' Actinium update cancelled!';
 
 /**
  * HELP Function
@@ -66,50 +48,17 @@ Example:
   $ arcli update -h
 `);
 
-/**
- * FLAGS
- * @description Array of flags passed from the commander options.
- * @since 2.0.18
- */
-const FLAGS = ['confirm'];
-
-/**
- * FLAGS_TO_PARAMS Function
- * @description Create an object used by the prompt.override property.
- * @since 2.0.18
- */
-const FLAGS_TO_PARAMS = ({ opt = {} }) =>
-    FLAGS.reduce((obj, key) => {
-        let val = opt[key];
-        val = typeof val === 'function' ? undefined : val;
-
-        if (val) {
-            obj[key] = val;
-        }
-
-        return obj;
-    }, {});
-
-/**
- * SCHEMA Function
- * @description used to describe the input for the prompt function.
- * @see https://www.npmjs.com/package/prompt
- * @since 2.0.0
- */
-const SCHEMA = () => {
-    return {
-        properties: {
-            confirm: {
-                description: `${chalk.white(
-                    'Are you sure you want to update?',
-                )} ${chalk.cyan('(Y/N):')}`,
-                before: val => {
-                    return String(val).toLowerCase() === 'y';
-                },
-            },
+const CONFIRM = config =>
+    inquirer.prompt([
+        {
+            type: 'confirm',
+            prefix: chalk[config.prompt.prefixColor](config.prompt.prefix),
+            suffix: chalk.magenta(': '),
+            name: 'confirm',
+            default: false,
+            message: chalk.cyan('Are you sure you want to update?'),
         },
-    };
-};
+    ]);
 
 /**
  * ACTION Function
@@ -119,43 +68,29 @@ const SCHEMA = () => {
  * @param props Object The CLI props passed from the calling class `orcli.js`.
  * @since 2.0.0
  */
-const ACTION = ({ opt, props }) => {
+const ACTION = async ({ action, opt, props }) => {
+    if (action !== 'update') return;
+
     console.log('');
-    
-    const { cwd, prompt } = props;
-    const schema = SCHEMA({ props });
-    const ovr = FLAGS_TO_PARAMS({ opt });
 
-    prompt.override = ovr;
-    prompt.start();
+    const { config, cwd, inquirer } = props;
 
-    return new Promise((resolve, reject) => {
-        prompt.get(schema, (err, input = {}) => {
-            if (err) {
-                prompt.stop();
-                reject(`${NAME} ${err.message}`);
-                return;
-            }
+    const params = await CONFIRM(config);
 
-            input = { ...ovr, ...input };
-            const params = CONFORM({ input, props });
+    if (params.confirm !== true) {
+        message(CANCELED);
+        return;
+    }
 
-            resolve(params);
-        });
-    })
-        .then(params => generator({ params, props }))
-        .then(() => {
+    return generator({ params, props })
+        .then(() =>
             message(
                 `Run: ${chalk.cyan(
                     '$ npm run local',
                 )} to launch the development environment`,
-            );
-        })
-        .then(() => prompt.stop())
-        .catch(err => {
-            prompt.stop();
-            message(op.get(err, 'message', CANCELED));
-        });
+            ),
+        )
+        .catch(err => message(op.get(err, 'message', CANCELED)));
 };
 
 /**
@@ -167,7 +102,6 @@ const COMMAND = ({ program, props }) =>
         .command(NAME)
         .description(DESC)
         .action((action, opt) => ACTION({ opt, props }))
-        .option('-y, --confirm', 'Skip confirmation.')
         .on('--help', HELP);
 
 /**

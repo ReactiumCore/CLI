@@ -5,10 +5,12 @@ const pkg = require('./package');
 const semver = require('semver');
 const op = require('object-path');
 const request = require('request');
-const zip = require('folder-zipper');
+const inquirer = require('inquirer');
 const decompress = require('@atomic-reactor/decompress');
 
 module.exports = spinner => {
+    let cancelled = false;
+
     const message = text => {
         if (spinner) {
             spinner.text = text;
@@ -57,7 +59,55 @@ module.exports = spinner => {
             });
         },
 
+        confirm: async ({ props }) => {
+            const { config, cwd } = props;
+
+            // Get the updated installed version file
+            const { version: updated } = require(normalize(
+                cwd,
+                'tmp',
+                'update',
+                '.core',
+                'reactium-config',
+            ));
+
+            // Get the
+            const { version: current } = require(normalize(
+                cwd,
+                '.core',
+                'reactium-config',
+            ));
+
+            const diff = semver.diff(current, updated);
+            const warnings = ['major', 'minor'];
+
+            if (!warnings.includes(diff)) return;
+
+            if (spinner) spinner.stop();
+            console.log(
+                ` ${chalk.bold.magenta('Warning')}: version ${chalk.magenta(
+                    updated,
+                )} is a ${chalk.cyan(diff)} update!`,
+            );
+
+            const { resume } = await inquirer.prompt([
+                {
+                    type: 'confirm',
+                    prefix: chalk.magenta('   > '),
+                    suffix: chalk.magenta(': '),
+                    name: 'resume',
+                    default: false,
+                    message: chalk.cyan('Continue?'),
+                },
+            ]);
+
+            cancelled = !resume;
+        },
+
         core: ({ params, props, action }) => {
+
+            if (cancelled === true) return;
+
             const { cwd } = props;
 
             message('updating core...');
@@ -80,6 +130,8 @@ module.exports = spinner => {
         },
 
         babel: ({ params, props, action }) => {
+            if (cancelled === true) return;
+
             const { cwd } = props;
 
             // babel.config.js file
@@ -100,6 +152,8 @@ module.exports = spinner => {
         },
 
         gulpfile: ({ params, props, action }) => {
+            if (cancelled === true) return;
+
             const { cwd } = props;
 
             // gulpfile.js file
@@ -117,6 +171,8 @@ module.exports = spinner => {
         },
 
         package: ({ params, props, action }) => {
+            if (cancelled === true) return;
+
             const { cwd } = props;
             const newPackage = pkg(props, normalize(cwd, 'tmp', 'update'));
 
@@ -136,6 +192,8 @@ module.exports = spinner => {
         },
 
         files: ({ params, props, action }) => {
+            if (cancelled === true) return;
+
             // Add/Remove src files
             const { cwd } = props;
             const reactium = require(normalize(
@@ -199,6 +257,8 @@ module.exports = spinner => {
         },
 
         npm: async ({ props }) => {
+            if (cancelled === true) return;
+
             if (spinner) spinner.stop();
             console.log('');
             console.log(
@@ -208,6 +268,12 @@ module.exports = spinner => {
             );
             console.log('');
             await arcli.runCommand('arcli', ['install']);
+        },
+
+        cancelled: () => {
+            if (!cancelled) return;
+            console.log('');
+            process.exit();
         },
     };
 };

@@ -12,6 +12,7 @@ const spinner = ora({
 const actions = require('./actions')(spinner);
 
 module.exports = ({ params, props }) => {
+    console.log('');
     spinner.start(`Updating ${chalk.cyan('Reactium')}...`);
 
     const { core } = params;
@@ -20,7 +21,6 @@ module.exports = ({ params, props }) => {
         delete actions.babel;
         delete actions.gulpfile;
         delete actions.package;
-        delete actions.backup;
     }
 
     return ActionSequence({
