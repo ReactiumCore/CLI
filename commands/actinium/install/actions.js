@@ -44,7 +44,10 @@ module.exports = spinner => {
                             normalize(cwd, 'tmp', 'actinium.zip'),
                         ),
                     )
-                    .on('error', error => reject(error))
+                    .on('error', error => {
+                        console.log(error);
+                        process.exit();
+                    })
                     .on('close', () => resolve({ action, status: 200 }));
             });
         },
@@ -82,9 +85,13 @@ module.exports = spinner => {
         npm: async ({ props }) => {
             if (spinner) spinner.stop();
             console.log('');
-            console.log('Installing', chalk.cyan('Actinium'), 'dependencies...');
+            console.log(
+                'Installing',
+                chalk.cyan('Actinium'),
+                'dependencies...',
+            );
             console.log('');
             await arcli.runCommand('arcli', ['install']);
-        }
+        },
     };
 };

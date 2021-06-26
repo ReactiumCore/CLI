@@ -36,7 +36,10 @@ module.exports = spinner => {
                             normalize(cwd, 'tmp', 'reactium.zip'),
                         ),
                     )
-                    .on('error', error => reject(error))
+                    .on('error', error => {
+                        console.log(error);
+                        process.exit();
+                    })
                     .on('close', () => resolve({ action, status: 200 }));
             });
         },
