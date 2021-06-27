@@ -32,7 +32,7 @@ const ACTION = ({ name, opt, props }) => {
 
         if (app === 'actinium' || app === 'reactium') {
             tag = tag || 'latest';
-            return arcli.runCommand('arcli', [app, 'install', '-t', tag]);
+            return arcli.runCommand('arcli', [app, 'install', '-t', tag, '-e']);
         }
     }
 

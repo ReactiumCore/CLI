@@ -11,105 +11,43 @@ module.exports = spinner => {
         }
     };
 
+    const normalize = (...args) => path.normalize(path.join(...args));
+
     return {
-        style: async ({ action, params, props }) => {
-            const { style } = params;
-
-            if (style) {
-                const { cwd } = props;
-
-                const mainStyleSheet = path.normalize(
-                    `${cwd}/src/assets/style/style.scss`,
-                );
-                const toolkitStyleSheet = path.normalize(
-                    `${cwd}/src/assets/style/toolkit.scss`,
-                );
-
-                const scssDir = path.normalize(`${cwd}/src/assets/style/_scss`);
-
-                if (fs.existsSync(mainStyleSheet)) {
-                    fs.writeFileSync(mainStyleSheet, '\n// Styles\n\n');
-                }
-
-                if (fs.existsSync(toolkitStyleSheet)) {
-                    fs.writeFileSync(
-                        toolkitStyleSheet,
-                        '\n// Toolkit Specific Styles\n\n',
-                    );
-                }
-
-                fs.emptyDirSync(scssDir);
-            }
-
-            return Promise.resolve({ action, status: 200 });
-        },
-        manifest: async ({ action, params, props }) => {
-            const { toolkit } = params;
-
-            if (toolkit) {
-                message(`Updating ${chalk.cyan('toolkit manifest')}...`);
-
-                const { cwd } = props;
-
-                const manifestFile = path.normalize(
-                    `${cwd}/src/app/toolkit/index.js`,
-                );
-
-                if (fs.existsSync(manifestFile)) {
-                    let cont = fs.readFileSync(manifestFile);
-                    cont = String(cont).replace(
-                        /menu: {((.|\n|\r)*)},/,
-                        'menu: {},',
-                    );
-
-                    fs.writeFileSync(manifestFile, cont);
-                }
-            }
-
-            return Promise.resolve({ action, status: 200 });
-        },
         empty: async ({ action, params, props }) => {
             const { cwd } = props;
-            const { demo, font, images, toolkit } = params;
 
-            if (font) {
-                message(`Removing ${chalk.cyan('font assets')}...`);
+            if (params.style) {
+                message(`Removing ${chalk.cyan('styles')}...`);
 
-                const fontExcludes = [];
-                const fontPath = path.normalize(`${cwd}/src/assets/fonts`);
-
-                fs.readdirSync(fontPath)
-                    .filter(file => Boolean(!fontExcludes.includes(file)))
-                    .forEach(file =>
-                        fs.removeSync(path.normalize(`${fontPath}/${file}`)),
-                    );
+                const stylesPath = normalize(`${cwd}/src/assets/style`);
+                fs.emptyDirSync(stylesPath);
+                fs.ensureFileSync(normalize(`${stylesPath}/style.scss`));
             }
 
-            if (images) {
-                message(`Removing ${chalk.cyan('image assets')}...`);
+            if (params.font) {
+                message(`Removing ${chalk.cyan('fonts')}...`);
 
-                const imageExcludes = ['atomic-reactor-logo.svg'];
-                const imagePath = path.normalize(`${cwd}/src/assets/images`);
-
-                fs.readdirSync(imagePath)
-                    .filter(file => Boolean(!imageExcludes.includes(file)))
-                    .forEach(file =>
-                        fs.removeSync(path.normalize(`${imagePath}/${file}`)),
-                    );
+                const fontsPath = normalize(`${cwd}/src/assets/fonts`);
+                fs.emptyDirSync(fontsPath);
             }
 
-            if (demo) {
-                message(`Removing ${chalk.cyan('demo components')}...`);
+            if (params.images) {
+                message(`Removing ${chalk.cyan('images')}...`);
+
+                const imagesPath = normalize(`${cwd}/src/assets/images`);
+                fs.emptyDirSync(imagesPath);
+            }
+
+            if (params.demo) {
+                message(`Removing ${chalk.cyan('demo')}...`);
 
                 const demoPaths = [
-                    path.normalize(`${cwd}/src/app/components/Demo`),
-                    path.normalize(`${cwd}/src/app/components/common-ui/form`),
-                    path.normalize(`${cwd}/src/app/components/common-ui/Icon`),
+                    normalize(`${cwd}/src/app/components/Demo`),
+                    normalize(`${cwd}/src/app/components/common-ui/form`),
+                    normalize(`${cwd}/src/app/components/common-ui/Icon`),
                 ].forEach(p => fs.removeSync(p));
             }
-
-
-            return Promise.resolve({ action, status: 200 });
         },
     };
 };
