@@ -1,116 +1,48 @@
-const fs = require('fs-extra');
 const path = require('path');
-const op = require('object-path');
+const fs = require('fs-extra');
 const chalk = require('chalk');
 const handlebars = require('handlebars').compile;
-const homedir = require('os').homedir();
 
 module.exports = spinner => {
     const NOW = Date.now();
 
     const message = text => {
-        if (spinner) {
-            spinner.text = text;
-        }
+        if (!spinner) return;
+        spinner.text = text;
     };
 
-    const generate = ({ action, params, props, templateFile }) => {
-        const { cwd } = props;
-        const { destination, command, overwrite } = params;
+    const generate = ({ params, templateFile }) => {
+        // prettier-ignore
+        const actionType = params.overwrite === true ? 'overwritting' : 'creating';
 
-        const filepath = path.normalize(path.join(destination, templateFile));
-
-        if (fs.existsSync(filepath)) {
-            backup({ cwd, filepath });
-        }
-
-        const actionType = overwrite === true ? 'overwritting' : 'creating';
-
-        message(
-            `${actionType} command ${command} ${chalk.cyan(templateFile)}...`,
-        );
-
-        fs.ensureDirSync(path.normalize(destination));
+        // prettier-ignore
+        message(`${actionType} ${params.command} command ${chalk.cyan(templateFile)}...`);
 
         // Template content
-        const template = path.normalize(
-            `${__dirname}/template/${templateFile}.hbs`,
-        );
+        // prettier-ignore
+        const template = arcli.normalizePath(__dirname, 'template', `${templateFile}.hbs`);
         const content = handlebars(fs.readFileSync(template, 'utf-8'))(params);
+        const filepath = arcli.normalizePath(params.destination, templateFile);
 
-        return new Promise((resolve, reject) => {
-            fs.writeFile(filepath, content, error => {
-                if (error) {
-                    reject(error.Error);
-                } else {
-                    resolve({ action, status: 200 });
-                }
-            });
-        });
-    };
-
-    const backup = ({ cwd, filepath }) => {
-        const destination = path.normalize(
-            path.join(
-                homedir,
-                '.arcli',
-                path.basename(cwd),
-                '.BACKUP',
-                'commands',
-                path.basename(path.dirname(filepath)),
-            ),
-        );
-
-        const newfile = path.normalize(
-            path.join(destination, `${NOW}.${path.basename(filepath)}`),
-        );
-
-        fs.ensureDirSync(destination);
-
-        fs.copySync(filepath, newfile);
+        fs.writeFileSync(filepath, content);
     };
 
     return {
-        index: ({ action, params, props }) =>
-            generate({
-                action,
-                params,
-                props,
-                templateFile: 'index.js',
-            }),
+        destdir: ({ params }) =>
+            fs.ensureDirSync(arcli.normalizePath(params.destination)),
 
-        actions: ({ action, params, props }) =>
-            generate({
-                action,
-                params,
-                props,
-                templateFile: 'actions.js',
-            }),
+        templatedir: ({ params }) =>
+            fs.ensureDirSync(
+                arcli.normalizePath(params.destination, 'template'),
+            ),
 
-        generator: ({ action, params, props }) => {
-            if (op.get(params, 'generator') !== true) return;
-            generate({
-                action,
-                params,
-                props,
-                templateFile: 'generator.js',
-            });
-        },
+        index: ({ params, props }) =>
+            generate({ params, templateFile: 'index.js' }),
 
-        templatedir: ({ action, params, props }) => {
-            const { destination } = params;
+        actions: ({ params, props }) =>
+            generate({ params, templateFile: 'actions.js' }),
 
-            const templateDirectory = path.join(destination, 'template');
-
-            return new Promise((resolve, reject) => {
-                fs.ensureDir(templateDirectory, error => {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve({ action, status: 200 });
-                    }
-                });
-            });
-        },
+        generator: ({ params, props }) =>
+            generate({ params, templateFile: 'generator.js' }),
     };
 };

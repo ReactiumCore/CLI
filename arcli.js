@@ -11,9 +11,9 @@ const moment = require('moment');
 const semver = require('semver');
 const prompt = require('prompt');
 const op = require('object-path');
-const { createCommand } = require('commander');
 const inquirer = require('inquirer');
 const bootstrap = require('./bootstrap');
+const { createCommand } = require('commander');
 
 // Extend inquirer
 inquirer.registerPrompt('fuzzypath', require('inquirer-fuzzy-path'));

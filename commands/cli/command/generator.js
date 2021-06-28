@@ -11,6 +11,7 @@ const spinner = ora({
 const actions = require('./actions')(spinner);
 
 module.exports = ({ params, props }) => {
+    console.log('');
     spinner.start();
 
     return ActionSequence({
@@ -19,6 +20,7 @@ module.exports = ({ params, props }) => {
     }).then((success) => {
         spinner.start();
         spinner.succeed('Command creation complete!');
+        console.log('');
         return success;
     }).catch((error) => {
         spinner.start();

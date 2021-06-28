@@ -1,142 +1,13 @@
-/**
- * -----------------------------------------------------------------------------
- * Imports
- * -----------------------------------------------------------------------------
- */
-
-const _ = require('underscore');
-const fs = require('fs-extra');
-const path = require('path');
+const { message } = arcli;
 const chalk = require('chalk');
 const op = require('object-path');
-const globby = require('globby').sync;
-const prettier = require('prettier');
 const slugify = require('slugify');
-const mod = path.dirname(require.main.filename);
-const { error, message } = require(`${mod}/lib/messenger`);
+const generator = require('./generator');
 
-const generator = fs.existsSync(
-    path.normalize(path.join(__dirname, 'generator.js')),
-)
-    ? require('./generator')
-    : require(`${mod}/lib/generator`);
-
-const formatDestination = (val, props) => {
-    const { cwd, root } = props;
-
-    const replacers = [
-        [/^~\/|^\/cwd\/|^cwd\//i, `${cwd}/.cli/commands/`],
-        [/^\/app\/|^app\//i, `${cwd}/src/app/.cli/commands/`],
-        [/^\/core\/|^core\//i, `${cwd}/.core/.cli/commands/`],
-        [/^\/root\/|^root\//i, `${root}/commands/`],
-    ];
-
-    return path.normalize(
-        replacers.reduce(
-            (newVal, replacer) => newVal.replace(replacer[0], replacer[1]),
-            path.normalize(val),
-        ),
-    );
-};
-
-/**
- * NAME String
- * @description Constant defined as the command name. Value passed to the commander.command() function.
- * @example $ arcli re:style --path '~/src/assets/style' --name 'style.scss'
- * @see https://www.npmjs.com/package/commander#command-specific-options
- * @since 2.0.0
- */
 const NAME = 'commander';
-
-/**
- * DESC String
- * @description Constant defined as the command description. Value passed to
- * the commander.desc() function. This string is also used in the --help flag output.
- * @see https://www.npmjs.com/package/commander#automated---help
- * @since 2.0.0
- */
+const CANCELED = 'Command creation canceled!';
 const DESC = 'ARCLI:    Create a CLI function.';
 
-/**
- * CANCELED String
- * @description Message sent when the command is canceled
- * @since 2.0.0
- */
-const CANCELED = 'Command creation canceled!';
-
-/**
- * confirm({ props:Object, params:Object }) Function
- * @description Prompts the user to confirm the operation
- * @since 2.0.0
- */
-const CONFIRM = ({ props, params }) => {
-    const { prompt } = props;
-
-    return new Promise((resolve, reject) => {
-        prompt.get(
-            {
-                properties: {
-                    confirmed: {
-                        description: `${chalk.white('Proceed?')} ${chalk.cyan(
-                            '(Y/N):',
-                        )}`,
-                        type: 'string',
-                        required: true,
-                        pattern: /^y|n|Y|N/,
-                        message: ` `,
-                        before: val => {
-                            return String(val).toLowerCase() === 'y';
-                        },
-                    },
-                },
-            },
-            (error, input) => {
-                const confirmed = op.get(input, 'confirmed');
-
-                if (error || confirmed === false) {
-                    reject(error);
-                } else {
-                    resolve(confirmed);
-                }
-            },
-        );
-    });
-};
-
-/**
- * conform(input:Object) Function
- * @description Reduces the input object.
- * @param input Object The key value pairs to reduce.
- * @since 2.0.0
- */
-const CONFORM = ({ input, props }) => {
-    const { cwd } = props;
-
-    let output = {};
-
-    Object.entries(input).forEach(([key, val]) => {
-        key = String(key).toLowerCase();
-
-        switch (key) {
-            case 'destination':
-                output[key] = formatDestination(val, props);
-                break;
-
-            default:
-                output[key] = val;
-                break;
-        }
-    });
-
-    return output;
-};
-
-/**
- * HELP Function
- * @description Function called in the commander.on('--help', callback) callback.
- * @see https://www.npmjs.com/package/commander#automated---help
- * @since 2.0.0
- */
 const HELP = () =>
     console.log(`
 Shortcuts:
@@ -198,141 +69,191 @@ Shortcuts:
           It is recommended to only place commands in the root directory if you are contributing to ARCLI.
 `);
 
-/**
- * SCHEMA Object
- * @description used to describe the input for the prompt function.
- * @see https://www.npmjs.com/package/prompt
- * @since 2.0.0
- */
-const SCHEMA = ({ props }) => {
-    const { cwd, prompt } = props;
-    const defaultDirectory = path.normalize('~/.cli/commands');
+const formatDestination = (val, props) => {
+    const { cwd, root } = props;
 
-    return {
-        properties: {
-            command: {
-                type: 'string',
-                description: chalk.white(`Command:`),
-            },
-            destination: {
-                description: chalk.white('Destination:'),
-                message:
-                    'Destination is a required parameter. Example: ~/mycommand',
-                required: true,
-            },
-            generator: {
-                required: true,
-                pattern: /^y|n|Y|N/,
-                message: ' ',
-                default: 'N',
-                description: chalk.white('Include generator.js?: (Y/N)'),
-                before: val => String(val).toLowerCase() === 'y',
-            },
-            overwrite: {
-                required: true,
-                pattern: /^y|n|Y|N/,
-                message: ' ',
-                description: chalk.white('Overwrite existing command?: (Y/N)'),
-                ask: () => {
-                    try {
-                        let dest =
-                            prompt.override['destination'] ||
-                            prompt.history('destination').value;
-                        dest = formatDestination(dest, props);
+    const replacers = [
+        [/^~\/|^\/cwd\/|^cwd\//i, `${cwd}/.cli/commands/`],
+        [/^\/app\/|^app\//i, `${cwd}/src/app/.cli/commands/`],
+        [/^\/core\/|^core\//i, `${cwd}/.core/.cli/commands/`],
+        [/^\/root\/|^root\//i, `${root}/commands/`],
+    ];
 
-                        const filepath = path.normalize(
-                            path.join(dest, 'index.js'),
-                        );
-
-                        return fs.existsSync(filepath);
-                    } catch (err) {
-                        return false;
-                    }
-                },
-                before: val => String(val).toLowerCase() === 'y',
-            },
-        },
-    };
+    return arcli.normalizePath(
+        replacers.reduce(
+            (newVal, replacer) => newVal.replace(replacer[0], replacer[1]),
+            val,
+        ),
+    );
 };
 
-/**
- * ACTION Function
- * @description Function used as the commander.action() callback.
- * @see https://www.npmjs.com/package/commander
- * @param opt Object The commander options passed into the function.
- * @param props Object The CLI props passed from the calling class `orcli.js`.
- * @since 2.0.0
- */
-const ACTION = ({ opt, props }) => {
-    console.log('');
+const CONFORM = ({ input, props }) =>
+    Object.keys(input).reduce((output, key) => {
+        let val = input[key];
 
-    const { cwd, prompt } = props;
-
-    const schema = SCHEMA({ props });
-
-    const ovr = Object.keys(schema.properties).reduce((obj, key) => {
-        let val = opt[key];
-        val = typeof val === 'function' ? null : val;
-        if (val) {
-            obj[key] = val;
+        switch (key) {
+            case 'destination':
+                val = formatDestination(val, props);
+                break;
         }
-        return obj;
+
+        output[key] = val;
+
+        return output;
     }, {});
 
-    prompt.override = ovr;
-    prompt.start();
-    prompt.get(schema, (err, input) => {
-        // Keep this conditional as the first line in this function.
-        // Why? because you will get a js error if you try to set or use anything related to the input object.
-        if (err) {
-            prompt.stop();
-            error(`${NAME} ${err.message}`);
-            return;
-        }
+const CONFIRM = ({ inquirer }) =>
+    inquirer.prompt([
+        {
+            default: false,
+            type: 'confirm',
+            name: 'confirm',
+            prefix: arcli.prefix,
+            message: chalk.cyan('Proceed?'),
+            suffix: chalk.magenta(': '),
+        },
+    ]);
 
-        const params = CONFORM({ input, props });
-        const { overwrite } = params;
+const OVERWRITE = ({ inquirer }) =>
+    inquirer.prompt([
+        {
+            default: false,
+            type: 'confirm',
+            name: 'overwrite',
+            prefix: arcli.prefix,
+            suffix: chalk.magenta(': '),
+            message: chalk.cyan(
+                'The current directory is not empty.\n           Overwrite?',
+            ),
+        },
+    ]);
 
-        // Exit if overwrite or confirm !== true
-        if (typeof overwrite === 'boolean' && !overwrite) {
-            prompt.stop();
+const DESTINATION = ({ cwd, inquirer, root }, name) =>
+    inquirer.prompt([
+        {
+            default: 0,
+            type: 'list',
+            name: 'destination',
+            message: 'Destination',
+            prefix: arcli.prefix,
+            suffix: chalk.magenta(': '),
+            choices: [
+                {
+                    name: 'App',
+                    value: arcli.normalizePath(
+                        cwd,
+                        'src',
+                        'app',
+                        '.cli',
+                        'commands',
+                        name,
+                    ),
+                },
+                {
+                    name: 'Core',
+                    value: arcli.normalizePath(
+                        cwd,
+                        '.core',
+                        '.cli',
+                        'commands',
+                        name,
+                    ),
+                },
+                {
+                    name: 'Project',
+                    value: arcli.normalizePath(cwd, '.cli', 'commands', name),
+                },
+                {
+                    name: 'Root',
+                    value: arcli.normalizePath(root, 'commands', name),
+                },
+                {
+                    name: 'Custom',
+                    value: 'custom',
+                },
+            ],
+        },
+    ]);
+
+const COMMANDNAME = ({ inquirer }) =>
+    inquirer.prompt([
+        {
+            type: 'input',
+            name: 'command',
+            prefix: arcli.prefix,
+            suffix: chalk.magenta(': '),
+            message: chalk.cyan('Command'),
+        },
+    ]);
+
+const CUSTOMDEST = ({ inquirer }) =>
+    inquirer.prompt([
+        {
+            type: 'input',
+            name: 'custom',
+            prefix: arcli.prefix,
+            suffix: chalk.magenta(': '),
+            message: chalk.cyan('Destination'),
+        },
+    ]);
+
+// prettier-ignore
+const PREFLIGHT = params => console.log(`
+ The ${chalk.bold.cyan(params.command)} command will be created at:
+   ${chalk.magenta(params.destination)}
+`);
+
+const flags = ['command', 'destination', 'overwrite'];
+
+const ACTION = async ({ opt, props }) => {
+    console.log('');
+
+    let params = arcli.flagsToParams({ opt, flags });
+
+    if (!params.command) {
+        const { command } = await COMMANDNAME(props);
+        params.command = command;
+    }
+
+    if (!params.destination) {
+        const { destination } = await DESTINATION(
+            props,
+            String(slugify(params.command)).toLowerCase(),
+        );
+        params.destination = destination;
+    }
+
+    if (params.destination === 'custom') {
+        const { custom } = await CUSTOMDEST(props);
+        params.destination = custom;
+    }
+
+    params.destination = formatDestination(params.destination, props);
+
+    if (!arcli.isEmpty(params.destination) && !params.overwrite) {
+        const { overwrite } = await OVERWRITE(props);
+        if (overwrite !== true) {
             message(CANCELED);
             return;
         }
+        params.overwrite = overwrite;
+    }
 
-        message(`A command will be created with the following parameters:`);
-        const preflight = { ...params };
+    params = CONFORM({ input: params, props });
 
-        if (overwrite !== true) {
-            delete preflight.overwrite;
-        }
+    PREFLIGHT(params);
 
-        console.log(
-            prettier.format(JSON.stringify(preflight), {
-                parser: 'json-stringify',
-            }),
-        );
+    const { confirm } = await CONFIRM(props);
+    if (confirm !== true) {
+        message(CANCELED);
+        return;
+    }
 
-        CONFIRM({ props, params })
-            .then(() => {
-                console.log('');
-
-                generator({ params, props }).then(success => {
-                    console.log('');
-                });
-            })
-            .then(() => prompt.stop())
-            .catch(err => {
-                prompt.stop();
-                message(CANCELED);
-            });
-    });
+    return generator({ params, props }).catch(err =>
+        message(op.get(err, 'message', CANCELED)),
+    );
 };
 
-/**
- * COMMAND Function
- * @description Function that executes program.command()
- */
 const COMMAND = ({ program, props }) =>
     program
         .command(NAME)
@@ -342,7 +263,6 @@ const COMMAND = ({ program, props }) =>
             '-d, --destination [destination]',
             'Path where the command is saved',
         )
-        .option('-g, --generator [generator]', 'Include generator.js file.')
         .option('-c, --command [command]', 'Command prompt.')
         .option(
             '-o, --overwrite [overwrite]',
@@ -351,17 +271,7 @@ const COMMAND = ({ program, props }) =>
         )
         .on('--help', HELP);
 
-/**
- * Module Constructor
- * @description Internal constructor of the module that is being exported.
- * @param program Class Commander.program reference.
- * @param props Object The CLI props passed from the calling class `arcli.js`.
- * @since 2.0.0
- */
 module.exports = {
-    ACTION,
-    CONFIRM,
-    CONFORM,
     COMMAND,
     NAME,
 };

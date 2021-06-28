@@ -36,6 +36,7 @@ const request = require('request');
 const deleteEmpty = require('delete-empty').sync;
 const ActionSequence = require('action-sequence');
 const { spawn } = require('child_process');
+const { message } = require('./lib/messenger');
 
 let props = { config, cwd, homedir, root, ver };
 
@@ -124,6 +125,21 @@ const rootCommands = () => {
     return globby(normalizeCommandPath('[root]/commands'));
 };
 
+const flagsToParams = ({ opt = {}, flags }) =>
+    flags.reduce((obj, key) => {
+        let val = opt[key];
+        val = typeof val === 'function' ? undefined : val;
+
+        if (val) {
+            obj[key] = val;
+        }
+
+        return obj;
+    }, {});
+
+const isEmpty = p =>
+    Boolean(fs.existsSync(p) ? fs.readdirSync(p).length < 1 : true);
+
 // Glob the functions
 const commands = () => {
     // Find commands
@@ -137,19 +153,22 @@ const commands = () => {
 };
 
 global.arcli = {
-    axios,
     ActionSequence,
     Actinium,
+    axios,
     chalk,
     rootCommands,
     commands,
     deleteEmpty,
+    flagsToParams,
     fs,
     path,
     generator,
     globby,
+    isEmpty,
     homedir,
     mergeActions,
+    message,
     moment,
     npm,
     normalizePath,
