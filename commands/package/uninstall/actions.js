@@ -45,21 +45,7 @@ module.exports = spinner => {
 
             console.log('');
 
-            await new Promise((resolve, reject) =>
-                npm.load(err => {
-                    if (err) reject(err);
-
-                    npm.commands.uninstall([name], err => {
-                        if (err) reject(err);
-                        else resolve();
-                    });
-                }),
-            )
-                .then(() => console.log(''))
-                .catch(err => {
-                    console.log(err);
-                    process.exit();
-                });
+            await arcli.runCommand('npm', ['uninstall', name]);                
         },
         directory: () => {
             spinner.start();
@@ -70,13 +56,13 @@ module.exports = spinner => {
             message(`Unregistering plugin...`);
             const pkgjson = normalize(cwd, 'package.json');
             const pkg = require(pkgjson);
-            op.del(pkg, [`${app}Dependencies`, name], version);
+            op.del(pkg, [`${app}Dependencies`, name]);
             fs.writeFileSync(pkgjson, JSON.stringify(pkg, null, 2));
         },
         complete: () => {
             console.log('');
             spinner.start();
-            spinner.succeed(`Unnstalled ${chalk.cyan(name)}`);
+            spinner.succeed(`Uninstalled ${chalk.cyan(name)}`);
         },
     };
 };
