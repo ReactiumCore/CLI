@@ -1,42 +1,35 @@
 {
-  "prompt": {
-    "delimiter": "",
-    "prefix": "[ARCLI] > ",
-    "prefixColor": "cyan"
-  },
-  "commands": [
-    "[root]/commands",
-    "[cwd]/.core/.cli/commands",
-    "[cwd]/.cli/commands",
-    "[cwd]/actinium_modules/**/.cli",
-    "[cwd]/node_modules/**/.cli",
-    "[cwd]/reactium_modules/**/.cli"
-  ],
-  "depth": 25,
-  "reactium": {
-    "repo": "https://github.com/Atomic-Reactor/Reactium/archive/master.zip",
-    "types": [
-      "class",
-      "functional",
-      "hook"
-    ]
-  },
-  "actinium": {
-    "repo": "https://github.com/Atomic-Reactor/Actinium/archive/master.zip"
-  },
-  "toolkit": {
-    "types": [
-      "atom",
-      "molecule",
-      "organism",
-      "template",
-      "link"
-    ]
-  },
-  "registry": {
-    "app": "ReactiumRegistry",
-    "server": "https://v1.reactium.io/api"
-  },
-  "checked": 1540382853918,
-  "updated": 1540382853918
+    "prompt": {
+        "delimiter": "",
+        "prefix": "[ARCLI] > ",
+        "prefixColor": "cyan"
+    },
+    "commands": [
+        "[root]/commands",
+        "[cwd]/.core/.cli/commands",
+        "[cwd]/.cli/commands",
+        "[cwd]/actinium_modules/**/.cli",
+        "[cwd]/node_modules/**/.cli",
+        "[cwd]/reactium_modules/**/.cli"
+    ],
+    "depth": 25,
+    "reactium": {
+        "repo": "https://github.com/Atomic-Reactor/Reactium/archive/master.zip",
+        "types": ["class", "functional", "hook"]
+    },
+    "reactiumNative": {
+        "repo": "https://github.com/Atomic-Reactor/Reactium-Native/archive/main.zip"
+    },
+    "actinium": {
+        "repo": "https://github.com/Atomic-Reactor/Actinium/archive/master.zip"
+    },
+    "toolkit": {
+        "types": ["atom", "molecule", "organism", "template", "link"]
+    },
+    "registry": {
+        "app": "ReactiumRegistry",
+        "server": "https://v1.reactium.io/api"
+    },
+    "checked": 1540382853918,
+    "updated": 1540382853918
 }

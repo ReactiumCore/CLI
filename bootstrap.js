@@ -40,11 +40,9 @@ const { message } = require('./lib/messenger');
 
 let props = { config, cwd, homedir, root, ver };
 
-const runCommand = (cmd, args = [], options = {}) =>
+const runCommand = (cmd, args = [], opt = {}) =>
     new Promise((resolve, reject) => {
-        options.shell = true;
-        options.stdio = 'inherit';
-
+        const options = { shell: true, stdio: 'inherit', ...opt, };
         const ps = spawn(cmd, args, options);
 
         ps.on('error', err => {
@@ -59,7 +57,7 @@ const runCommand = (cmd, args = [], options = {}) =>
                 console.error(`Error executing ${cmd}`);
                 reject();
             } else {
-                resolve();
+                resolve(ps);
             }
         });
     });

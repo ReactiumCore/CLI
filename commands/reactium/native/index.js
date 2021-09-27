@@ -1,14 +1,14 @@
 const chalk = require('chalk');
 const generator = require('./generator');
 
-const NAME = '{{{command}}}';
-const CANCELED = '{{{command}}} canceled!';
-const DESC = 'The description of the command';
+const NAME = 'reactium <native>';
+const CANCELED = 'reactium native canceled!';
+const DESC = 'Create a React Native project infused with Reactium Core';
 
 // prettier-ignore
 const HELP = () => console.log(`
 Example:
-  $ arcli {{{command}}} -h
+  $ arcli reactium native -h
 `);
 
 const CONFORM = (input, props) =>
@@ -20,22 +20,16 @@ const CONFORM = (input, props) =>
         return output;
     }, {});
 
-const PREFLIGHT = ({ msg, params }) => {
-    arcli.message(msg || 'Preflight checklist:');
-    console.log(JSON.stringify(params, null, 2));
-    console.log('');
-};
-
-const INPUT = ({ inquirer }) =>
+const INPUT = ({ inquirer }, params) =>
     inquirer.prompt([
         {
             type: 'input',
-            name: 'sample',
+            name: 'name',
             prefix: arcli.prefix,
-            message: 'Sample Input',
+            message: 'App name',
             suffix: chalk.magenta(': '),
         },
-    ]);
+    ], params);
 
 const CONFIRM = ({ inquirer }) =>
     inquirer.prompt([
@@ -50,7 +44,7 @@ const CONFIRM = ({ inquirer }) =>
     ]);
 
 const ACTION = async ({ opt, props }) => {
-    const flags = ['sample'];
+    const flags = ['confirm', 'name', 'tag'];
 
     let params = arcli.flagsToParams({ opt, flags });
 
@@ -59,10 +53,18 @@ const ACTION = async ({ opt, props }) => {
 
     params = CONFORM(params, props);
 
-    PREFLIGHT({ params });
+    arcli.message(
+        `Reactium Native project ${chalk.cyan(
+            params.name,
+        )} will be created in:\n\t  ${chalk.magenta(arcli.props.cwd)}`,
+    );
 
-    const { confirm } = await CONFIRM(props);
-    if (confirm !== true) {
+    if (!params.confirm) {
+        const { confirm } = await CONFIRM(props);
+        params.confirm = confirm;
+    }
+
+    if (params.confirm !== true) {
         arcli.message(CANCELED);
         return;
     }
@@ -76,11 +78,13 @@ const COMMAND = ({ program, props }) =>
     program
         .command(NAME)
         .description(DESC)
-        .action(opt => ACTION({ opt, props }))
-        .option('-s, --sample [sample]', 'Sample parameter.')
+        .action((action, opt) => ACTION({ opt, props }))
+        .option('-c, --confirm [confirm]', 'Skip confirmation')
+        .option('-n, --name [name]', 'App name.')
+        .option('-t, --tag [tag]', 'Specific Reactium Native tag to install.')
         .on('--help', HELP);
 
 module.exports = {
     COMMAND,
-    NAME,
+    ID: NAME,
 };

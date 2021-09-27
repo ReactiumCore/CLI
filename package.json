@@ -1,6 +1,6 @@
 {
   "name": "@atomic-reactor/cli",
-  "version": "2.2.57",
+  "version": "2.2.58",
   "description": "A CLI for creating Atomic Reactor Awesomeness",
   "main": "arcli-node.js",
   "scripts": {
