@@ -240,7 +240,7 @@ module.exports = spinner => {
             console.log(`Installing ${chalk.cyan('Reactium')} dependencies...`);
             console.log('');
 
-            return arcli.runCommand('arcli', ['install']);
+            return arcli.runCommand('arcli', ['install', '-s']);
         },
 
         cancelled: () => {

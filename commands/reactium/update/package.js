@@ -79,9 +79,17 @@ module.exports = (props, updatePath) => {
     // Remove babel config
     delete pkg.babel;
 
+    // Remove reactium_modules deps so we don't get errors if
+    // someone has culled their reactiumDependencies object
+    Object.entries(pkg.dependencies).forEach(([key, val]) => {
+        if (!String(val).startsWith('file:reactium_modules/')) return;
+        delete pkg.dependencies[key];
+    });
+
     // Write the new package.json file.
-    let pkgCont = prettier.format(JSON.stringify(pkg), {
+    const pkgCont = prettier.format(JSON.stringify(pkg), {
         parser: 'json-stringify',
+        tabWidth: 2
     });
 
     return pkgCont;
