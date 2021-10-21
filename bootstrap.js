@@ -1,10 +1,12 @@
 'use strict';
 
 // Globals
+const ora = require('ora');
 const Actinium = require('parse/node');
+
 global.Actinium = Actinium;
 global.Hook = require('@atomic-reactor/reactium-sdk-core/lib/hook').default;
-global.Spinner = require('ora')({ spinner: 'dots', color: 'cyan' });
+global.Spinner = ora({ spinner: 'dots', color: 'cyan' });
 
 // Extend
 Spinner.message = (...args) => Spinner.start(args.join(' '));
@@ -151,6 +153,7 @@ const commands = () => {
 };
 
 global.arcli = {
+    _,
     ActionSequence,
     Actinium,
     axios,
@@ -170,6 +173,8 @@ global.arcli = {
     moment,
     npm,
     normalizePath,
+    op,
+    ora,
     pm2,
     portscanner,
     prettier,
@@ -178,11 +183,9 @@ global.arcli = {
     runCommand,
     semver,
     slugify,
-    tar,
     table,
+    tar,
     tmp: normalizePath(homedir, 'tmp'),
-    _,
-    op,
 };
 
 // Build the props object
