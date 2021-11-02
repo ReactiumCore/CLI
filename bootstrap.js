@@ -39,6 +39,7 @@ const deleteEmpty = require('delete-empty').sync;
 const ActionSequence = require('action-sequence');
 const { spawn } = require('child_process');
 const { message } = require('./lib/messenger');
+const crypto = require('crypto');
 
 let props = { config, cwd, homedir, root, ver };
 
@@ -158,8 +159,8 @@ global.arcli = {
     Actinium,
     axios,
     chalk,
-    rootCommands,
     commands,
+    crypto,
     deleteEmpty,
     flagsToParams,
     fs,
@@ -180,6 +181,7 @@ global.arcli = {
     prettier,
     props,
     request,
+    rootCommands,
     runCommand,
     semver,
     slugify,

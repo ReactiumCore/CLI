@@ -3,25 +3,31 @@
  * Imports
  * -----------------------------------------------------------------------------
  */
-const path = require('path');
-const fs = require('fs-extra');
-const chalk = require('chalk');
-const semver = require('semver');
-const op = require('object-path');
+const { _, chalk, fs, normalizePath, op, path, prefix, semver } = arcli;
+const { cwd, inquirer } = arcli.props;
+
 const mod = path.dirname(require.main.filename);
 const { error, message } = require(`${mod}/lib/messenger`);
 
-const getPackageVersion = (cwd, inc) => {
-    let val = '0.0.1';
-    const pkgFile = path.normalize(path.join(cwd, 'package.json'));
+const pkgFile = normalizePath(cwd, 'package.json');
 
-    if (fs.existsSync(pkgFile)) {
-        const { version } = require(`${cwd}/package`);
-        val = version ? semver.coerce(version).version : val;
-    }
+const getPackage = () =>
+    fs.existsSync(pkgFile)
+        ? require(pkgFile)
+        : {
+              version: '0.0.1',
+              scripts: {
+                  test: 'echo "Error: no test specified" && exit 1',
+              },
+              keywords: [],
+              reactium: {},
+              actinium: {},
+          };
 
-    val = inc ? semver.inc(val, inc) : val;
-    return val;
+const getPackageVersion = inc => {
+    let { version } = getPackage();
+    version = semver.coerce(version).version;
+    return inc ? semver.inc(version, inc) : version;
 };
 
 const GENERATOR = require('./generator');
@@ -57,23 +63,28 @@ const CANCELED = 'Publish canceled!';
  * @param input Object The key value pairs to reduce.
  * @since 2.0.0
  */
-const CONFORM = ({ input, props }) =>
+const CONFORM = input =>
     Object.keys(input).reduce((obj, key) => {
         let val = input[key];
         switch (key) {
             case 'ver':
                 const incs = ['major', 'minor', 'patch'];
                 obj['version'] = incs.includes(String(val).toLowerCase())
-                    ? semver.inc(getPackageVersion(props.cwd), val)
+                    ? semver.inc(getPackageVersion(), val)
                     : semver.coerce(val).version;
                 break;
 
-            case 'private':
-                obj[key] = String(val).toLowerCase() === 'y' ? true : false;
+            case 'version':
+                obj['version'] = semver.coerce(val).version;
                 break;
 
-            case 'version':
-                if (input['ver']) break;
+            case 'name':
+                obj['name'] = String(val)
+                    .toLowerCase()
+                    .replace(/\s\s+/g, ' ')
+                    .replace(/[^0-9a-z@\-\/]/gi, '-');
+                break;
+
             default:
                 obj[key] = val;
                 break;
@@ -104,75 +115,195 @@ Example:
  * @description Array of flags passed from the commander options.
  * @since 2.0.18
  */
-const FLAGS = ['app', 'private', 'server', 'ver'];
+const FLAGS = [
+    'actinium',
+    'app',
+    'author',
+    'description',
+    'license',
+    'name',
+    'private',
+    'reactium',
+    'server',
+    'ver',
+];
 
 /**
  * FLAGS_TO_PARAMS Function
  * @description Create an object used by the prompt.override property.
  * @since 2.0.18
  */
-const FLAGS_TO_PARAMS = ({ opt = {} }) =>
+const FLAGS_TO_PARAMS = opt =>
     FLAGS.reduce((obj, key) => {
         let val = opt[key];
         val = typeof val === 'function' ? undefined : val;
 
         if (val) {
+            key = key === 'private' ? 'priv' : key;
             obj[key] = val;
         }
 
         return obj;
     }, {});
 
-/**
- * SCHEMA Function
- * @description used to describe the input for the prompt function.
- * @see https://www.npmjs.com/package/prompt
- * @since 2.0.0
- */
-const SCHEMA = ({ params, props }) => {
-    const version = op.get(params, 'ver');
-    const isPrivate = op.get(params, 'private');
-    const sessionToken = op.get(props, 'config.registry.sessionToken');
+const PROMPT = {};
+PROMPT.TMPDIR = params => {
+    params.tmpDir = normalizePath(
+        arcli.props.homedir,
+        '.arcli',
+        'tmp',
+        'publish',
+        path.basename(cwd),
+    );
 
-    return {
-        properties: {
-            username: {
-                ask: () => !sessionToken,
-                description: chalk.white('Username:'),
-                required: true,
+    return params;
+};
+
+PROMPT.AUTH = async (params, props) => {
+    const sessionToken = op.get(props, 'config.registry.sessionToken');
+    const appID = op.get(props, 'config.registry.app', 'ReactiumRegistry');
+    const serverURL = op.get(
+        props,
+        'config.registry.server',
+        'https://v1.reactium.io/api',
+    );
+
+    const { username, password } = await inquirer.prompt(
+        [
+            {
+                prefix,
+                name: 'username',
+                type: 'input',
+                message: 'Username:',
+                when: !sessionToken,
             },
-            password: {
-                ask: () => !sessionToken,
-                description: chalk.white('Password:'),
-                hidden: true,
-                message: 'Password is a required parameter',
-                replace: '*',
-                required: true,
+            {
+                prefix,
+                name: 'password',
+                type: 'password',
+                message: 'Password:',
+                when: !sessionToken,
             },
-            version: {
-                ask: () => !version,
-                default: getPackageVersion(props.cwd, 'patch'),
-                description: chalk.white('Version:'),
-                message: 'Version is a required parameter',
-                required: true,
+        ],
+        params,
+    );
+
+    params.appID = appID;
+    params.serverURL = serverURL;
+    params.sessionToken = sessionToken;
+    params.username = username;
+    params.password = password;
+
+    return params;
+};
+
+PROMPT.PKG = async params => {
+    const PACKAGE = getPackage();
+
+    const {
+        actinium,
+        author,
+        description,
+        license,
+        name,
+        priv,
+        reactium,
+        ver,
+    } = await inquirer.prompt(
+        [
+            {
+                prefix,
+                name: 'ver',
+                type: 'input',
+                askAnswered: true,
+                default: getPackageVersion('patch'),
+                message: 'Version:',
             },
-            private: {
-                ask: () => typeof isPrivate === 'undefined',
-                before: val =>
-                    String(val)
-                        .substr(0, 1)
-                        .toUpperCase() === 'Y',
-                default: 'N',
-                description: `${chalk.white('Private')} ${chalk.cyan(
-                    '(Y/N):',
-                )}`,
-                message: ' ',
-                pattern: /^y|n|Y|N/,
-                required: true,
-                type: 'string',
+            {
+                prefix,
+                name: 'priv',
+                default: false,
+                type: 'confirm',
+                message: 'Private:',
             },
-        },
+            {
+                prefix,
+                name: 'actinium',
+                message: 'Minimum Actinium Version:',
+                default: '3.6.6',
+            },
+            {
+                prefix,
+                name: 'reactium',
+                message: 'Minium Reactium Version:',
+                default: '3.2.6',
+            },
+            {
+                prefix,
+                name: 'name',
+                type: 'input',
+                message: 'Plugin Name:',
+            },
+            {
+                prefix,
+                name: 'description',
+                type: 'input',
+                message: 'Plugin Description:',
+            },
+            {
+                prefix,
+                name: 'author',
+                type: 'input',
+                message: 'Plugin Author:',
+            },
+            {
+                prefix,
+                name: 'license',
+                type: 'input',
+                message: 'Plugin License:',
+            },
+        ],
+        { ...params, ...PACKAGE },
+    );
+
+    params.version = ver;
+    params.private = priv;
+    params.pkg = {
+        actinium: {},
+        reactium: {},
+        ...PACKAGE,
+        description,
+        name,
+        license,
+        author,
+        version: ver,
     };
+
+    if (_.isString(actinium)) {
+        params.pkg.actinium.version = actinium;
+    }
+    if (_.isString(reactium)) {
+        params.pkg.reactium.version = reactium;
+    }
+
+    return params;
+};
+
+const PKG_TO_PARAMS = () => {
+    const pkg = getPackage();
+
+    const keys = ['author', 'app', 'description', 'private', 'license', 'name'];
+
+    const pkeys = Object.keys(pkg);
+
+    const newPkg = keys.reduce((obj, key) => {
+        if (pkeys.includes(key)) {
+            obj[key] = op.get(pkg, key);
+        }
+        return obj;
+    }, {});
+
+    return newPkg;
 };
 
 /**
@@ -183,33 +314,26 @@ const SCHEMA = ({ params, props }) => {
  * @param props Object The CLI props passed from the calling class `orcli.js`.
  * @since 2.0.0
  */
-const ACTION = ({ opt, props }) => {
-    let params = FLAGS_TO_PARAMS({ opt });
+const ACTION = async ({ opt, props }) => {
+    console.log('');
 
-    const { cwd, prompt } = props;
-    const schema = SCHEMA({ props, params });
+    let params = {
+        pkg: PKG_TO_PARAMS(),
+        ...FLAGS_TO_PARAMS(opt),
+    };
 
-    prompt.override = params;
-    prompt.start();
+    try {
+        for (let P of Object.values(PROMPT)) {
+            await P(params, props);
+        }
+    } catch (err) {
+        console.log(err);
+        process.exit();
+    }
 
-    return new Promise((resolve, reject) =>
-        prompt.get(schema, (err, input = {}) => {
-            if (err) {
-                prompt.stop();
-                reject(`${NAME} ${err.message}`);
-                return;
-            }
+    params = CONFORM(params);
 
-            input = { ...params, ...input };
-            params = CONFORM({ input, props });
-
-            resolve();
-        }),
-    )
-        .then(() => GENERATOR({ params, props }))
-        .then(() => prompt.stop())
-        .then(results => console.log(''))
-        .catch(err => console.log(10, JSON.stringify(err)));
+    return GENERATOR({ params, props });
 };
 
 /**
@@ -221,13 +345,29 @@ const COMMAND = ({ program, props }) =>
         .command(NAME)
         .description(DESC)
         .action(opt => ACTION({ opt, props }))
-        .option('-a, --app [app]', 'App ID')
+        .option(
+            '-a, --app [app]',
+            'Plugin registry application ID. Used when server plugins from a custom registry server. Default: ReactiumRegistry',
+        )
+
         .option(
             '-p, --private [private]',
             'Make the plugin available to ACL targets only',
         )
         .option('-s, --server [server]', 'Server URL')
-        .option('--ver [ver]', 'Plugin semver. Defaults to 0.0.1')
+        .option('--ver [ver]', 'Plugin semver. Default: 0.0.1')
+        .option(
+            '--actinium [actinium]',
+            'Minimum Actinium version required to install the plugin',
+        )
+        .option(
+            '--reactium [reactium]',
+            'Minimum Reactium version required to install the plugin',
+        )
+        .option('--description [description]', 'Plugin description')
+        .option('--author [author]', 'Plugin author')
+        .option('--license [license]', 'Plugin license')
+        .option('--name [name]', 'Plugin name used when installing the plugin')
         .on('--help', HELP);
 
 /**

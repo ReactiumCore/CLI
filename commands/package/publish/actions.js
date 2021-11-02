@@ -1,33 +1,33 @@
-const tar = require('tar');
-const path = require('path');
-const fs = require('fs-extra');
-const chalk = require('chalk');
-const _ = require('underscore');
-const crypto = require('crypto');
-const globby = require('globby').sync;
-const op = require('object-path');
+const {
+    _,
+    Actinium,
+    ActionSequence,
+    chalk,
+    crypto,
+    fs,
+    globby,
+    normalizePath,
+    op,
+    path,
+    tar,
+} = arcli;
+
+const { cwd, inquirer } = arcli.props;
+
 const mod = path.dirname(require.main.filename);
-const ActionSequence = require('action-sequence');
+const pkgFile = normalizePath(cwd, 'package.json');
 const bytesToSize = require(`${mod}/lib/bytesToSize`);
 
 module.exports = spinner => {
-    let bytes,
-        cwd,
-        filename,
-        filepath,
-        pkg,
-        pkgFile,
-        pkgUpdate,
-        prompt,
-        sessionToken,
-        tmpDir;
+    let bytes, filename, filepath, pkgUpdate;
 
     const x = chalk.magenta('✖');
 
-    const normalize = (...args) => path.normalize(path.join(...args));
+    const normalize = normalizePath;
 
     const message = text => {
         if (spinner) {
+            if (!spinner.isSpinning) spinner.start();
             spinner.text = text;
         }
     };
@@ -37,172 +37,16 @@ module.exports = spinner => {
         process.exit(1);
     };
 
-    const pkgPrompt = fields =>
-        new Promise((resolve, reject) => {
-            const required = true;
-            const type = 'string';
-            const defaults = {
-                actinium: {
-                    version: '3.6.6',
-                },
-                reactium: {
-                    version: '3.2.6',
-                },
-                version: '0.0.1',
-            };
-            const schema = fields.map(({ description, name }) => ({
-                default: op.get(defaults, name),
-                description,
-                message: `${chalk.cyan.bold(name)} ${chalk.white(
-                    'is required',
-                )}`,
-                name,
-                required,
-                type,
-            }));
-
-            prompt.start();
-            prompt.get(schema, (err, results) => {
-                if (err) {
-                    console.log(err);
-                    process.exit();
-                    return;
-                }
-                Object.keys(results).forEach(key =>
-                    op.set(pkg, key, results[key]),
-                );
-                resolve();
-            });
-        });
-
     return {
-        init: ({ props }) => {
-            cwd = String(props.cwd)
-                .split('\\')
-                .join('/');
-
-            pkgFile = path.normalize(`${cwd}/package.json`);
-            prompt = props.prompt;
-            sessionToken = op.get(props, 'config.registry.sessionToken');
-            tmpDir = normalize(
-                require('os').homedir(),
-                '.arcli',
-                'tmp',
-                'publish',
-                path.basename(cwd),
-            );
-
-            const appID = op.get(
-                props,
-                'config.registry.app',
-                'ReactiumRegistry',
-            );
-            const serverURL = op.get(
-                props,
-                'config.registry.server',
-                'https://v1.reactium.io/api',
-            );
+        init: ({ params, props }) => {
+            const { appID, serverURL } = params;
 
             Actinium.initialize(appID);
             Actinium.serverURL = serverURL;
         },
-        package: async ({ action, params, props }) => {
-            message(`updating ${chalk.cyan('package.json')}...`);
-            const fields = {
-                name: chalk.white('Package Name:'),
-                description: chalk.white('Description:'),
-                author: chalk.white('Author:'),
-                'reactium.version': chalk.white('Reactium Version:'),
-                'actinium.version': chalk.white('Actinium Version:'),
-            };
-
-            // Check for package.json
-            if (!fs.existsSync(pkgFile)) {
-                pkg = {
-                    license: 'ISC',
-                    main: 'index.js',
-                    scripts: {
-                        test: 'echo "Error: no test specified" && exit 1',
-                    },
-                    keywords: ['reactium'],
-                };
-
-                const text = [
-                    chalk.magenta.bold('Error:'),
-                    chalk.cyan('package.json'),
-                    'not found in',
-                    chalk.magenta('/' + path.basename(cwd)),
-                ].join(' ');
-
-                pkgUpdate = true;
-                spinner.stopAndPersist({ symbol: x, text });
-
-                console.log('');
-                await pkgPrompt(
-                    Object.entries(fields).map(([name, description]) => ({
-                        name,
-                        description,
-                    })),
-                ).catch(err => {
-                    console.log(33, JSON.stringify(err));
-                });
-                console.log('');
-
-                spinner.start();
-            } else {
-                // get package.json file
-                pkg = require(pkgFile);
-
-                // required package.json fields
-                const reqs = [
-                    'name',
-                    'version',
-                    'description',
-                    'author',
-                    'reactium.version',
-                    'actinium.version'
-                ];
-
-                for (let i in reqs) {
-                    const name = reqs[i];
-
-                    if (!op.get(pkg, name)) {
-                        const text = [
-                            chalk.magenta.bold('Error:'),
-                            chalk.cyan('package.json'),
-                            '→',
-                            chalk.magenta(name),
-                            'is required',
-                        ].join(' ');
-
-                        pkgUpdate = true;
-                        spinner.stopAndPersist({ symbol: x, text });
-                        console.log('');
-                        await pkgPrompt([
-                            { name, description: fields[name] },
-                        ]).catch(err => {
-                            console.log(34, JSON.stringify(err));
-                        });
-                        console.log('');
-                        spinner.start();
-                    }
-                }
-            }
-
-            // Write new package.json
-            pkg.version = params.version;
-
-            const pname = String(pkg.name)
-                .toLowerCase()
-                .replace(/\s\s+/g, ' ')
-                .replace(/[^0-9a-z@\-\/]/gi, '-');
-
-            op.set(pkg, 'name', pname);
-            fs.writeFileSync(pkgFile, JSON.stringify(pkg, null, 2));
-            spinner.start();
-        },
-        validate: async ({ action, params, props }) => {
-            const { name, version } = pkg;
+        validate: async ({ params, props }) => {
+            const { sessionToken } = params;
+            const { name, version } = params.pkg;
 
             const result = await Actinium.Cloud.run(
                 'registry-check',
@@ -210,20 +54,27 @@ module.exports = spinner => {
                 { sessionToken },
             );
 
-            const canPublish = op.get(result, 'enabled');
+            const canPublish = op.get(result, 'enabled', false);
 
             if (canPublish !== true) {
-                const errorMsg = `${chalk.magenta('Error:')} ${JSON.stringify(canPublish)}`;
-                spinner.fail(
-                    errorMsg,
-                );
+                const errorMsg = `${chalk.magenta(
+                    'Error:',
+                )} unable to publish ${chalk.cyan(name)}@${chalk.cyan(
+                    version,
+                )}}`;
 
-                console.error(errorMsg);
+                spinner.fail(errorMsg);
                 exit();
             }
         },
-        prepublish: async ({ params, props }) => {
-            const actionFiles = globby([`${props.cwd}/**/arcli-publish.js`]);
+        package: ({ params }) => {
+            message(`updating ${chalk.cyan('package.json')}...`);
+            fs.writeFileSync(pkgFile, JSON.stringify(params.pkg, null, 2));
+        },
+        prepublish: ({ params, props }) => {
+            spinner.stop();
+
+            const actionFiles = globby([`${cwd}/**/arcli-publish.js`]);
             if (actionFiles.length < 1 || !Array.isArray(actionFiles)) return;
 
             const actions = actionFiles.reduce((obj, file, i) => {
@@ -234,46 +85,37 @@ module.exports = spinner => {
                 return obj;
             }, {});
 
-            await ActionSequence({ actions, options: { params, props } }).catch(
-                err => {
-                    console.log('Prepublish Error:', err);
-                    exit();
-                },
-            );
+            return ActionSequence({
+                actions,
+                options: { params, props },
+            }).catch(err => {
+                spinner.stopAndPersist({
+                    symbol: x,
+                    text: `Prepublish Error: ${err}`,
+                });
+                exit();
+            });
         },
-        tmp: () => {
-            spinner.stop();
+        tmp: ({ params }) => {
+            const { tmpDir } = params;
+
+            if (!spinner.isSpinning) spinner.start();
+
             fs.ensureDirSync(tmpDir);
             fs.emptyDirSync(tmpDir);
             fs.copySync(cwd, tmpDir);
         },
-        transform: () => {
-            spinner.start();
-            message(`Compiling...`);
+        compress: ({ params, props }) => {
+            const { pkg, tmpDir } = params;
 
-            const regex = new RegExp(`components/${path.basename(cwd)}`, 'g');
-            const replacerReactium = `reactium_modules/${pkg.name}`;
-            const files = globby([
-                `${tmpDir}/**/*.js`,
-                `${tmpDir}/**/*.jsx`,
-                `!${tmpDir}/**/*.json`,
-            ]);
-
-            for (const i in files) {
-                const file = files[i];
-                let content = fs.readFileSync(file);
-                content = String(content).replace(regex, replacerReactium);
-                fs.writeFileSync(file, content);
-            }
-        },
-        compress: ({ action, params, props }) => {
             spinner.stopAndPersist({
                 symbol: chalk.cyan('+'),
                 text: `packaging ${chalk.cyan(pkg.name)}...`,
             });
+            console.log('');
 
             filename = ['reactium-module', 'tgz'].join('.');
-            filepath = path.normalize(path.join(tmpDir, filename));
+            filepath = normalizePath(tmpDir, filename);
 
             if (fs.existsSync(filepath)) fs.removeSync(filepath);
 
@@ -318,9 +160,10 @@ module.exports = spinner => {
                 bytesToSize(size),
             );
             console.log('');
-            spinner.start();
         },
-        publish: async ({ action, params, props }) => {
+        publish: async ({ params }) => {
+            const { pkg, sessionToken } = params;
+
             message(`processing ${chalk.cyan(filename)}...`);
 
             let filedata = fs.readFileSync(filepath);
@@ -357,12 +200,14 @@ module.exports = spinner => {
                 console.log(32, JSON.stringify(err));
             });
         },
-        cleanup: () => {
-            fs.removeSync(tmpDir);
+        cleanup: ({ params }) => {
+            fs.removeSync(params.tmpDir);
         },
-        complete: () => {
+        complete: ({ params }) => {
             spinner.succeed(
-                `published ${chalk.cyan(pkg.name)} v${chalk.cyan(pkg.version)}`,
+                `published ${chalk.cyan(params.pkg.name)} v${chalk.cyan(
+                    params.pkg.version,
+                )}`,
             );
         },
     };

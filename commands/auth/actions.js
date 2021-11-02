@@ -29,7 +29,7 @@ module.exports = spinner => {
                 sessionToken = result;
             });
         },
-        updateConfig: ({ action, params, props }) => {
+        authUpdateConfig: ({ action, params, props }) => {
             const configFilePath = path.normalize(
                 path.join(homedir, '.arcli', 'config.json'),
             );
