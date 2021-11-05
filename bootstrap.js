@@ -9,7 +9,10 @@ global.Hook = require('@atomic-reactor/reactium-sdk-core/lib/hook').default;
 global.Spinner = ora({ spinner: 'dots', color: 'cyan' });
 
 // Extend
-Spinner.message = (...args) => Spinner.start(args.join(' '));
+Spinner.message = (...args) => {
+    Spinner.start();
+    Spinner.text = args.join(' ');
+};
 
 // Imports
 const root = __dirname;
@@ -45,7 +48,7 @@ let props = { config, cwd, homedir, root, ver };
 
 const runCommand = (cmd, args = [], opt = {}) =>
     new Promise((resolve, reject) => {
-        const options = { shell: true, stdio: 'inherit', ...opt, };
+        const options = { shell: true, stdio: 'inherit', ...opt };
         const ps = spawn(cmd, args, options);
 
         ps.on('error', err => {
@@ -157,6 +160,7 @@ global.arcli = {
     _,
     ActionSequence,
     Actinium,
+    Spinner,
     axios,
     chalk,
     commands,

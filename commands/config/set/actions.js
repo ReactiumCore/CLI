@@ -1,62 +1,36 @@
-const path = require('path');
-const fs = require('fs-extra');
-const op = require('object-path');
-const prettier = require('prettier');
-const homedir = require('os').homedir();
-
 module.exports = spinner => {
+    spinner = spinner || arcli.Spinner;
+
+    const { config, cwd, root } = arcli.props;
+    const { chalk, fs, homedir, normalizePath, op, path } = arcli;
+
     const message = text => {
         if (spinner) {
+            if (!spinner.isSpinning) spinner.start();
             spinner.text = text;
         }
     };
 
+    const now = Date.now();
+    const file = normalizePath(homedir, '.arcli', 'config.json');
+    const backupDir = normalizePath(homedir, '.arcli', '.BACKUP');
+    const backupFile = normalizePath(backupDir, `${now}.config.json`);
+
     return {
-        backup: ({ props, action }) => {
-            const { config, cwd, root } = props;
+        backup: () => {
+            message(`creating ${chalk.magenta('config.json')} backup...`);
 
-            message('backing up config.json...');
-
-            const backupPath = path.normalize(path.join(homedir, '.arcli/.BACKUP'));
-
-            fs.ensureDirSync(backupPath);
-
-            const now = Date.now();
-            const file = path.normalize(path.join(homedir, '.arcli', 'config.json'));
-            const backup = path.normalize(
-                path.join(backupPath, `${now}.config.json.BACKUP`),
-            );
-
-            return new Promise((resolve, reject) => {
-                fs.copy(file, backup, error => {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve({ action, status: 200 });
-                    }
-                });
-            });
+            fs.ensureDirSync(backupDir);
+            fs.copySync(file, backupFile);
         },
 
         update: ({ params, props, action }) => {
+            message(`updating ${chalk.magenta('config.json')}...`);
+
             const { newConfig } = params;
+            const fileContent = JSON.stringify(newConfig, null, 2);
 
-            const file = path.normalize(path.join(homedir, '.arcli', 'config.json'));
-            const fileContent = prettier.format(JSON.stringify(newConfig), {
-                parser: 'json-stringify',
-            });
-
-            message('updating config.json...');
-
-            return new Promise((resolve, reject) => {
-                fs.writeFile(file, fileContent, error => {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve({ action, status: 200 });
-                    }
-                });
-            });
+            fs.writeFileSync(file, fileContent);
         },
     };
 };
