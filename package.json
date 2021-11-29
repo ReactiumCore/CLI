@@ -1,6 +1,6 @@
 {
   "name": "@atomic-reactor/cli",
-  "version": "2.2.65",
+  "version": "2.2.66",
   "description": "A CLI for creating Atomic Reactor Awesomeness",
   "main": "arcli-node.js",
   "scripts": {
@@ -56,7 +56,6 @@
     "inquirer-fuzzy-path": "^2.3.0",
     "memory-cache": "^0.2.0",
     "moment": "^2.29.1",
-    "npm": "^8.1.4",
     "object-path": "^0.11.8",
     "ora": "^5.1.0",
     "parse": "^3.4.0",

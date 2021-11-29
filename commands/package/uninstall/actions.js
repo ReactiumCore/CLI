@@ -1,4 +1,3 @@
-const npm = require('npm');
 const path = require('path');
 const chalk = require('chalk');
 const fs = require('fs-extra');
@@ -45,7 +44,7 @@ module.exports = spinner => {
 
             console.log('');
 
-            await arcli.runCommand('npm', ['uninstall', name]);                
+            await arcli.runCommand('npm', ['uninstall', name]);
         },
         directory: () => {
             spinner.start();
