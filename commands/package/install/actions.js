@@ -175,7 +175,6 @@ module.exports = spinner => {
                 fs.moveSync(file, newFile);
             });
             deleteEmpty(dir);
-            spinner.start();
         },
         registerPkg: () => {
             message(`Registering plugin...`);
@@ -201,6 +200,7 @@ module.exports = spinner => {
 
             const pkg = normalize(`${app}_modules`, slugify(name), '_npm');
             try {
+                await arcli.runCommand('npm', ['uninstall', pkg]);
                 await arcli.runCommand('npm', ['install', pkg]);
             } catch (error) {
                 console.error({ error });

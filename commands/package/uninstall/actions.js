@@ -12,6 +12,7 @@ module.exports = spinner => {
 
     const message = text => {
         if (spinner) {
+            spinner.start();
             spinner.text = text;
         }
     };
@@ -39,29 +40,33 @@ module.exports = spinner => {
         },
         npm: async () => {
             spinner.stopAndPersist({
-                text: `Uninstalling NPM ${chalk.cyan('package')}...`,
+                text: `Uninstalling ${chalk.cyan(name)}...`,
                 symbol: chalk.cyan('–'),
             });
 
             console.log('');
 
-            await arcli.runCommand('npm', ['uninstall', name]);                
+            await arcli.runCommand('npm', ['uninstall', name]);
+
+            console.log();
         },
         directory: () => {
-            spinner.start();
             message(`Removing plugin ${chalk.cyan(name)}...`)
             fs.removeSync(dir);
         },
-        unregisterPkg: () => {
+        unregisterPkg: async () => {
             message(`Unregistering plugin...`);
             const pkgjson = normalize(cwd, 'package.json');
             const pkg = require(pkgjson);
+            op.del(pkg, ['dependencies', name]);
             op.del(pkg, [`${app}Dependencies`, name]);
             fs.writeFileSync(pkgjson, JSON.stringify(pkg, null, 2));
+
+            spinner.stop();
+            await arcli.runCommand('npm', ['prune']);
         },
         complete: () => {
             console.log('');
-            spinner.start();
             spinner.succeed(`Uninstalled ${chalk.cyan(name)}`);
         },
     };

@@ -32,6 +32,8 @@ module.exports = spinner => {
 
     return {
         init: ({ params, props }) => {
+            spinner.stop();
+
             cwd = op.get(props, 'cwd');
             app = targetApp(cwd);
             pluginsDir = path.resolve(cwd, app + '_modules');
@@ -48,10 +50,9 @@ module.exports = spinner => {
 
             plugins.sort();
         },
-        install: async ({ params, props }) => {
+        download: async ({ params, props }) => {
             for (const i in plugins) {
                 const name = plugins[i];
-                spinner.start();
                 message(`Downloading ${chalk.cyan(name)}...`);
 
                 await ActionSequence({
@@ -70,8 +71,6 @@ module.exports = spinner => {
         },
         npm: async ({ params, props }) => {
             if (op.get(params, 'no-npm') === true) return;
-
-            spinner.start();
 
             spinner.stopAndPersist({
                 text: `Installing npm dependencies...`,
@@ -98,26 +97,30 @@ module.exports = spinner => {
                 fs.writeFileSync(packageJsonPath, JSON.stringify(pkg, null, 2));
             }
 
+            spinner.stop();
+
             // Run npm install
             try {
+                await arcli.runCommand('npm', ['prune']);
                 await arcli.runCommand('npm', ['install']);
+                console.log('');
             } catch (error) {
                 console.error(error);
                 process.exit(1);
             }
         },
-
         postinstall: async ({ params, props }) => {
             if (op.get(params, 'no-npm') === true) return;
             const plugins = Object.keys(deps);
 
             for (const i in plugins) {
                 const name = plugins[i];
-                spinner.start();
                 message(`Post Install ${chalk.cyan(name)}...`);
 
                 const dir = normalize(pluginsDir, name);
-                const actionFiles = arcli.globby([`${dir}/**/arcli-install-unattended.js`]);
+                const actionFiles = arcli.globby([
+                    `${dir}/**/arcli-install-unattended.js`,
+                ]);
                 if (actionFiles.length < 1) return;
 
                 const actions = actionFiles.reduce((obj, file, i) => {
@@ -140,7 +143,6 @@ module.exports = spinner => {
         },
 
         complete: () => {
-            console.log('');
             if (plugins.length > 0) spinner.succeed(`Installed:`);
             else spinner.succeed('complete!');
 
