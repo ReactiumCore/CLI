@@ -5,7 +5,7 @@ const ora = require('ora');
 const Actinium = require('parse/node');
 
 global.Actinium = Actinium;
-global.Hook = require('@atomic-reactor/reactium-sdk-core/lib/hook').default;
+global.Hook = require('@atomic-reactor/reactium-sdk-core/lib/sdks/hook').default;
 global.Spinner = ora({ spinner: 'dots', color: 'cyan' });
 
 // Extend
@@ -33,7 +33,6 @@ const prettier = require('prettier');
 const pm2 = require('pm2');
 const portscanner = require('portscanner');
 const generator = require('./lib/generator');
-const npm = require('npm');
 const table = require('text-table');
 const tar = require('tar');
 const slugify = require('slugify');
@@ -176,7 +175,6 @@ global.arcli = {
     mergeActions,
     message,
     moment,
-    npm,
     normalizePath,
     op,
     ora,

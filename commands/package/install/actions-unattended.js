@@ -1,4 +1,3 @@
-const npm = require('npm');
 const tar = require('tar');
 const path = require('path');
 const chalk = require('chalk');
