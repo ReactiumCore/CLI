@@ -36,7 +36,7 @@
   ],
   "dependencies": {
     "@atomic-reactor/decompress": "^4.2.5",
-    "@atomic-reactor/reactium-sdk-core": "^1.1.4",
+    "@atomic-reactor/reactium-sdk-core": "^1.2.13",
     "action-sequence": "^1.1.2",
     "axios": "^0.23.0",
     "camelcase": "^6.2.0",
