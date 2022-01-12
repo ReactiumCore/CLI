@@ -22,7 +22,7 @@ Beware:
   Update will overwrite existing ~/.core files and possibly alter the ~/package.json
 `);
 
-const CONFIRM = config =>
+const CONFIRM = ({ config }) =>
     inquirer.prompt([
         {
             type: 'confirm',
@@ -34,7 +34,7 @@ const CONFIRM = config =>
         },
     ]);
 
-const FLAGS = ['core', 'tag'];
+const FLAGS = ['core', 'tag', 'overwrite'];
 
 const FLAGS_TO_PARAMS = ({ opt = {} }) =>
     FLAGS.reduce((obj, key) => {
@@ -53,16 +53,16 @@ const ACTION = async ({ action, opt, props }) => {
 
     console.log('');
 
-    const { config, cwd, prompt } = props;
-
-    const { confirm } = await CONFIRM(config);
-
-    if (confirm !== true) {
-        message(CANCELED);
-        return;
-    }
-
     const params = FLAGS_TO_PARAMS({ opt });
+
+    if (!params.overwrite) {
+        const { confirm } = await CONFIRM(props.config);
+
+        if (confirm !== true) {
+            message(CANCELED);
+            return;
+        }
+    }
 
     return generator({ params, props })
         .then(() =>
@@ -81,6 +81,7 @@ const COMMAND = ({ program, props }) =>
         .description(DESC)
         .action((action, opt) => ACTION({ action, opt, props }))
         .option('-c, --core [core]', 'Update Reactium core only.')
+        .option('-o, --overwrite [overwrite]', 'Confirm Reactium update')
         .option('-t, --tag [tag]', 'Update to a specific Reactium version.')
         .on('--help', HELP);
 
