@@ -23,3 +23,6 @@ yarn-error.log*
 
 *.BACKUP
 /.vscode
+
+# Editor config
+*.code-workspace
