@@ -1,4 +1,3 @@
-const npm = require('npm');
 const path = require('path');
 const chalk = require('chalk');
 const fs = require('fs-extra');
