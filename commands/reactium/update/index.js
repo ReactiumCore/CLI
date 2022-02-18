@@ -22,7 +22,7 @@ Beware:
   Update will overwrite existing ~/.core files and possibly alter the ~/package.json
 `);
 
-const CONFIRM = ({ config }) =>
+const CONFIRM = config =>
     inquirer.prompt([
         {
             type: 'confirm',
