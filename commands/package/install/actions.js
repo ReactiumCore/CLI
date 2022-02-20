@@ -151,10 +151,10 @@ module.exports = spinner => {
                 fs.emptyDirSync(dir);
                 fs.moveSync(tmp, dir, { overwrite: true });
 
-                fs.ensureDirSync(normalize(dir, '_npm'));
+                fs.ensureDirSync(normalize(dir, 'npm'));
                 fs.copySync(
                     normalize(dir, 'package.json'),
-                    normalize(dir, '_npm', 'package.json'),
+                    normalize(dir, 'npm', 'package.json'),
                     { overwrite: true },
                 );
             } catch (error) {
@@ -197,7 +197,7 @@ module.exports = spinner => {
 
             console.log('');
 
-            const pkg = normalize(`${app}_modules`, slugify(name), '_npm');
+            const pkg = normalize(`${app}_modules`, slugify(name), 'npm');
             try {
                 await arcli.runCommand('npm', ['uninstall', pkg]);
                 await arcli.runCommand('npm', ['install', pkg]);

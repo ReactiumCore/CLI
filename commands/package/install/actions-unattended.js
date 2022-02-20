@@ -79,6 +79,10 @@ module.exports = spinner => {
             console.log('');
 
             if (op.get(params, 'save')) {
+                // Kill package-lock.json
+                const packageLockPath = normalize(cwd, 'package-lock.json');
+                fs.removeSync(packageLockPath);
+
                 const packageJsonPath = normalize(cwd, 'package.json');
                 const pkg = require(packageJsonPath);
 
@@ -88,7 +92,7 @@ module.exports = spinner => {
 
                     const name = nameArr.join('@');
 
-                    const pkgPath = normalize(`${app}_modules`, name, '_npm');
+                    const pkgPath = normalize(`${app}_modules`, name, 'npm');
                     op.set(pkg, `dependencies.${name}`, `file:${pkgPath}`);
                 }
 
