@@ -83,6 +83,10 @@ module.exports = spinner => {
                 const packageLockPath = normalize(cwd, 'package-lock.json');
                 fs.removeSync(packageLockPath);
 
+                // Kill node_modules directory
+                const nodeModules = normalize(cwd, 'node_modules'); 
+                fs.removeSync(nodeModules);
+
                 const packageJsonPath = normalize(cwd, 'package.json');
                 const pkg = require(packageJsonPath);
 
