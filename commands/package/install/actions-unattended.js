@@ -96,7 +96,7 @@ module.exports = spinner => {
 
                     const name = nameArr.join('@');
 
-                    const pkgPath = normalize(`${app}_modules`, name, 'npm');
+                    const pkgPath = normalize(`${app}_modules`, name, '_npm');
                     op.set(pkg, `dependencies.${name}`, `file:${pkgPath}`);
                 }
 
