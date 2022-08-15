@@ -103,7 +103,12 @@ module.exports = spinner => {
 
             fs.ensureDirSync(tmpDir);
             fs.emptyDirSync(tmpDir);
-            fs.copySync(cwd, tmpDir);
+            fs.copySync(cwd, tmpDir, {
+                filter: (src, dest) => {
+                    if (/_npm/.test(src)) return false;
+                    return true;
+                },
+            });
         },
         compress: ({ params, props }) => {
             const { pkg, tmpDir } = params;
