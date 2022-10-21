@@ -1,4 +1,4 @@
-const chalk = require('chalk');
+const { chalk } = arcli;
 
 module.exports = spinner => {
     const emit = text => {
@@ -8,9 +8,9 @@ module.exports = spinner => {
 
     return {
         // options: { action, params, props }
-        create: options => {
+        create: ({action, params, props}) => {
             emit(`Creating ${chalk.cyan('something')}...`);
-            console.log(options);
+            console.log({action, params, props});
         },
     };
 };

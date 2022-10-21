@@ -1,4 +1,5 @@
 
+require('../bootstrap');
 const generator = require('../commands/reactium/install/generator');
 const config    = require("../config.json");
 const expect    = require('chai').expect;
@@ -13,6 +14,7 @@ const props =  {
 const params = {
     overwrite: true,
     confirm: true,
+    quick: true
 };
 
 describe(`arcli re:install -> ${props.cwd}`, function () {

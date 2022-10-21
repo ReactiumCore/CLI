@@ -1,29 +1,20 @@
-const ora = require('ora');
-const ActionSequence = require('action-sequence');
-
-module.exports = ({ params, props }) => {
+module.exports = async ({ actions, params, props }) => {
+    const { Spinner: spinner, ActionSequence, chalk } = global.arcli;
+    
     console.log('');
-    const spinner = ora({
-        spinner: 'dots',
-        color: 'cyan',
-    });
-
     spinner.start();
 
-    const actions = require('./actions')(spinner);
-
-    return ActionSequence({
-        actions,
-        options: { params, props },
-    })
-        .then(success => {
-            spinner.succeed('complete!');
-            console.log('');
-            return success;
-        })
-        .catch(error => {
-            spinner.fail('error!');
-            console.error(error);
-            return error;
+    try {
+        const success = await ActionSequence({
+            actions,
+            options: { arcli, params, props },
         });
+
+        spinner.succeed('complete!');
+        return success;
+    } catch (error) {
+        spinner.fail(error.message ? error.message : 'failed!');
+        console.error(chalk.red('Error'), error.message ? error.message : error);
+        throw error;
+    }
 };

@@ -232,8 +232,10 @@ module.exports = spinner => {
             fs.removeSync(normalize(cwd, 'tmp'));
         },
 
-        deps: ({ props }) => {
-            if (cancelled) return;
+        deps: ({ params }) => {
+            const { quick } = params;
+
+            if (cancelled || quick) return;
             if (spinner) spinner.stop();
 
             console.log('');

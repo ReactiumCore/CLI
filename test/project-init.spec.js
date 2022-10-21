@@ -1,3 +1,4 @@
+require('../bootstrap');
 const path = require('path');
 const fs = require('fs-extra');
 const op = require('object-path');
@@ -23,7 +24,7 @@ describe(`arcli project <init>`, function(done) {
 
         generator({ props, params, arcli: bootstrap })
             .then(success => {
-                expect(Object.values(success)).to.have.lengthOf(1);
+                expect(success).to.deep.equal({ package: true, updateConfig: true });
                 fs.removeDirSync(cwd);
                 done();
             })

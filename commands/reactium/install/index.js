@@ -33,7 +33,7 @@ const OVERWRITE = config =>
         },
     ]);
 
-const FLAGS = ['tag', 'overwrite', 'empty'];
+const FLAGS = ['tag', 'overwrite', 'empty', 'quick'];
 
 const FLAGS_TO_PARAMS = ({ opt = {} }) =>
     FLAGS.reduce((obj, key) => {
@@ -92,6 +92,7 @@ const COMMAND = ({ program, props }) => {
             'Overwrite the current directory.',
         )
         .option('-t, --tag [tag]', 'Install a specific Reactium version.')
+        .option('-q, --quick', 'Do not download dependencies.')
         .option(
             '-e, --empty [empty]',
             'Install without demo site and components.',

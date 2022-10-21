@@ -1,5 +1,4 @@
-const chalk = require('chalk');
-const generator = require('./generator');
+const { Spinner, chalk, generator, message, op, prefix, flagsToParams } = arcli;
 
 const NAME = '{{{command}}}';
 const CANCELED = '{{{command}}} canceled!';
@@ -21,7 +20,7 @@ const CONFORM = (input, props) =>
     }, {});
 
 const PREFLIGHT = ({ msg, params }) => {
-    arcli.message(msg || 'Preflight checklist:');
+    message(msg || 'Preflight checklist:');
     console.log(JSON.stringify(params, null, 2));
     console.log('');
 };
@@ -31,7 +30,7 @@ const INPUT = ({ inquirer }) =>
         {
             type: 'input',
             name: 'sample',
-            prefix: arcli.prefix,
+            prefix,
             message: 'Sample Input',
             suffix: chalk.magenta(': '),
         },
@@ -44,7 +43,7 @@ const CONFIRM = ({ inquirer }) =>
             type: 'confirm',
             name: 'confirm',
             message: 'Proceed?',
-            prefix: arcli.prefix,
+            prefix,
             suffix: chalk.magenta(': '),
         },
     ]);
@@ -52,7 +51,7 @@ const CONFIRM = ({ inquirer }) =>
 const ACTION = async ({ opt, props }) => {
     const flags = ['sample'];
 
-    let params = arcli.flagsToParams({ opt, flags });
+    let params = flagsToParams({ opt, flags });
 
     const userInput = await INPUT(props, params);
     Object.entries(userInput).forEach(([key, val]) => (params[key] = val));
@@ -63,20 +62,22 @@ const ACTION = async ({ opt, props }) => {
 
     const { confirm } = await CONFIRM(props);
     if (confirm !== true) {
-        arcli.message(CANCELED);
+        message(CANCELED);
         return;
     }
 
-    return generator({ params, props }).catch(err =>
-        arcli.message(arcli.op.get(err, 'message', CANCELED)),
-    );
+    return generator({
+        actions: require('./actions')(Spinner),
+        params,
+        props,
+    }).catch((err) => message(op.get(err, 'message', CANCELED)));
 };
 
 const COMMAND = ({ program, props }) =>
     program
         .command(NAME)
         .description(DESC)
-        .action(opt => ACTION({ opt, props }))
+        .action((opt) => ACTION({ opt, props }))
         .option('-s, --sample [sample]', 'Sample parameter.')
         .on('--help', HELP);
 

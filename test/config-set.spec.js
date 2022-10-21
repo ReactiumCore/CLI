@@ -1,4 +1,5 @@
 
+require('../bootstrap');
 const generator = require('../commands/config/set/generator');
 const config    = require("../config.json");
 const expect    = require('chai').expect;

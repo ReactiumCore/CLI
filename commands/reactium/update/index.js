@@ -34,7 +34,7 @@ const CONFIRM = config =>
         },
     ]);
 
-const FLAGS = ['core', 'tag', 'overwrite'];
+const FLAGS = ['core', 'tag', 'overwrite', 'quick'];
 
 const FLAGS_TO_PARAMS = ({ opt = {} }) =>
     FLAGS.reduce((obj, key) => {
@@ -83,6 +83,7 @@ const COMMAND = ({ program, props }) =>
         .option('-c, --core [core]', 'Update Reactium core only.')
         .option('-o, --overwrite [overwrite]', 'Confirm Reactium update')
         .option('-t, --tag [tag]', 'Update to a specific Reactium version.')
+        .option('-q, --quick', 'Do not install dependencies.')
         .on('--help', HELP);
 
 module.exports = {

@@ -90,7 +90,9 @@ module.exports = spinner => {
             });
         },
 
-        deps: ({ props }) => {
+        deps: ({ params }) => {
+            console.log({params});
+            if (params.quick) return;
             if (spinner) spinner.stop();
             console.log('');
             console.log(`Installing ${chalk.cyan('Reactium')} dependencies...`);

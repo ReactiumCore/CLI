@@ -8,7 +8,6 @@ const ActionSequence = require('action-sequence');
 const { arcli, Hook, Spinner } = global;
 
 const normalize = arcli.normalizePath;
-const mod = path.dirname(require.main.filename);
 
 module.exports = () => {
     const cwd = op.get(arcli, 'props.cwd');
@@ -21,7 +20,7 @@ module.exports = () => {
 
             Spinner.message('Creating', chalk.cyan('package.json') + '...');
 
-            const pkg = require(`${mod}/commands/project/init/template/package`);
+            const pkg = require(`${arcli.props.root}/commands/project/init/template/package`);
 
             pkg.name = params.project;
 
@@ -35,7 +34,7 @@ module.exports = () => {
 
             const config = op.get(props, 'config', {});
 
-            const { update } = require(`${mod}/commands/config/set/actions`)(
+            const { update } = require(`${props.root}/commands/config/set/actions`)(
                 Spinner,
             );
 
