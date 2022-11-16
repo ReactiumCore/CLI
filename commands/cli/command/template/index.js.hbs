@@ -73,7 +73,7 @@ const ACTION = async ({ opt, props }) => {
     }).catch((err) => message(op.get(err, 'message', CANCELED)));
 };
 
-const COMMAND = ({ program, props }) =>
+export const COMMAND = ({ program, props }) =>
     program
         .command(NAME)
         .description(DESC)
@@ -81,7 +81,4 @@ const COMMAND = ({ program, props }) =>
         .option('-s, --sample [sample]', 'Sample parameter.')
         .on('--help', HELP);
 
-module.exports = {
-    COMMAND,
-    NAME,
-};
+export const ID = NAME;
