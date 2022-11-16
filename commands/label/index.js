@@ -4,14 +4,9 @@
  * -----------------------------------------------------------------------------
  */
 
-const chalk = require('chalk');
-const prettier = require('prettier');
-const path = require('path');
-const op = require('object-path');
-const mod = path.dirname(require.main.filename);
-const { error, message } = require(`${mod}/lib/messenger`);
-const GENERATOR = require(`${mod}/commands/config/set/generator`);
-const fs = require('fs-extra');
+import fs from 'fs-extra';
+
+const { chalk, message, op, prettier } = arcli;
 
 /**
  * NAME String
@@ -20,7 +15,7 @@ const fs = require('fs-extra');
  * @see https://www.npmjs.com/package/commander#command-specific-options
  * @since 2.0.0
  */
-const NAME = 'label';
+export const NAME = 'label';
 
 /**
  * DESC String
@@ -139,24 +134,6 @@ const FLAGS_TO_PARAMS = ({ opt = {} }) =>
         return obj;
     }, {});
 
-/**
- * PREFLIGHT Function
- */
-const PREFLIGHT = ({ msg, params, props }) => {
-    msg = msg || 'Preflight checklist:';
-
-    message(msg);
-
-    // Transform the preflight object instead of the params object
-    const preflight = { ...params };
-
-    console.log(
-        prettier.format(JSON.stringify(preflight), {
-            parser: 'json-stringify',
-        }),
-    );
-};
-
 const resolveAliasesFactory = props => value => {
     const { root, cwd } = props;
 
@@ -174,7 +151,6 @@ const resolveAliasesFactory = props => value => {
  * @since 2.0.0
  */
 const SCHEMA = ({ props }) => {
-    const { cwd, config } = props;
     const resolveAliases = resolveAliasesFactory(props);
 
     return {
@@ -212,8 +188,8 @@ const SCHEMA = ({ props }) => {
  * @param props Object The CLI props passed from the calling class `orcli.js`.
  * @since 2.0.0
  */
-const ACTION = ({ opt, props }) => {
-    const { cwd, prompt, config } = props;
+const ACTION = async ({ opt, props }) => {
+    const { prompt, config } = props;
     const schema = SCHEMA({ props });
     const ovr = FLAGS_TO_PARAMS({ opt });
 
@@ -221,6 +197,8 @@ const ACTION = ({ opt, props }) => {
     prompt.start();
 
     let params = {};
+
+    const GENERATOR = await import(`${root}/commands/config/set/generator`);
 
     return new Promise((resolve, reject) => {
         prompt.get(schema, (err, input = {}) => {
@@ -249,9 +227,7 @@ const ACTION = ({ opt, props }) => {
         .then(() => CONFIRM({ props, params }))
         .then(() => GENERATOR({ params, props }))
         .then(() => prompt.stop())
-        .then(results => {
-            console.log('');
-        })
+        .then(() => console.log(''))
         .catch(err => {
             prompt.stop();
             message(op.get(err, 'message', CANCELED));
@@ -262,7 +238,7 @@ const ACTION = ({ opt, props }) => {
  * COMMAND Function
  * @description Function that executes program.command()
  */
-const COMMAND = ({ program, props }) =>
+export const COMMAND = ({ program, props }) =>
     program
         .command(NAME)
         .description(DESC)
@@ -270,15 +246,3 @@ const COMMAND = ({ program, props }) =>
         .option('-p, --path [path]', 'Path to label.')
         .option('-k, --key [key]', 'Key to use for directory label.')
         .on('--help', HELP);
-
-/**
- * Module Constructor
- * @description Internal constructor of the module that is being exported.
- * @param program Class Commander.program reference.
- * @param props Object The CLI props passed from the calling class `arcli.js`.
- * @since 2.0.0
- */
-module.exports = {
-    COMMAND,
-    NAME,
-};
