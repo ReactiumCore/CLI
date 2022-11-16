@@ -1,10 +1,11 @@
-const path = require('path');
-const chalk = require('chalk');
-const fs = require('fs-extra');
-const semver = require('semver');
-const pkg = require('./package');
-const op = require('object-path');
-const inquirer = require('inquirer');
+
+import chalk from 'chalk';
+import fs from 'fs-extra';
+import semver from 'semver';
+import path from 'node:path';
+import op from 'object-path';
+import inquirer from 'inquirer';
+import pkg from './package.json' assert { type: 'json'};
 
 const utils = {
     normalize: (...args) => path.normalize(path.join(process.cwd(), ...args)),
