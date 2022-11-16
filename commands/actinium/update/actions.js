@@ -1,14 +1,14 @@
-const path = require('path');
-const chalk = require('chalk');
-const fs = require('fs-extra');
-const pkg = require('./package');
-const semver = require('semver');
-const op = require('object-path');
-const request = require('request');
-const inquirer = require('inquirer');
-const decompress = require('@atomic-reactor/decompress');
+import path from 'path';
+import chalk from 'chalk';
+import fs from 'fs-extra';
+import semver from 'semver';
+import op from 'object-path';
+import request from 'request';
+import inquirer from 'inquirer';
+import decompress from '@atomic-reactor/decompress';
+import pkg from './package.json' assert { type: 'json'};
 
-module.exports = spinner => {
+export default spinner => {
     let cancelled = false;
 
     const message = text => {

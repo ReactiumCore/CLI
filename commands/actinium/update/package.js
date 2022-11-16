@@ -1,9 +1,10 @@
-const path = require('path');
-const _ = require('underscore');
-const op = require('object-path');
-const prettier = require('prettier');
+import path from 'path';
+import fs from 'fs-extra';
+import _ from 'underscore';
+import op from 'object-path';
+import prettier from 'prettier';
 
-module.exports = (props, updatePath) => {
+export default (props, updatePath) => {
     const { cwd } = props;
     const packageFile = path.normalize(`${cwd}/package.json`);
     const updatePackageJson = path.normalize(`${updatePath}/package.json`);
@@ -13,18 +14,23 @@ module.exports = (props, updatePath) => {
 
     let pkg, actiniumConfig, updatePackage;
 
-    // Get the .core/actinium-config.js file;
+    // Read the updated actinium-config.js file
     try {
-        updatePackage = require(updatePackageJson);
-        actiniumConfig = require(actiniumConfigFile);
+        updatePackage = fs.readJsonSync(updatePackageJson);
     } catch (err) {
         updatePackage = {};
+    }
+
+    // Read the current actinium-config.js file
+    try {
+        actiniumConfig = fs.readJsonSync(actiniumConfigFile);
+    } catch (err) {
         actiniumConfig = {};
     }
 
     // Get the cwd package.json
     try {
-        pkg = require(packageFile);
+        pkg = fs.readJsonSync(packageFile);
     } catch (err) {
         pkg = {};
     }

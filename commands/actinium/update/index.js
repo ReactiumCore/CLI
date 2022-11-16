@@ -1,10 +1,7 @@
-const path = require('path');
-const chalk = require('chalk');
-const op = require('object-path');
-const inquirer = require('inquirer');
-const generator = require('./generator');
-const mod = path.dirname(require.main.filename);
-const { message } = require(`${mod}/lib/messenger`);
+import chalk from 'chalk';
+import op from 'object-path';
+import inquirer from 'inquirer';
+import generator from './generator.js';
 
 const NAME = 'actinium <update>';
 const DESC = 'Actinium: Update core';
@@ -44,6 +41,7 @@ const FLAGS_TO_PARAMS = ({ opt = {} }) =>
 
 const ACTION = async ({ action, opt, props }) => {
     if (action !== 'update') return;
+    const { message } = arcli;
 
     console.log('');
 
@@ -69,7 +67,7 @@ const ACTION = async ({ action, opt, props }) => {
         .catch(err => message(op.get(err, 'message', CANCELED)));
 };
 
-const COMMAND = ({ program, props }) =>
+export const COMMAND = ({ program, props }) =>
     program
         .command(NAME)
         .description(DESC)
@@ -77,7 +75,4 @@ const COMMAND = ({ program, props }) =>
         .option('-t, --tag [tag]', 'Update to a specific Actinium version.')
         .on('--help', HELP);
 
-module.exports = {
-    COMMAND,
-    ID: NAME,
-};
+export const ID = NAME;
