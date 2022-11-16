@@ -26,7 +26,7 @@ import slugify from 'slugify';
 import request from 'request';
 import DeleteEmpty from 'delete-empty';
 import ActionSequence from 'action-sequence';
-import { message } from './lib/messenger.js';
+import { error, message } from './lib/messenger.js';
 
 const importer = (path, options) => {
     options = options || {}; 
@@ -180,6 +180,7 @@ const bootstrap = async () => {
         commands,
         crypto,
         deleteEmpty,
+        error,
         flagsToParams,
         fs,
         path,

@@ -1,27 +1,27 @@
+import ora from 'ora';
+import Actions from './actions.js';
+import ActionSequence from 'action-sequence';
 
-const ora = require('ora');
-const ActionSequence = require('action-sequence');
+export default ({ params, props }) => {
+    const spinner = ora({
+        spinner: 'dots',
+        color: 'cyan',
+    });
 
-
-const spinner = ora({
-    spinner : 'dots',
-    color   : 'cyan'
-});
-
-const actions = require('./actions')(spinner);
-
-module.exports = ({ params, props }) => {
+    const actions = Actions(spinner);
     spinner.start();
 
     return ActionSequence({
         actions,
-        options: { params, props }
-    }).then((success) => {
-        spinner.succeed('Config set complete!');
-        return success;
-    }).catch((error) => {
-        spinner.fail('Config set error!');
-        console.log(error);
-        return error;
-    });
+        options: { params, props },
+    })
+        .then(success => {
+            spinner.succeed('Config set complete!');
+            return success;
+        })
+        .catch(error => {
+            spinner.fail('Config set error!');
+            console.log(error);
+            return error;
+        });
 };
