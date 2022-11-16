@@ -1,12 +1,6 @@
-const path = require('path');
-const mod = path.dirname(require.main.filename);
-const homedir = require('os').homedir();
-const auth = require(`${mod}/lib/auth`);
-const prettier = require('prettier');
-const op = require('object-path');
-const _ = require('underscore');
-const chalk = require('chalk');
-const fs = require('fs-extra');
+import chalk from 'chalk';
+import _ from 'underscore';
+import op from 'object-path';
 
 const { arcli } = global;
 
@@ -17,30 +11,28 @@ module.exports = spinner => {
         }
     };
 
-    let sessionToken;
+    let UpdateActions, Auth, sessionToken;
+    const { root } = global.arcli.props;
+
+    const authFilePath = `${root}/lib/auth`;
+    const updateActionsFilePath = `${root}/commands/config/set/actions`;
 
     return {
-        auth: ({ action, params, props }) => {
+        init: async () => {
+            Auth = await import(authFilePath);
+            UpdateActions = await import(updateActionsFilePath);
+        },
+        auth: async ({ action, params, props }) => {
             if (op.get(params, 'username')) {
                 message(`Authenticating${chalk.cyan('...')}`);
             }
 
-            return auth({ params, props }).then(result => {
-                sessionToken = result;
-            });
+            sessionToken = await Auth({ params, props });
         },
-        authUpdateConfig: ({ action, params, props }) => {
-            const configFilePath = path.normalize(
-                path.join(homedir, '.arcli', 'config.json'),
-            );
-
+        authUpdateConfig: async ({ action, params, props }) => {
             let config = op.get(props, 'config', {});
 
             if (op.get(config, 'registry.sessionToken') !== sessionToken) {
-                const { update } = require(`${mod}/commands/config/set/actions`)(
-                    spinner,
-                );
-
                 if (op.get(params, 'server')) {
                     op.set(config, 'registry.server', params.server);
                 }
@@ -48,7 +40,12 @@ module.exports = spinner => {
                 op.set(config, 'registry.sessionToken', sessionToken);
                 arcli.props.config = config;
                 op.set(params, 'newConfig', config);
-                return update({ action: 'update', params, props });
+                
+                return UpdateActions.update({
+                    action: 'update',
+                    params,
+                    props,
+                });
             }
         },
     };

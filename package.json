@@ -4,8 +4,8 @@
   "description": "A CLI for creating Atomic Reactor Awesomeness",
   "type": "module",
   "scripts": {
-    "test": "node ./arcli.js",
-    "testx": "run-s test:*",
+    "test": "run-s test:*",
+    "test:pg": "mocha ./test/blah.spec.js",
     "test:reactium-install": "mocha ./test/reactium-install.spec.js",
     "test:config-set": "mocha ./test/config-set.spec.js",
     "test:reactium-update": "mocha ./test/reactium-update.spec.js",
