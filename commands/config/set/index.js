@@ -182,7 +182,7 @@ const SCHEMA = ({ props }) => {
                 default: 'string',
                 description: `${chalk.white('Type:')} ${typeList}\n    ${chalk.white('Select:')}`,
                 before: (val) => {
-                    val = Number(String(val).substr(0, 1)) - 1;
+                    val = Number(String(val).substring(0, 1)) - 1;
                     return types[val];
                 }
             },

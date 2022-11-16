@@ -1,21 +1,23 @@
 {
   "name": "@atomic-reactor/cli",
-  "version": "2.2.78",
+  "version": "3.0.0",
   "description": "A CLI for creating Atomic Reactor Awesomeness",
-  "main": "arcli-node.js",
+  "type": "module",
   "scripts": {
-    "test": "run-s test:*",
+    "test": "node ./arcli.js",
+    "testx": "run-s test:*",
     "test:reactium-install": "mocha ./test/reactium-install.spec.js",
     "test:config-set": "mocha ./test/config-set.spec.js",
     "test:reactium-update": "mocha ./test/reactium-update.spec.js",
     "test:project-init": "mocha ./test/project-init.spec.js",
+    "test:glob": "mocha ./test/glob.spec.js",
     "pub": "node ./prepublish.js && npm publish"
   },
   "author": "Reactium LLC",
   "license": "MIT",
   "engines": {
-    "node": ">=8.11.4",
-    "npm": ">=6.4.1"
+    "node": ">=18.12.1",
+    "npm": ">=9.1.1"
   },
   "repository": {
     "type": "git",
@@ -49,12 +51,14 @@
     "folder-zipper": "^1.0.0",
     "fs-extra": "^10.1.0",
     "fs-readdir-recursive": "^1.1.0",
-    "globby": "^11.0.3",
+    "globby": "^13.1.2",
     "handlebars": "^4.7.7",
+    "ignored": "^2.0.4",
     "inquirer": "^7.3.3",
     "inquirer-autocomplete-prompt": "^1.0.2",
     "inquirer-fuzzy-path": "^2.3.0",
     "memory-cache": "^0.2.0",
+    "micromatch": "^4.0.5",
     "moment": "^2.29.4",
     "object-path": "^0.11.8",
     "ora": "^5.1.0",

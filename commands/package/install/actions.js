@@ -48,7 +48,7 @@ module.exports = spinner => {
             }
 
             name = _.compact(String(name).split('@'))[0];
-            name = String(params.name).substr(0, 1) === '@' ? `@${name}` : name;
+            name = String(params.name).substring(0, 1) === '@' ? `@${name}` : name;
 
             dir = normalize(cwd, app + '_modules', slugify(name));
 

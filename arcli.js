@@ -1,227 +1,234 @@
 #!/usr/bin/env node
 
-'use strict';
+import chalk from 'chalk';
+import fs from 'fs-extra';
+import axios from 'axios';
+import _ from 'underscore';
+import moment from 'moment';
+import semver from 'semver';
+import prompt from 'prompt';
+import op from 'object-path';
+import inquirer from 'inquirer';
+import commander from 'commander';
+import strapboot from './bootstrap.js';
+import fuzzyPath from 'inquirer-fuzzy-path';
+import autoComplete from 'inquirer-autocomplete-prompt';
 
-// Imports
-const chalk = require('chalk');
-const fs = require('fs-extra');
-const axios = require('axios');
-const _ = require('underscore');
-const moment = require('moment');
-const semver = require('semver');
-const prompt = require('prompt');
-const op = require('object-path');
-const inquirer = require('inquirer');
-const bootstrap = require('./bootstrap');
-const { createCommand } = require('commander');
+(async () => {
+    const bootstrap = await strapboot();
 
-// Extend inquirer
-inquirer.registerPrompt('fuzzypath', require('inquirer-fuzzy-path'));
-inquirer.registerPrompt(
-    'autocomplete',
-    require('inquirer-autocomplete-prompt'),
-);
+    const { createCommand } = commander;
 
-// Extend arcli props
-global.arcli.props.inquirer = inquirer;
-global.arcli.props.prompt = prompt;
-global.arcli.prefix = chalk.cyan(
-    String(arcli.props.config.prompt.prefix).trim(),
-);
+    // Extend inquirer
+    inquirer.registerPrompt('fuzzypath', fuzzyPath);
+    inquirer.registerPrompt('autocomplete', autoComplete);
 
-const { props } = bootstrap;
-const { config, ver } = props;
+    // // Extend arcli props
+    // global.arcli.props.inquirer = inquirer;
+    // global.arcli.props.prompt = prompt;
+    // global.arcli.prefix = chalk.cyan(
+    //     String(arcli.props.config.prompt.prefix).trim(),
+    // );
 
-props.commands = {};
-props.subcommands = {};
+    // const { props } = bootstrap;
+    // const { config, ver } = props;
 
-const cmds = globs => {
-    const commands = props.commands;
-    const subcommands = props.subcommands;
+    // props.commands = {};
+    // props.subcommands = {};
 
-    globs.forEach(cmd => {
-        let req;
+    // const cmds = async globs => {
+    //     const commands = props.commands;
+    //     const subcommands = props.subcommands;
 
-        try {
-            req = require(cmd);
-        } catch (err) {
-            console.log(err);
-            req = () => {};
-        }
+    //     for (let i = 0; i < globs.length; i++) {
+    //         const cmd = globs[i];
 
-        if (op.has(req, 'COMMAND') && typeof req.COMMAND === 'function') {
-            if (op.has(req, 'NAME')) {
-                commands[req.NAME] = req;
-            } else {
-                if (op.has(req, 'ID')) {
-                    let { ID } = req;
-                    ID = String(ID)
-                        .replace(/\<|\>/g, '')
-                        .replace(/\s/g, '.');
-                    op.set(subcommands, ID, req);
-                }
-            }
-        }
-    });
-};
+    //         try {
+    //             req = await import(cmd);
+    //         } catch (err) {
+    //             console.log(err);
+    //             req = () => {};
+    //         }
 
-const attachCommands = ({ program, props, arcli }) => {
-    program.storeOptionsAsProperties(false);
-    program.passCommandToAction(false);
-    program.addHelpCommand(false);
+    //         if (op.has(req, 'COMMAND') && typeof req.COMMAND === 'function') {
+    //             if (op.has(req, 'NAME')) {
+    //                 commands[req.NAME] = req;
+    //             } else {
+    //                 if (op.has(req, 'ID')) {
+    //                     let { ID } = req;
+    //                     ID = String(ID)
+    //                         .replace(/\<|\>/g, '')
+    //                         .replace(/\s/g, '.');
+    //                     op.set(subcommands, ID, req);
+    //                 }
+    //             }
+    //         }
+    //     }
+    // };
 
-    const commands = props.commands;
+    // const attachCommands = ({ program, props, arcli }) => {
+    //     program.storeOptionsAsProperties(false);
+    //     program.passCommandToAction(false);
+    //     program.addHelpCommand(false);
 
-    // Apply commands
-    Object.values(commands).forEach(req =>
-        req.COMMAND({ program, props, arcli }),
-    );
+    //     const commands = props.commands;
 
-    // Configure prompt
-    prompt.message = chalk[config.prompt.prefixColor](config.prompt.prefix);
-    prompt.delimiter = config.prompt.delimiter;
+    //     // Apply commands
+    //     Object.values(commands).forEach(req =>
+    //         req.COMMAND({ program, props, arcli }),
+    //     );
 
-    // Initialize the CLI
-    program.version(ver, '-v, --version');
-    program.usage('<command> [options]');
-};
+    //     // Configure prompt
+    //     prompt.message = chalk[config.prompt.prefixColor](config.prompt.prefix);
+    //     prompt.delimiter = config.prompt.delimiter;
 
-const validArguments = program => {
-    const commands = props.commands;
+    //     // Initialize the CLI
+    //     program.version(ver, '-v, --version');
+    //     program.usage('<command> [options]');
+    // };
 
-    // Is valid command?
-    if (process.argv.length > 2) {
-        const command = process.argv[2];
-        const isFlag = String(command).substr(0, 1) === '-';
+    // const validArguments = program => {
+    //     const commands = props.commands;
 
-        if (
-            !Object.keys(commands).find(key =>
-                new RegExp(`^${command}`).test(key),
-            ) &&
-            !isFlag
-        ) {
-            console.log('\n');
-            console.log(chalk.red('Invalid command:'), chalk.cyan(command));
-            console.log('\n');
-            program.help();
-            return false;
-        }
-    }
+    //     // Is valid command?
+    //     if (process.argv.length > 2) {
+    //         const command = process.argv[2];
+    //         const isFlag = String(command).substring(0, 1) === '-';
 
-    return true;
-};
+    //         if (
+    //             !Object.keys(commands).find(key =>
+    //                 new RegExp(`^${command}`).test(key),
+    //             ) &&
+    //             !isFlag
+    //         ) {
+    //             console.log('\n');
+    //             console.log(chalk.red('Invalid command:'), chalk.cyan(command));
+    //             console.log('\n');
+    //             program.help();
+    //             return false;
+    //         }
+    //     }
 
-const shortInit = () => {
-    return new Promise((resolve, reject) => {
-        const program = createCommand();
+    //     return true;
+    // };
 
-        // allow unknown options for short init
-        program.allowUnknownOption(true);
+    // const shortInit = () => {
+    //     return new Promise((resolve, reject) => {
+    //         const program = createCommand();
 
-        // prevent exit on error
-        program.exitOverride();
+    //         // allow unknown options for short init
+    //         program.allowUnknownOption(true);
 
-        // root commands only
-        cmds(bootstrap.rootCommands());
+    //         // prevent exit on error
+    //         program.exitOverride();
 
-        // go to long init if help
-        const { operands = [], unknown: flags = [] } = program.parseOptions([
-            ...process.argv,
-        ]);
+    //         // root commands only
+    //         cmds(bootstrap.rootCommands());
 
-        if (String(_.last(operands)).endsWith('arcli') && flags.length === 0) {
-            reject('help');
-            return;
-        }
+    //         // go to long init if help
+    //         const { operands = [], unknown: flags = [] } = program.parseOptions(
+    //             [...process.argv],
+    //         );
 
-        if (flags.find(flag => flag === '-h' || flag === '--help')) {
-            reject('help');
-            return;
-        }
+    //         if (
+    //             String(_.last(operands)).endsWith('arcli') &&
+    //             flags.length === 0
+    //         ) {
+    //             reject('help');
+    //             return;
+    //         }
 
-        try {
-            // attach all root commands
-            attachCommands({ program, props, arcli });
+    //         if (flags.find(flag => flag === '-h' || flag === '--help')) {
+    //             reject('help');
+    //             return;
+    //         }
 
-            // ignore unknown command for short init
-            const [, , commandOperand] = operands;
-            // private commander api, may change
-            if (commandOperand && !program._findCommand(commandOperand)) {
-                reject('unknown command');
-                return;
-            }
+    //         try {
+    //             // attach all root commands
+    //             attachCommands({ program, props, arcli });
 
-            program.parse(process.argv);
-            resolve();
-        } catch (error) {
-            // ignore commander.version error
-            if (error.code === 'commander.version') {
-                resolve();
-                return;
-            }
+    //             // ignore unknown command for short init
+    //             const [, , commandOperand] = operands;
+    //             // private commander api, may change
+    //             if (commandOperand && !program._findCommand(commandOperand)) {
+    //                 reject('unknown command');
+    //                 return;
+    //             }
 
-            reject(error);
-        }
-    });
-};
+    //             program.parse(process.argv);
+    //             resolve();
+    //         } catch (error) {
+    //             // ignore commander.version error
+    //             if (error.code === 'commander.version') {
+    //                 resolve();
+    //                 return;
+    //             }
 
-const longInit = () => {
-    const program = createCommand();
+    //             reject(error);
+    //         }
+    //     });
+    // };
 
-    // search for commands
-    cmds(bootstrap.commands());
+    // const longInit = () => {
+    //     const program = createCommand();
 
-    // attach all commands to commander
-    attachCommands({ program, props, arcli });
+    //     // search for commands
+    //     cmds(bootstrap.commands());
 
-    if (!validArguments(program)) process.exit(1);
+    //     // attach all commands to commander
+    //     attachCommands({ program, props, arcli });
 
-    // Start the CLI
-    program.parse(process.argv);
+    //     if (!validArguments(program)) process.exit(1);
 
-    // Output the help if nothing is passed
-    if (!process.argv.slice(2).length) program.help();
-};
+    //     // Start the CLI
+    //     program.parse(process.argv);
 
-const initialize = async () => {
-    props.args = process.argv.filter(item => String(item).substr(0, 1) !== '-');
+    //     // Output the help if nothing is passed
+    //     if (!process.argv.slice(2).length) program.help();
+    // };
 
-    // try short init before looking for commands everywhere
-    try {
-        await shortInit().catch(longInit);
-    } catch (err) {}
-};
+    // const initialize = async () => {
+    //     props.args = process.argv.filter(
+    //         item => String(item).substring(0, 1) !== '-',
+    //     );
 
-const lastCheck = op.get(props.config, 'updated', Date.now());
-const lastUpdateCheck = moment().diff(moment(new Date(lastCheck)), 'days');
+    //     // try short init before looking for commands everywhere
+    //     try {
+    //         await shortInit().catch(longInit);
+    //     } catch (err) {}
+    // };
 
-if (lastUpdateCheck > 1) {
-    axios
-        .get(
-            'https://raw.githubusercontent.com/Atomic-Reactor/CLI/master/package.json',
-        )
-        .then(result => {
-            const { version: currentVersion } = result.data;
-            if (semver.lt(ver, currentVersion)) {
-                console.log('\n');
-                console.log(
-                    chalk.red(
-                        `Yo... you're using ARCLI version: ${ver}. You should update to ${currentVersion}`,
-                    ),
-                );
-                console.log(chalk.cyan('  $ npm i -g @atomic-reactor/cli'));
-                console.log('\n');
-            }
-        })
-        .then(() => {
-            props.config.checked = Date.now();
-            props.config.updated = Date.now();
-            const contents = JSON.stringify(props.config, null, 2);
-            fs.ensureFileSync(props.localConfigFile);
-            fs.writeFileSync(props.localConfigFile, contents);
-        })
-        .then(initialize)
-        .catch(console.log);
-} else {
-    initialize();
-}
+    // const lastCheck = op.get(props.config, 'updated', Date.now());
+    // const lastUpdateCheck = moment().diff(moment(new Date(lastCheck)), 'days');
+
+    // if (lastUpdateCheck > 1) {
+    //     axios
+    //         .get(
+    //             'https://raw.githubusercontent.com/Atomic-Reactor/CLI/master/package.json',
+    //         )
+    //         .then(result => {
+    //             const { version: currentVersion } = result.data;
+    //             if (semver.lt(ver, currentVersion)) {
+    //                 console.log('\n');
+    //                 console.log(
+    //                     chalk.red(
+    //                         `Yo... you're using ARCLI version: ${ver}. You should update to ${currentVersion}`,
+    //                     ),
+    //                 );
+    //                 console.log(chalk.cyan('  $ npm i -g @atomic-reactor/cli'));
+    //                 console.log('\n');
+    //             }
+    //         })
+    //         .then(() => {
+    //             props.config.checked = Date.now();
+    //             props.config.updated = Date.now();
+    //             const contents = JSON.stringify(props.config, null, 2);
+    //             fs.ensureFileSync(props.localConfigFile);
+    //             fs.writeFileSync(props.localConfigFile, contents);
+    //         })
+    //         .then(initialize)
+    //         .catch(console.log);
+    // } else {
+    //     initialize();
+    // }
+})();
