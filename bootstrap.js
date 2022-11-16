@@ -185,6 +185,7 @@ const bootstrap = async () => {
         path,
         generator,
         globby,
+        importer,
         isEmpty,
         homedir,
         mergeActions,

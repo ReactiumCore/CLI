@@ -1,10 +1,11 @@
-const chalk = require('chalk');
-const op = require('object-path');
+import chalk from 'chalk';
+import op from 'object-path';
 
-const NAME = 'actinium';
-const DESC = 'Actinium: Command used to install or update Actinium.';
+export const NAME = 'actinium';
 
-const HELP = props => {
+export const DESC = 'Actinium: Command used to install or update Actinium.';
+
+export const HELP = props => {
     const actions = Object.keys(props.subcommands[NAME]);
     actions.sort();
 
@@ -13,7 +14,9 @@ const HELP = props => {
     console.log(' ', actions.map(act => chalk.cyan(act)).join(', '));
     console.log('');
     console.log('Example:');
-    actions.forEach(act => console.log(`  $ arcli`, chalk.magenta(NAME), chalk.cyan(act), '-h'));
+    actions.forEach(act =>
+        console.log(`  $ arcli`, chalk.magenta(NAME), chalk.cyan(act), '-h'),
+    );
     console.log('');
     console.log('Beware:');
     console.log(`  ${chalk.cyan('Install')} will overwrite existing files.`);
@@ -29,18 +32,14 @@ const HELP = props => {
     console.log('');
 };
 
-const COMMAND = ({ program, props }) => {
+export const COMMAND = ({ program, props }) => {
     const ACT = props.args[3];
     const { subcommands = {} } = props;
 
     if (NAME === props.args[2] && ACT) {
         if (!op.has(subcommands, `${NAME}.${ACT}`)) {
             console.log('');
-            console.log(
-                chalk.red('Invalid command:'),
-                NAME,
-                chalk.cyan(ACT),
-            );
+            console.log(chalk.red('Invalid command:'), NAME, chalk.cyan(ACT));
             console.log('');
             process.exit();
         }
@@ -53,9 +52,4 @@ const COMMAND = ({ program, props }) => {
             .action((action, opt) => {})
             .on('--help', () => HELP(props));
     }
-};
-
-module.exports = {
-    COMMAND,
-    NAME,
 };

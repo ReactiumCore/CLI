@@ -1,26 +1,27 @@
-
-const ora = require('ora');
-const ActionSequence = require('action-sequence');
-
+import ora from 'ora';
+import Actions from './actions.js';
+import ActionSequence from 'action-sequence';
 
 const spinner = ora({
-    spinner : 'dots',
-    color   : 'cyan'
+    spinner: 'dots',
+    color: 'cyan',
 });
 
-const actions = require('./actions')(spinner);
+const actions = Actions(spinner);
 
-module.exports = ({ params, props }) => {
+export default ({ params, props }) => {
     spinner.start('Actinium installing...');
 
     return ActionSequence({
         actions,
-        options: { params, props }
-    }).then((success) => {
-        spinner.succeed('Actinium install complete!');
-        return success;
-    }).catch((error) => {
-        spinner.fail('Actinium install error!');
-        return error;
-    });
+        options: { params, props },
+    })
+        .then(success => {
+            spinner.succeed('Actinium install complete!');
+            return success;
+        })
+        .catch(error => {
+            spinner.fail('Actinium install error!');
+            return error;
+        });
 };

@@ -1,11 +1,11 @@
-const path = require('path');
-const chalk = require('chalk');
-const fs = require('fs-extra');
-const op = require('object-path');
-const request = require('request');
-const decompress = require('@atomic-reactor/decompress');
+import chalk from 'chalk';
+import fs from 'fs-extra';
+import path from 'node:path';
+import op from 'object-path';
+import request from 'request';
+import decompress from '@atomic-reactor/decompress';
 
-module.exports = spinner => {
+export default spinner => {
     const message = text => {
         if (spinner) {
             spinner.text = text;
