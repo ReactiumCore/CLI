@@ -2,7 +2,7 @@ const { chalk, op } = arcli;
 
 export const NAME = 'actinium';
 
-export const DESC = 'Actinium: Command used to install or update Actinium.';
+export const DESC = 'Command used to install or update Actinium.';
 
 export const HELP = props => {
     const actions = Object.keys(props.subcommands[NAME]);

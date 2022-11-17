@@ -23,7 +23,7 @@ export const NAME = 'list';
  * @see https://www.npmjs.com/package/commander#automated---help
  * @since 2.0.0
  */
-const DESC = 'List arcli packages';
+const DESC = 'List arcli packages.';
 
 /**
  * CANCELED String

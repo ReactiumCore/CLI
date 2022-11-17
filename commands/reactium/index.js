@@ -1,7 +1,7 @@
 const { chalk, op } = arcli;
 
 export const NAME = 'reactium';
-const DESC = 'Reactium: Command used to install, update, or empty Reactium.';
+const DESC = 'Command used to install, update, or empty Reactium.';
 
 const HELP = props => {
     const actions = Object.keys(props.subcommands[NAME]);

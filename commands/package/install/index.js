@@ -9,7 +9,7 @@ import GENERATOR from './generator.js';
 const { message, op } = arcli;
 
 export const NAME = 'install [name]';
-const DESC = 'Install an Actinium or Reactium Plugin';
+const DESC = 'Install an Actinium or Reactium Plugin.';
 const CANCELED = 'Action canceled!';
 
 const HELP = () =>

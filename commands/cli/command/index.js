@@ -4,7 +4,7 @@ const { chalk, op, slugify, message } = arcli;
 
 const NAME = 'commander';
 const CANCELED = 'Command creation canceled!';
-const DESC = 'ARCLI:    Create a CLI function.';
+const DESC = 'Create a CLI function.';
 
 const HELP = () =>
     console.log(`
