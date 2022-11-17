@@ -1,18 +1,20 @@
-const ora = require('ora');
-const chalk = require('chalk');
-const ActionSequence = require('action-sequence');
+import Actions from './actions';
+import EmptyActions from '../empty/actions.js';
 
-const spinner = ora({
-    spinner: 'dots',
-    color: 'cyan',
-});
+export default ({ params, props }) => {
+    const { chalk, ora, ActionSequence } = arcli;
 
-module.exports = ({ params, props }) => {
+    const spinner = ora({
+        spinner: 'dots',
+        color: 'cyan',
+    });
+
     spinner.start(`Installing ${chalk.cyan('Reactium')}...`);
 
     const { empty } = params;
 
-    let { deps, ...actions } = require('./actions')(spinner);
+    // we want deps to be last so move it out of the actions object
+    let { deps, ...actions } = Actions(spinner);
 
     if (empty) {
         params['demo'] = true;
@@ -21,10 +23,11 @@ module.exports = ({ params, props }) => {
         params['style'] = true;
         params['toolkit'] = true;
 
-        const emptyActions = require('../empty/actions')(spinner);
+        const emptyActions = EmptyActions(spinner);
         actions = { ...actions, ...emptyActions };
     }
 
+    // add deps back in at the end 
     actions = { ...actions, deps };
 
     return ActionSequence({

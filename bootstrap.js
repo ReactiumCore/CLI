@@ -1,5 +1,6 @@
 import ora from 'ora';
 import Actinium from 'parse/node.js';
+import handlebars from 'handlebars';
 import Hook from '@atomic-reactor/reactium-sdk-core/lib/sdks/hook/index.js';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -26,6 +27,8 @@ import slugify from 'slugify';
 import request from 'request';
 import DeleteEmpty from 'delete-empty';
 import ActionSequence from 'action-sequence';
+import inquirer from 'inquirer';
+import decompress from '@atomic-reactor/decompress';
 import { error, message } from './lib/messenger.js';
 
 const importer = (path, options) => {
@@ -179,6 +182,7 @@ const bootstrap = async () => {
         chalk,
         commands,
         crypto,
+        decompress,
         deleteEmpty,
         error,
         flagsToParams,
@@ -186,7 +190,9 @@ const bootstrap = async () => {
         path,
         generator,
         globby,
+        handlebars,
         importer,
+        inquirer,
         isEmpty,
         homedir,
         mergeActions,

@@ -1,10 +1,6 @@
-const path = require('path');
-const chalk = require('chalk');
-const fs = require('fs-extra');
-const op = require('object-path');
-const handlebars = require('handlebars').compile;
+export default spinner => {
+    const { chalk, path, fs } = arcli;
 
-module.exports = spinner => {
     const message = text => {
         if (spinner) {
             spinner.text = text;
@@ -14,7 +10,7 @@ module.exports = spinner => {
     const normalize = (...args) => path.normalize(path.join(...args));
 
     return {
-        empty: async ({ action, params, props }) => {
+        empty: async ({ params, props }) => {
             const { cwd } = props;
 
             if (params.style) {

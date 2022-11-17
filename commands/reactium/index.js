@@ -1,7 +1,6 @@
-const chalk = require('chalk');
-const op = require('object-path');
+const { chalk, op } = arcli;
 
-const NAME = 'reactium';
+export const NAME = 'reactium';
 const DESC = 'Reactium: Command used to install, update, or empty Reactium.';
 
 const HELP = props => {
@@ -31,7 +30,7 @@ const HELP = props => {
     console.log('');
 };
 
-const COMMAND = ({ program, props }) => {
+export const COMMAND = ({ program, props }) => {
     const ACT = props.args[3];
     const { subcommands = {} } = props;
 
@@ -48,12 +47,7 @@ const COMMAND = ({ program, props }) => {
         return program
             .command(`${NAME} <action>`)
             .description(DESC)
-            .action((action, opt) => {})
+            .action(() => {})
             .on('--help', () => HELP(props));
     }
-};
-
-module.exports = {
-    COMMAND,
-    NAME,
 };

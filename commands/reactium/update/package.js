@@ -1,28 +1,32 @@
-const path = require('path');
-const _ = require('underscore');
-const op = require('object-path');
-const prettier = require('prettier');
-
-module.exports = (props, updatePath) => {
+export default (props, updatePath) => {
     const { cwd } = props;
+
+    const { _, fs, op, path, prettier } = arcli;
+
     const packageFile = path.normalize(`${cwd}/package.json`);
     const updatePackageJson = path.normalize(`${updatePath}/package.json`);
-    const reactiumConfigFile = path.normalize(`${updatePath}/.core/reactium-config.js`);
+    const reactiumConfigFile = path.normalize(
+        `${updatePath}/.core/reactium-config.js`,
+    );
 
     let pkg, reactiumConfig, updatePackage;
 
     // Get the .core/reactium-config.js file;
     try {
-        updatePackage = require(updatePackageJson);
-        reactiumConfig = require(reactiumConfigFile);
+        updatePackage = fs.readJsonSync(updatePackageJson);
     } catch (err) {
         updatePackage = {};
+    }
+
+    try {
+        reactiumConfig = fs.readJsonSync(reactiumConfigFile);
+    } catch (err) {
         reactiumConfig = {};
     }
 
     // Get the cwd package.json
     try {
-        pkg = require(packageFile);
+        pkg = fs.readJsonSync(packageFile);
     } catch (err) {
         pkg = {};
     }
@@ -50,21 +54,18 @@ module.exports = (props, updatePath) => {
     // Update scripts object
     pkg['scripts'] = scripts;
 
-    const pkeys = _.without(Object.keys(op.get(reactiumConfig, 'update.package')), 'scripts');
+    const pkeys = _.without(
+        Object.keys(op.get(reactiumConfig, 'update.package')),
+        'scripts',
+    );
 
     // Update package object
     pkeys.forEach(depType => {
         const existingDeps = op.get(pkg, depType, {});
-        const addDeps = op.get(
-            updatePackage,
-            depType,
-            {},
-        );
-        const removeDeps = op.get(
-            reactiumConfig,
-            ['update', 'package', depType, 'remove'],
-            [],
-        ).concat(Object.keys(addDeps));
+        const addDeps = op.get(updatePackage, depType, {});
+        const removeDeps = op
+            .get(reactiumConfig, ['update', 'package', depType, 'remove'], [])
+            .concat(Object.keys(addDeps));
 
         pkg[depType] = Object.entries(existingDeps)
             .filter(([name]) => !removeDeps.find(remove => remove === name))
@@ -89,7 +90,7 @@ module.exports = (props, updatePath) => {
     // Write the new package.json file.
     const pkgCont = prettier.format(JSON.stringify(pkg), {
         parser: 'json-stringify',
-        tabWidth: 2
+        tabWidth: 2,
     });
 
     return pkgCont;
