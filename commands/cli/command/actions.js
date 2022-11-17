@@ -1,10 +1,7 @@
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
 export default spinner => {
-    const { fs, chalk, hb } = arcli;
+    const { chalk, fileURLToPath, fs, hb, path } = arcli;
+
+    const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
     const message = text => {
         if (!spinner) return;
