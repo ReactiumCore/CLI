@@ -2,6 +2,7 @@ import Actions from './actions.js';
 
 export default ({ params, props }) => {
     const { ActionSequence, ora, } = arcli;
+    
     const spinner = ora({ spinner: 'dots', color: 'cyan' });
 
     spinner.start();

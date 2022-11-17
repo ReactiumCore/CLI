@@ -1,4 +1,4 @@
-import Actions from './actions';
+import Actions from './actions.js';
 import EmptyActions from '../empty/actions.js';
 
 export default ({ params, props }) => {

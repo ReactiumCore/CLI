@@ -1,5 +1,5 @@
-import Auth from '../../../lib/auth.js';
-import UpdateActions from '../../../commands/config/set/actions.js';
+import Auth from '../../lib/auth.js';
+import UpdateActions from '../config/set/actions.js';
 
 export default spinner => {
     let sessionToken;

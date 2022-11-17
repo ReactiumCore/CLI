@@ -2,7 +2,8 @@ import Actions from './actions.js';
 import AuthActions from '../../../commands/auth/actions.js';
 
 export default ({ params, props }) => {
-    const { ActionSequence, ora, path } = arcli;
+    const { ActionSequence, ora } = arcli;
+
     const spinner = ora({ spinner: 'dots', color: 'cyan' });
 
     console.log('');

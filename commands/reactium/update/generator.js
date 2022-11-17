@@ -1,4 +1,4 @@
-import Actions from './actions';
+import Actions from './actions.js';
 
 export default ({ params, props }) => {
     const { ActionSequence, chalk, ora } = arcli;

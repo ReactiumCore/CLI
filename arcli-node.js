@@ -32,12 +32,12 @@ export default async () => {
         const subcommands = props.subcommands;
 
         for (let i = 0; i < globs.length; i++) {
+            let req;
             const cmd = globs[i];
 
             try {
                 req = await import(cmd);
             } catch (err) {
-                console.log(err);
                 req = () => {};
             }
 
@@ -50,11 +50,15 @@ export default async () => {
                         ID = String(ID)
                             .replace(/\<|\>/g, '')
                             .replace(/\s/g, '.');
-                        op.set(subcommands, ID, req);
+
+                        subcommands[ID] = req;
                     }
                 }
             }
         }
+
+        // arcli.props.commands = commands;
+        // arcli.props.subcommands = subcommands;
     };
 
     const attachCommands = ({ program, props, arcli }) => {
@@ -104,7 +108,7 @@ export default async () => {
     };
 
     const shortInit = () =>
-        new Promise((resolve, reject) => {
+        new Promise(async (resolve, reject) => {
             const program = createCommand();
 
             // allow unknown options for short init
@@ -114,7 +118,7 @@ export default async () => {
             program.exitOverride();
 
             // root commands only
-            cmds(arcli.rootCommands());
+            await cmds(arcli.rootCommands());
 
             // go to long init if help
             const { operands = [], unknown: flags = [] } = program.parseOptions(
@@ -159,11 +163,11 @@ export default async () => {
             }
         });
 
-    const longInit = () => {
+    const longInit = async () => {
         const program = createCommand();
 
         // search for commands
-        cmds(arcli.commands());
+        await cmds(arcli.commands());
 
         // attach all commands to commander
         attachCommands({ program, props, arcli });
@@ -221,6 +225,4 @@ export default async () => {
     } else {
         await initialize();
     }
-
-    return arcli;
 };

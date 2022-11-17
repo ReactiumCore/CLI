@@ -5,7 +5,7 @@ import Hook from '@atomic-reactor/reactium-sdk-core/lib/sdks/hook/index.js';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { ChildProcess } from 'node:child_process';
+import ChildProcess from 'node:child_process';
 import _ from 'underscore';
 import axios from 'axios';
 import op from 'object-path';
@@ -52,7 +52,6 @@ const bootstrap = async () => {
     const cwd = path.resolve(process.cwd());
     const homedir = os.homedir();
     const ver = op.get(packagejson, 'version');
-    
 
     global.Actinium = Actinium;
     global.Hook = Hook;

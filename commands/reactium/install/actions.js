@@ -86,7 +86,6 @@ export default spinner => {
         },
 
         deps: ({ params }) => {
-            console.log({ params });
             if (params.quick) return;
             if (spinner) spinner.stop();
             console.log('');
