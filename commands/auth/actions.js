@@ -1,27 +1,18 @@
-import chalk from 'chalk';
-import _ from 'underscore';
-import op from 'object-path';
+import Auth from '../../../lib/auth.js';
+import UpdateActions from '../../../commands/config/set/actions.js';
 
-const { arcli } = global;
-
-module.exports = spinner => {
+export default spinner => {
     const message = text => {
         if (spinner) {
             spinner.text = text;
         }
     };
 
-    let UpdateActions, Auth, sessionToken;
-    const { root } = global.arcli.props;
+    let sessionToken;
 
-    const authFilePath = `${root}/lib/auth`;
-    const updateActionsFilePath = `${root}/commands/config/set/actions`;
+    const { _, chalk, op } = arcli;
 
     return {
-        init: async () => {
-            Auth = await import(authFilePath);
-            UpdateActions = await import(updateActionsFilePath);
-        },
         auth: async ({ action, params, props }) => {
             if (op.get(params, 'username')) {
                 message(`Authenticating${chalk.cyan('...')}`);
@@ -40,7 +31,7 @@ module.exports = spinner => {
                 op.set(config, 'registry.sessionToken', sessionToken);
                 arcli.props.config = config;
                 op.set(params, 'newConfig', config);
-                
+
                 return UpdateActions.update({
                     action: 'update',
                     params,

@@ -3,13 +3,9 @@
  * Imports
  * -----------------------------------------------------------------------------
  */
+import GENERATOR from './generator.js';
 
-const path = require('path');
-const chalk = require('chalk');
-const op = require('object-path');
-const GENERATOR = require('./generator');
-const mod = path.dirname(require.main.filename);
-const { message } = require(`${mod}/lib/messenger`);
+const { message, op } = arcli;
 
 /**
  * NAME String
@@ -18,7 +14,7 @@ const { message } = require(`${mod}/lib/messenger`);
  * @see https://www.npmjs.com/package/commander#command-specific-options
  * @since 2.0.0
  */
-const NAME = 'uninstall <name>';
+export const NAME = 'uninstall <name>';
 
 /**
  * DESC String
@@ -45,7 +41,7 @@ const CANCELED = 'Action canceled!';
 const HELP = () =>
     console.log(`
 Example:
-  $ arcli install @atomic-reactor/admin
+  $ arcli uninstall @atomic-reactor/admin
 `);
 
 /**
@@ -67,21 +63,9 @@ const ACTION = ({ name, props }) =>
  * COMMAND Function
  * @description Function that executes program.command()
  */
-const COMMAND = ({ program, props }) =>
+export const COMMAND = ({ program, props }) =>
     program
         .command(NAME)
         .description(DESC)
         .action((name, opt) => ACTION({ name, opt, props }))
         .on('--help', HELP);
-
-/**
- * Module Constructor
- * @description Internal constructor of the module that is being exported.
- * @param program Class Commander.program reference.
- * @param props Object The CLI props passed from the calling class `arcli.js`.
- * @since 2.0.0
- */
-module.exports = {
-    COMMAND,
-    NAME,
-};

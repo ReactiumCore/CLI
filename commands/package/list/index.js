@@ -3,19 +3,9 @@
  * Imports
  * -----------------------------------------------------------------------------
  */
+import GENERATOR from './generator.js';
 
-const chalk = require('chalk');
-const fs = require('fs-extra');
-const prettier = require('prettier');
-const path = require('path');
-const op = require('object-path');
-const mod = path.dirname(require.main.filename);
-const { error, message } = require(`${mod}/lib/messenger`);
-const GENERATOR = fs.existsSync(
-    path.normalize(path.join(__dirname, 'generator.js')),
-)
-    ? require('./generator')
-    : require(`${mod}/lib/generator`);
+const { message, op } = arcli;
 
 /**
  * NAME String
@@ -24,7 +14,7 @@ const GENERATOR = fs.existsSync(
  * @see https://www.npmjs.com/package/commander#command-specific-options
  * @since 2.0.0
  */
-const NAME = 'list';
+export const NAME = 'list';
 
 /**
  * DESC String
@@ -41,23 +31,6 @@ const DESC = 'List arcli packages';
  * @since 2.0.0
  */
 const CANCELED = 'List canceled!';
-
-/**
- * conform(input:Object) Function
- * @description Reduces the input object.
- * @param input Object The key value pairs to reduce.
- * @since 2.0.0
- */
-const CONFORM = ({ input, props }) =>
-    Object.keys(input).reduce((obj, key) => {
-        let val = input[key];
-        switch (key) {
-            default:
-                obj[key] = val;
-                break;
-        }
-        return obj;
-    }, {});
 
 /**
  * HELP Function
@@ -79,13 +52,11 @@ Example:
  * @param props Object The CLI props passed from the calling class `orcli.js`.
  * @since 2.0.0
  */
-const ACTION = ({ opt, props }) => {
-    const { cwd, prompt } = props;
-
+const ACTION = ({ props }) => {
     let params = {};
 
     return GENERATOR({ params, props })
-        .then(results => {
+        .then(() => {
             console.log('');
         })
         .catch(err => {
@@ -97,21 +68,9 @@ const ACTION = ({ opt, props }) => {
  * COMMAND Function
  * @description Function that executes program.command()
  */
-const COMMAND = ({ program, props }) =>
+export const COMMAND = ({ program, props }) =>
     program
         .command(NAME)
         .description(DESC)
         .action(opt => ACTION({ opt, props }))
         .on('--help', HELP);
-
-/**
- * Module Constructor
- * @description Internal constructor of the module that is being exported.
- * @param program Class Commander.program reference.
- * @param props Object The CLI props passed from the calling class `arcli.js`.
- * @since 2.0.0
- */
-module.exports = {
-    COMMAND,
-    NAME,
-};

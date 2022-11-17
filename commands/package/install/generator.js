@@ -1,22 +1,22 @@
-const ora = require('ora');
-const path = require('path');
-const op = require('object-path');
-const mod = path.dirname(require.main.filename);
-const ActionSequence = require('action-sequence');
+import ora from 'ora';
+import op from 'object-path';
+import ActionSequence from 'action-sequence';
 
-module.exports = ({ params, props }) => {
+module.exports = async ({ params, props }) => {
     const spinner = ora({ spinner: 'dots', color: 'cyan' });
 
     spinner.start();
 
     const name = op.get(params, 'name');
 
-    const actions = name
-        ? require('./actions')(spinner)
-        : require('./actions-unattended')(spinner);
+    const Actions = name
+        ? await import('./actions.js')
+        : await import('./actions-unattended.js');
+
+    const actions = Actions(spinner);
 
     return ActionSequence({ actions, options: { params, props } })
-        .then(success => console.log(''))
+        .then(() => console.log(''))
         .catch(error => {
             spinner.fail('error!');
             console.log(error);

@@ -1,20 +1,20 @@
-const tar = require('tar');
-const path = require('path');
-const chalk = require('chalk');
-const fs = require('fs-extra');
-const _ = require('underscore');
-const op = require('object-path');
-const request = require('request');
-const globby = require('globby').sync;
-const mod = path.dirname(require.main.filename);
-const deleteEmpty = require('delete-empty').sync;
-const targetApp = require(`${mod}/lib/targetApp`);
-const ActionSequence = require('action-sequence');
+import targetApp from '../../../lib/targetApp.js';
 
-const { arcli } = global;
+export default spinner => {
+    let app, cwd, dir, filepath, name, plugin, sessionToken, tmp, version;
 
-module.exports = spinner => {
-    let app, cwd, dir, filepath, name, plugin, sessionToken, tmp, url, version;
+    const {
+        _,
+        ActionSequence,
+        chalk,
+        deleteEmpty,
+        fs,
+        globby,
+        op,
+        path,
+        request,
+        tar,
+    } = arcli;
 
     const message = text => {
         if (spinner) {
@@ -48,7 +48,8 @@ module.exports = spinner => {
             }
 
             name = _.compact(String(name).split('@'))[0];
-            name = String(params.name).substring(0, 1) === '@' ? `@${name}` : name;
+            name =
+                String(params.name).substring(0, 1) === '@' ? `@${name}` : name;
 
             dir = normalize(cwd, app + '_modules', slugify(name));
 
@@ -178,7 +179,7 @@ module.exports = spinner => {
         registerPkg: () => {
             message(`Registering plugin...`);
             const pkgjson = normalize(cwd, 'package.json');
-            const pkg = require(pkgjson);
+            const pkg = fs.readJsonSync(pkgjson);
             op.set(pkg, [`${app}Dependencies`, name], version);
             fs.writeFileSync(pkgjson, JSON.stringify(pkg, null, 2));
         },
@@ -216,18 +217,16 @@ module.exports = spinner => {
             const actionFiles = globby([`${dir}/**/arcli-install.js`]);
             if (actionFiles.length < 1) return;
 
-            const actions = actionFiles.reduce((obj, file, i) => {
-                const acts = require(normalize(file))(
-                    spinner,
-                    arcli,
-                    params,
-                    props,
+            const actions = {};
+
+            for (let i = 0; i < actionFiles.length; i++) {
+                const file = actionFiles[i];
+                const mod = await import(normalize(file));
+                const acts = mod(spinner, arcli, params, props);
+                Object.keys(acts).forEach(key =>
+                    op.set(actions, `postinstall_${i}_${key}`, acts[key]),
                 );
-                Object.keys(acts).forEach(key => {
-                    obj[`postinstall_${i}_${key}`] = acts[key];
-                });
-                return obj;
-            }, {});
+            }
 
             params['pluginDirectory'] = dir;
             await ActionSequence({ actions, options: { params, props } });

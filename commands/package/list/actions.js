@@ -1,19 +1,18 @@
-const path = require('path');
-const chalk = require('chalk');
-const fs = require('fs-extra');
-const _ = require('underscore');
-const op = require('object-path');
-const mod = path.dirname(require.main.filename);
-const targetApp = require(`${mod}/lib/targetApp`);
+import targetApp from '../../../lib/targetApp.js';
+import compareBuild from 'semver/functions/compare-build.js';
 
-module.exports = spinner => {
+export default spinner => {
     const message = text => {
         if (spinner) {
             spinner.text = text;
         }
     };
 
-    let cwd, app, sessionToken, plugins = [];
+    let cwd,
+        sessionToken,
+        plugins = [];
+
+    const { _, chalk, fs, op, path } = arcli;
 
     return {
         init: ({ params, props }) => {
@@ -46,7 +45,8 @@ module.exports = spinner => {
             message(`Fetching ${chalk.cyan('plugins')}...`);
 
             const q = new Actinium.Query('Registry');
-            await q.find(sessionToken && { sessionToken })
+            await q
+                .find(sessionToken && { sessionToken })
                 .then(response => response.map(p => p.toJSON()))
                 .then(data => {
                     plugins = data;
@@ -58,31 +58,29 @@ module.exports = spinner => {
                 });
         },
         table: async () => {
-            const compareBuild = require('semver/functions/compare-build');
+            
 
             const data = plugins.map(
                 ({ name, version, description = '', updatedAt }) => {
                     const [rev] = Object.values(version)
-                        .sort((a, b) =>
-                            compareBuild(a.version, b.version),
-                        )
+                        .sort((a, b) => compareBuild(a.version, b.version))
                         .reverse();
                     const updated = arcli.moment(updatedAt).fromNow();
 
                     return [
                         name,
                         rev.version,
-                        description.substring(0,Math.min(52, description.length)),
+                        description.substring(
+                            0,
+                            Math.min(52, description.length),
+                        ),
                         updated,
                     ];
                 },
             );
             const token = '😂😂';
             const table = arcli.table(
-                [
-                    ['Package', 'Version', 'Description', 'Updated'],
-                    ...data,
-                ],
+                [['Package', 'Version', 'Description', 'Updated'], ...data],
                 { align: ['l', 'l', 'l', 'l'], hsep: token },
             );
 
@@ -98,21 +96,16 @@ module.exports = spinner => {
             const spaces = body.map(line => line.match(spcRxp));
 
             const final = (
-                `\n${arcli.chalk.bold.white(header)}\n${new Array(
-                    width,
-                ).join('=')}\n` +
+                `\n${arcli.chalk.bold.white(header)}\n${new Array(width).join(
+                    '=',
+                )}\n` +
                 data
-                    .map(
-                        (
-                            [name, version, description, updated],
-                            index,
-                        ) => {
-                            const [s1, s2, s3] = spaces[index];
-                            return `${chalk.green(
-                                name,
-                            )}${s1}${version}${s2}${description}${s3}${updated}`;
-                        },
-                    )
+                    .map(([name, version, description, updated], index) => {
+                        const [s1, s2, s3] = spaces[index];
+                        return `${chalk.green(
+                            name,
+                        )}${s1}${version}${s2}${description}${s3}${updated}`;
+                    })
                     .join('\n')
             ).replace(new RegExp(token, 'g'), '  ');
             console.log(final);

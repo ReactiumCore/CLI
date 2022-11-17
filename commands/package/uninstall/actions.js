@@ -1,13 +1,9 @@
-const path = require('path');
-const chalk = require('chalk');
-const fs = require('fs-extra');
-const _ = require('underscore');
-const op = require('object-path');
-const mod = path.dirname(require.main.filename);
-const targetApp = require(`${mod}/lib/targetApp`);
+import targetApp from '../../../lib/targetApp.js';
 
-module.exports = spinner => {
-    let dir, cwd, name, pkgdir;
+export default spinner => {
+    let dir, name;
+    const { _, chalk, fs, op, path } = arcli;
+    const { cwd } = arcli.props; 
 
     const message = text => {
         if (spinner) {
@@ -19,8 +15,7 @@ module.exports = spinner => {
     const normalize = (...args) => path.normalize(path.join(...args));
 
     return {
-        init: ({ action, params, props }) => {
-            cwd = props.cwd;
+        init: ({ params, props }) => {
             name = op.get(params, 'name');
         },
         check: () => {
@@ -50,13 +45,13 @@ module.exports = spinner => {
             console.log();
         },
         directory: () => {
-            message(`Removing plugin ${chalk.cyan(name)}...`)
+            message(`Removing plugin ${chalk.cyan(name)}...`);
             fs.removeSync(dir);
         },
         unregisterPkg: async () => {
             message(`Unregistering plugin...`);
             const pkgjson = normalize(cwd, 'package.json');
-            const pkg = require(pkgjson);
+            const pkg = fs.readJsonSync(pkgjson);
             op.del(pkg, ['dependencies', name]);
             op.del(pkg, [`${app}Dependencies`, name]);
             fs.writeFileSync(pkgjson, JSON.stringify(pkg, null, 2));

@@ -1,29 +1,26 @@
-const { ActionSequence, ora, path } = arcli;
+import Actions from './actions.js';
+import AuthActions from '../../../commands/auth/actions.js';
 
-const mod = path.dirname(require.main.filename);
-
-module.exports = ({ params, props }) => {
+export default ({ params, props }) => {
+    const { ActionSequence, ora, path } = arcli;
     const spinner = ora({ spinner: 'dots', color: 'cyan' });
 
     console.log('');
 
     spinner.start();
 
-    const authActions = require(`${mod}/commands/auth/actions`)(spinner);
-    const cmdActions = require('./actions')(spinner);
-
+    const authActions = AuthActions(spinner);
+    const cmdActions = Actions(spinner);
     const actions = { ...authActions, ...cmdActions };
 
     return ActionSequence({ actions, options: { params, props } })
-    .then(() => {
-        spinner.stop();
-        console.log('');
-    }).catch(
-        error => {
+        .then(() => {
             spinner.stop();
-            //console.log(JSON.stringify(error));
+            console.log('');
+        })
+        .catch(error => {
+            spinner.stop();
             console.log(36, error);
             return error;
-        },
-    );
+        });
 };
