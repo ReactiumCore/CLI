@@ -1,11 +1,6 @@
-const path = require('path');
-const chalk = require('chalk');
-const fs = require('fs-extra');
-const op = require('object-path');
-const request = require('request');
-const decompress = require('@atomic-reactor/decompress');
+export default spinner => {
+    const { path, chalk, decompress, fs, op, request } = arcli;
 
-module.exports = spinner => {
     const message = text => {
         if (spinner) {
             spinner.text = text;
@@ -91,7 +86,6 @@ module.exports = spinner => {
         },
 
         deps: ({ params }) => {
-            console.log({params});
             if (params.quick) return;
             if (spinner) spinner.stop();
             console.log('');

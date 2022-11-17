@@ -1,14 +1,17 @@
-const path = require('path');
-const chalk = require('chalk');
-const fs = require('fs-extra');
-const pkg = require('./package');
-const semver = require('semver');
-const op = require('object-path');
-const request = require('request');
-const inquirer = require('inquirer');
-const decompress = require('@atomic-reactor/decompress');
+import pkg from './package.js';
 
-module.exports = spinner => {
+export default spinner => {
+    const {
+        path,
+        chalk,
+        fs,
+        semver,
+        op,
+        request,
+        inquirer,
+        decompress,
+    } = arcli;
+
     let cancelled = false;
 
     const message = text => {

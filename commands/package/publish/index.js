@@ -3,17 +3,27 @@
  * Imports
  * -----------------------------------------------------------------------------
  */
-const { _, chalk, fs, normalizePath, op, path, prefix, semver } = arcli;
-const { cwd, inquirer } = arcli.props;
+import GENERATOR from './generator.js';
 
-const mod = path.dirname(require.main.filename);
-const { error, message } = require(`${mod}/lib/messenger`);
+const {
+    _,
+    chalk,
+    inquirer,
+    fs,
+    normalizePath,
+    op,
+    path,
+    prefix,
+    semver,
+} = arcli;
+
+const { cwd } = arcli.props;
 
 const pkgFile = normalizePath(cwd, 'package.json');
 
 const getPackage = () =>
     fs.existsSync(pkgFile)
-        ? require(pkgFile)
+        ? fs.readJsonSync(pkgFile)
         : {
               version: '0.0.1',
               scripts: {
@@ -30,8 +40,6 @@ const getPackageVersion = inc => {
     return inc ? semver.inc(version, inc) : version;
 };
 
-const GENERATOR = require('./generator');
-
 /**
  * NAME String
  * @description Constant defined as the command name. Value passed to the commander.command() function.
@@ -39,7 +47,7 @@ const GENERATOR = require('./generator');
  * @see https://www.npmjs.com/package/commander#command-specific-options
  * @since 2.0.0
  */
-const NAME = 'publish';
+export const NAME = 'publish';
 
 /**
  * DESC String
@@ -48,7 +56,7 @@ const NAME = 'publish';
  * @see https://www.npmjs.com/package/commander#automated---help
  * @since 2.0.0
  */
-const DESC = 'Publish an Actinium or Reactium module';
+const DESC = 'Publish an Actinium or Reactium module.';
 
 /**
  * CANCELED String
@@ -340,7 +348,7 @@ const ACTION = async ({ opt, props }) => {
  * COMMAND Function
  * @description Function that executes program.command()
  */
-const COMMAND = ({ program, props }) =>
+export const COMMAND = ({ program, props }) =>
     program
         .command(NAME)
         .description(DESC)
@@ -369,15 +377,3 @@ const COMMAND = ({ program, props }) =>
         .option('--license [license]', 'Plugin license')
         .option('--name [name]', 'Plugin name used when installing the plugin')
         .on('--help', HELP);
-
-/**
- * Module Constructor
- * @description Internal constructor of the module that is being exported.
- * @param program Class Commander.program reference.
- * @param props Object The CLI props passed from the calling class `arcli.js`.
- * @since 2.0.0
- */
-module.exports = {
-    COMMAND,
-    NAME,
-};

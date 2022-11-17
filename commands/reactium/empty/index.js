@@ -1,11 +1,6 @@
-const path = require('path');
-const chalk = require('chalk');
-const fs = require('fs-extra');
-const op = require('object-path');
-const inquirer = require('inquirer');
-const generator = require('./generator');
-const mod = path.dirname(require.main.filename);
-const { message } = require(`${mod}/lib/messenger`);
+import generator from './generator.js';
+
+const { chalk, op, inquirer, message } = arcli;
 
 const NAME = 'reactium <empty>';
 const CANCELED = ' Reactium empty canceled!';
@@ -52,7 +47,7 @@ const FLAGS_TO_PARAMS = ({ opt = {} }) =>
     }, {});
 
 const ACTION = async ({ opt, props }) => {
-    const { config, cwd } = props;
+    const { config } = props;
 
     const params = FLAGS_TO_PARAMS({ opt });
 
@@ -73,7 +68,7 @@ const ACTION = async ({ opt, props }) => {
     );
 };
 
-const COMMAND = ({ program, props }) =>
+export const COMMAND = ({ program, props }) =>
     program
         .command(NAME)
         .description(DESC)
@@ -94,7 +89,4 @@ const COMMAND = ({ program, props }) =>
         .option('-y, --confirm', 'Skip confirmation.')
         .on('--help', HELP);
 
-module.exports = {
-    COMMAND,
-    ID: NAME,
-};
+export const ID = NAME;

@@ -1,10 +1,8 @@
-const path = require('path');
-const _ = require('underscore');
-const op = require('object-path');
-const prettier = require('prettier');
-
-module.exports = (props, updatePath) => {
+export default (props, updatePath) => {
     const { cwd } = props;
+
+    const { path, fs, _, op, prettier } = arcli;
+
     const packageFile = path.normalize(`${cwd}/package.json`);
     const updatePackageJson = path.normalize(`${updatePath}/package.json`);
     const actiniumConfigFile = path.normalize(
@@ -13,18 +11,23 @@ module.exports = (props, updatePath) => {
 
     let pkg, actiniumConfig, updatePackage;
 
-    // Get the .core/actinium-config.js file;
+    // Read the updated actinium-config.js file
     try {
-        updatePackage = require(updatePackageJson);
-        actiniumConfig = require(actiniumConfigFile);
+        updatePackage = fs.readJsonSync(updatePackageJson);
     } catch (err) {
         updatePackage = {};
+    }
+
+    // Read the current actinium-config.js file
+    try {
+        actiniumConfig = fs.readJsonSync(actiniumConfigFile);
+    } catch (err) {
         actiniumConfig = {};
     }
 
     // Get the cwd package.json
     try {
-        pkg = require(packageFile);
+        pkg = fs.readJsonSync(packageFile);
     } catch (err) {
         pkg = {};
     }

@@ -1,10 +1,7 @@
-const path = require('path');
-const fs = require('fs-extra');
-const chalk = require('chalk');
-const handlebars = require('handlebars').compile;
+export default spinner => {
+    const { chalk, fileURLToPath, fs, hb, path } = arcli;
 
-module.exports = spinner => {
-    const NOW = Date.now();
+    const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
     const message = text => {
         if (!spinner) return;
@@ -21,7 +18,7 @@ module.exports = spinner => {
         // Template content
         // prettier-ignore
         const template = arcli.normalizePath(__dirname, 'template', `${templateFile}.hbs`);
-        const content = handlebars(fs.readFileSync(template, 'utf-8'))(params);
+        const content = hb.compile(fs.readFileSync(template, 'utf-8'))(params);
         const filepath = arcli.normalizePath(params.destination, templateFile);
 
         fs.writeFileSync(filepath, content);

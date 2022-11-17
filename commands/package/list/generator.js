@@ -1,7 +1,8 @@
-const ora = require('ora');
-const ActionSequence = require('action-sequence');
+import Actions from './actions.js';
 
-module.exports = ({ params, props }) => {
+export default ({ params, props }) => {
+    const { ActionSequence, ora } = arcli;
+
     const spinner = ora({
         spinner: 'dots',
         color: 'cyan',
@@ -9,7 +10,7 @@ module.exports = ({ params, props }) => {
 
     spinner.start();
 
-    const actions = require('./actions')(spinner);
+    const actions = Actions(spinner);
 
     return ActionSequence({
         actions,

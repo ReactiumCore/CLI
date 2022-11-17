@@ -1,15 +1,14 @@
 import ora from 'ora';
 import Actinium from 'parse/node.js';
+import handlebars from 'handlebars';
 import Hook from '@atomic-reactor/reactium-sdk-core/lib/sdks/hook/index.js';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { ChildProcess } from 'node:child_process';
+import ChildProcess from 'node:child_process';
 import _ from 'underscore';
 import axios from 'axios';
 import op from 'object-path';
-import config from './config.json' assert { type: 'json' };
-import packagejson from './package.json' assert { type: 'json' };
 import chalk from 'chalk';
 import fs from 'fs-extra';
 import { globbySync as globby } from './globby-patch.js';
@@ -26,7 +25,16 @@ import slugify from 'slugify';
 import request from 'request';
 import DeleteEmpty from 'delete-empty';
 import ActionSequence from 'action-sequence';
-import { message } from './lib/messenger.js';
+import inquirer from 'inquirer';
+import prompt from 'prompt';
+import decompress from '@atomic-reactor/decompress';
+import { error, message } from './lib/messenger.js';
+
+const normalizePath = (...args) => path.normalize(path.join(...args));
+
+const root = path.dirname(fileURLToPath(import.meta.url));
+const config = fs.readJsonSync(normalizePath(root, 'config.json'));
+const packagejson = fs.readJsonSync(normalizePath(root, 'package.json'));
 
 const importer = (path, options) => {
     options = options || {}; 
@@ -44,7 +52,6 @@ const bootstrap = async () => {
     const cwd = path.resolve(process.cwd());
     const homedir = os.homedir();
     const ver = op.get(packagejson, 'version');
-    const root = path.dirname(fileURLToPath(import.meta.url));
 
     global.Actinium = Actinium;
     global.Hook = Hook;
@@ -88,7 +95,7 @@ const bootstrap = async () => {
             return output;
         }, {});
 
-    const normalizePath = (...args) => path.normalize(path.join(...args));
+    
 
     const initialize = async props => {
         // import arlic-hooks.js files
@@ -179,13 +186,18 @@ const bootstrap = async () => {
         chalk,
         commands,
         crypto,
+        decompress,
         deleteEmpty,
+        error,
+        fileURLToPath,
         flagsToParams,
         fs,
         path,
         generator,
         globby,
+        handlebars,
         importer,
+        inquirer,
         isEmpty,
         homedir,
         mergeActions,
@@ -197,6 +209,7 @@ const bootstrap = async () => {
         pm2,
         portscanner,
         prettier,
+        prompt,
         props,
         request,
         rootCommands,
@@ -210,6 +223,12 @@ const bootstrap = async () => {
 
     // Build the props object
     global.arcli.props = await initialize(global.arcli.props);
+
+    global.arcli.props.inquirer = inquirer;
+    global.arcli.props.prompt = prompt;
+    global.arcli.prefix = chalk.cyan(
+        String(arcli.props.config.prompt.prefix).trim(),
+    );
 
     return global.arcli;
 };

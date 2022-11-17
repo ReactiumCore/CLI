@@ -3,13 +3,9 @@
  * Imports
  * -----------------------------------------------------------------------------
  */
-const path = require('path');
-const chalk = require('chalk');
-const op = require('object-path');
-const mod = path.dirname(require.main.filename);
-const { error, message } = require(`${mod}/lib/messenger`);
+import GENERATOR from './generator.js';
 
-const GENERATOR = require('./generator');
+const { chalk, op } = arcli;
 
 /**
  * NAME String
@@ -42,7 +38,7 @@ const CANCELED = 'Auth canceled!';
  * @param input Object The key value pairs to reduce.
  * @since 2.0.0
  */
-const CONFORM = ({ input, props }) =>
+const CONFORM = ({ input }) =>
     Object.keys(input).reduce((obj, key) => {
         let val = input[key];
         switch (key) {
@@ -90,54 +86,26 @@ const FLAGS_TO_PARAMS = ({ opt = {} }) =>
     }, {});
 
 /**
- * PREFLIGHT Function
- */
-const PREFLIGHT = ({ msg, params, props }) => {
-    msg = msg || 'Preflight checklist:';
-
-    message(msg);
-
-    // Transform the preflight object instead of the params object
-    const preflight = { ...params };
-
-    console.log(
-        prettier.format(JSON.stringify(preflight), {
-            parser: 'json-stringify',
-        }),
-    );
-};
-
-/**
  * SCHEMA Function
  * @description used to describe the input for the prompt function.
  * @see https://www.npmjs.com/package/prompt
  * @since 2.0.0
  */
-const SCHEMA = ({ params, props }) => {
-    let { clear, username, password } = params;
-
-    clear = clear || Boolean(username || password);
-
-    const sessionToken = clear
-        ? undefined
-        : op.get(props, 'config.registry.sessionToken');
-
-    return {
-        properties: {
-            username: {
-                description: chalk.white('Username:'),
-                required: true,
-            },
-            password: {
-                description: chalk.white('Password:'),
-                hidden: true,
-                message: 'Password is a required parameter',
-                replace: '*',
-                required: true,
-            },
+const SCHEMA = () => ({
+    properties: {
+        username: {
+            description: chalk.white('Username:'),
+            required: true,
         },
-    };
-};
+        password: {
+            description: chalk.white('Password:'),
+            hidden: true,
+            message: 'Password is a required parameter',
+            replace: '*',
+            required: true,
+        },
+    },
+});
 
 /**
  * ACTION Function
@@ -148,7 +116,7 @@ const SCHEMA = ({ params, props }) => {
  * @since 2.0.0
  */
 const ACTION = ({ opt, props }) => {
-    const { cwd, prompt } = props;
+    const { prompt } = props;
 
     const ovr = FLAGS_TO_PARAMS({ opt });
 
@@ -178,15 +146,11 @@ const ACTION = ({ opt, props }) => {
         .then(() => console.log(''))
         .catch(err => {
             prompt.stop();
-            message(op.get(err, 'message', op.get(err, 'msg', CANCELED)));
+            arcli.message(op.get(err, 'message', op.get(err, 'msg', CANCELED)));
         });
 };
 
-/**
- * COMMAND Function
- * @description Function that executes program.command()
- */
-const COMMAND = ({ program, props }) =>
+export const COMMAND = ({ program, props }) =>
     program
         .command(NAME)
         .description(DESC)
@@ -198,14 +162,4 @@ const COMMAND = ({ program, props }) =>
         .option('-s, --server [server]', 'Server URL')
         .on('--help', HELP);
 
-/**
- * Module Constructor
- * @description Internal constructor of the module that is being exported.
- * @param program Class Commander.program reference.
- * @param props Object The CLI props passed from the calling class `arcli.js`.
- * @since 2.0.0
- */
-module.exports = {
-    COMMAND,
-    NAME,
-};
+export const ID = NAME;

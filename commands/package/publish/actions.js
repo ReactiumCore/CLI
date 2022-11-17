@@ -1,25 +1,25 @@
-const {
-    _,
-    Actinium,
-    ActionSequence,
-    chalk,
-    crypto,
-    fs,
-    globby,
-    normalizePath,
-    op,
-    path,
-    tar,
-} = arcli;
+import bytesToSize from '../../../lib/bytesToSize.js';
 
-const { cwd, inquirer } = arcli.props;
+export default spinner => {
+    const {
+        _,
+        Actinium,
+        ActionSequence,
+        chalk,
+        crypto,
+        fs,
+        globby,
+        normalizePath,
+        op,
+        path,
+        tar,
+    } = arcli;
 
-const mod = path.dirname(require.main.filename);
-const pkgFile = normalizePath(cwd, 'package.json');
-const bytesToSize = require(`${mod}/lib/bytesToSize`);
+    const { cwd } = arcli.props;
 
-module.exports = spinner => {
-    let bytes, filename, filepath, pkgUpdate;
+    const pkgFile = normalizePath(cwd, 'package.json');
+
+    let bytes, filename, filepath;
 
     const x = chalk.magenta('✖');
 
@@ -38,7 +38,7 @@ module.exports = spinner => {
     };
 
     return {
-        init: ({ params, props }) => {
+        init: ({ params }) => {
             const { appID, serverURL } = params;
 
             Actinium.initialize(appID);
@@ -71,19 +71,22 @@ module.exports = spinner => {
             message(`updating ${chalk.cyan('package.json')}...`);
             fs.writeFileSync(pkgFile, JSON.stringify(params.pkg, null, 2));
         },
-        prepublish: ({ params, props }) => {
+        prepublish: async ({ params, props }) => {
             spinner.stop();
 
             const actionFiles = globby([`${cwd}/**/arcli-publish.js`]);
             if (actionFiles.length < 1 || !Array.isArray(actionFiles)) return;
 
-            const actions = actionFiles.reduce((obj, file, i) => {
-                const acts = require(normalize(file))(spinner);
+            const actions = {}; 
+
+            for (let i = 0; i < actionFiles.length; i++) {
+                const filePath = actionFiles[i]; 
+                const mod = await import(normalize(filePath));
+                const acts = mod(spinner); 
                 Object.keys(acts).forEach(key =>
-                    op.set(obj, `prepublish_${i}_${key}`, acts[key]),
+                    op.set(actions, `prepublish_${i}_${key}`, acts[key]),
                 );
-                return obj;
-            }, {});
+            }
 
             return ActionSequence({
                 actions,
@@ -110,7 +113,7 @@ module.exports = spinner => {
                 },
             });
         },
-        compress: ({ params, props }) => {
+        compress: ({ params }) => {
             const { pkg, tmpDir } = params;
 
             spinner.stopAndPersist({

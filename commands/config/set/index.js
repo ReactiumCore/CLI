@@ -3,23 +3,9 @@
  * Imports
  * -----------------------------------------------------------------------------
  */
+import generator from './generator.js';
 
-const op        = require('object-path');
-const fs        = require('fs-extra');
-const path      = require('path');
-const prettier  = require('prettier');
-const camelCase = require('camelcase');
-const chalk     = require('chalk');
-const slugify   = require('slugify');
-const generator = require('./generator');
-const mod       = path.dirname(require.main.filename);
-const listItem  = require(`${mod}/lib/listItem`);
-
-const {
-    error,
-    message
-} = require(`${mod}/lib/messenger`);
-
+const { chalk, error, message, op, prettier } = arcli;
 
 const types = ['Boolean', 'Number', 'String', 'Array', 'Object'];
 
@@ -30,8 +16,7 @@ const types = ['Boolean', 'Number', 'String', 'Array', 'Object'];
  * @see https://www.npmjs.com/package/commander#command-specific-options
  * @since 2.0.0
  */
-const NAME = 'config';
-
+export const NAME = 'config';
 
 /**
  * DESC String
@@ -40,8 +25,7 @@ const NAME = 'config';
  * @see https://www.npmjs.com/package/commander#automated---help
  * @since 2.0.0
  */
-const DESC = 'ARCLI:    Set ARCLI key:value pairs.';
-
+const DESC = 'Set ARCLI key:value pairs.';
 
 /**
  * CANCELED String
@@ -50,22 +34,26 @@ const DESC = 'ARCLI:    Set ARCLI key:value pairs.';
  */
 const CANCELED = 'Config update canceled!';
 
-
 /**
  * conform(input:Object) Function
  * @description Reduces the input object.
  * @param input Object The key value pairs to reduce.
  * @since 2.0.0
  */
-const CONFORM = (input) => {
-
+export const CONFORM = input => {
     let output = {};
 
     Object.entries(input).forEach(([key, val]) => {
         switch (key) {
             case 'type':
                 val = String(val).toLowerCase();
-                if (!types.join(' ').toLowerCase().split(' ').includes(val)) {
+                if (
+                    !types
+                        .join(' ')
+                        .toLowerCase()
+                        .split(' ')
+                        .includes(val)
+                ) {
                     val = 'string';
                 }
                 output[key] = val;
@@ -88,7 +76,7 @@ const CONFORM = (input) => {
                 break;
 
             case 'number':
-                value = (!isNaN(value)) ? Number(value) : undefined;
+                value = !isNaN(value) ? Number(value) : undefined;
                 break;
 
             default:
@@ -102,38 +90,41 @@ const CONFORM = (input) => {
     return output;
 };
 
-
 /**
  * confirm({ props:Object, params:Object }) Function
  * @description Prompts the user to confirm the operation
  * @since 2.0.0
  */
-const CONFIRM = ({ props, params }) => {
+export const CONFIRM = ({ props, params }) => {
     const { prompt } = props;
 
     return new Promise((resolve, reject) => {
-        prompt.get({
-            properties: {
-                confirmed: {
-                    description: `${chalk.white('Editing the config is risky business... Are you sure?')} ${chalk.cyan('(Y/N):')}`,
-                    type: 'string',
-                    required: true,
-                    pattern: /^y|n|Y|N/,
-                    before: (val) => {
-                        return (String(val).toLowerCase() === 'y');
-                    }
+        prompt.get(
+            {
+                properties: {
+                    confirmed: {
+                        description: `${chalk.white(
+                            'Editing the config is risky business... Are you sure?',
+                        )} ${chalk.cyan('(Y/N):')}`,
+                        type: 'string',
+                        required: true,
+                        pattern: /^y|n|Y|N/,
+                        before: val => {
+                            return String(val).toLowerCase() === 'y';
+                        },
+                    },
+                },
+            },
+            (err, { confirmed }) => {
+                if (err || !confirmed) {
+                    reject();
+                } else {
+                    resolve(confirmed);
                 }
-            }
-        }, (err, { confirmed }) => {
-            if (err || !confirmed) {
-                reject();
-            } else {
-                resolve(confirmed);
-            }
-        });
+            },
+        );
     });
 };
-
 
 /**
  * HELP Function
@@ -145,10 +136,11 @@ const HELP = () => {
     console.log('');
     console.log('Example:');
     console.log('');
-    console.log(`   $ arcli ${NAME} --key 'reactium.repo' --value 'https://github.com/Atomic-Reactor/Reactium/archive/master.zip'`);
+    console.log(
+        `   $ arcli ${NAME} --key 'reactium.repo' --value 'https://github.com/Atomic-Reactor/Reactium/archive/master.zip'`,
+    );
     console.log('');
 };
-
 
 /**
  * SCHEMA Object
@@ -156,11 +148,18 @@ const HELP = () => {
  * @see https://www.npmjs.com/package/prompt
  * @since 2.0.0
  */
-const SCHEMA = ({ props }) => {
+const SCHEMA = async ({ props }) => {
+    const listItem = await import(`${arcli.props.root}/lib/listItem`);
 
-    const typeList = types.map((item, index) => listItem({
-        item, index, padding: String(types.length).length
-    })).join('');
+    const typeList = types
+        .map((item, index) =>
+            listItem({
+                item,
+                index,
+                padding: String(types.length).length,
+            }),
+        )
+        .join('');
 
     return {
         properties: {
@@ -169,7 +168,8 @@ const SCHEMA = ({ props }) => {
                 required: true,
                 pattern: /^[a-zA-Z\_\-\.]+$/,
                 type: 'string',
-                message: 'Key must be valid Javascript Object path. Example: prompt.delimiter',
+                message:
+                    'Key must be valid Javascript Object path. Example: prompt.delimiter',
             },
             value: {
                 description: chalk.white('Value:'),
@@ -180,29 +180,33 @@ const SCHEMA = ({ props }) => {
                 required: true,
                 message: ` Select the element type`,
                 default: 'string',
-                description: `${chalk.white('Type:')} ${typeList}\n    ${chalk.white('Select:')}`,
-                before: (val) => {
+                description: `${chalk.white(
+                    'Type:',
+                )} ${typeList}\n    ${chalk.white('Select:')}`,
+                before: val => {
                     val = Number(String(val).substring(0, 1)) - 1;
                     return types[val];
-                }
+                },
             },
-        }
-    }
+        },
+    };
 };
-
 
 /**
  * COMMAND Function
  * @description Function that executes program.command()
  */
-const COMMAND = ({ program, props }) => program.command(NAME)
-    .description(DESC)
-    .action(opt => { ACTION({ opt, props }); })
-    .option('--key [key]', 'Config Object path. Example: toolkit.types')
-    .option('--value [value]', 'The value of the config object')
-    .option('--type [type]', `The data type: ${types.join(' | ')}`)
-    .on('--help', HELP);
-
+export const COMMAND = ({ program, props }) =>
+    program
+        .command(NAME)
+        .description(DESC)
+        .action(opt => {
+            ACTION({ opt, props });
+        })
+        .option('--key [key]', 'Config Object path. Example: toolkit.types')
+        .option('--value [value]', 'The value of the config object')
+        .option('--type [type]', `The data type: ${types.join(' | ')}`)
+        .on('--help', HELP);
 
 /**
  * ACTION Function
@@ -212,13 +216,15 @@ const COMMAND = ({ program, props }) => program.command(NAME)
  * @param props Object The CLI props passed from the calling class `orcli.js`.
  * @since 2.0.0
  */
-const ACTION = ({ opt, props }) => {
-    const { config, prompt, root } = props;
+export const ACTION = async ({ opt, props }) => {
+    const { config, prompt } = props;
 
     const ovr = {};
-    const schema = SCHEMA({ props });
-    Object.keys(schema.properties).forEach((key) => {
-        if (opt[key]) { ovr[key] = opt[key]; }
+    const schema = await SCHEMA({ props });
+    Object.keys(schema.properties).forEach(key => {
+        if (opt[key]) {
+            ovr[key] = opt[key];
+        }
     });
 
     prompt.override = ovr;
@@ -239,46 +245,32 @@ const ACTION = ({ opt, props }) => {
 
         const newConfig = { ...config };
         op.set(newConfig, key, value);
-        console.log(prettier.format(
-            JSON.stringify(newConfig),
-            {parser: 'json-stringify'}
-        ));
+        console.log(
+            prettier.format(JSON.stringify(newConfig), {
+                parser: 'json-stringify',
+            }),
+        );
 
-        CONFIRM({ props, params }).then(confirmed => {
-            if (confirmed) {
-                console.log('');
-
-                params['confirmed'] = confirmed;
-                params['newConfig'] = newConfig;
-
-                generator({ params, props }).then(() => {
+        CONFIRM({ props, params })
+            .then(confirmed => {
+                if (confirmed) {
                     console.log('');
-                });
-            } else {
+
+                    params['confirmed'] = confirmed;
+                    params['newConfig'] = newConfig;
+
+                    generator({ params, props }).then(() => {
+                        console.log('');
+                    });
+                } else {
+                    prompt.stop();
+                    message(CANCELED);
+                }
+            })
+            .then(() => prompt.stop())
+            .catch(() => {
                 prompt.stop();
                 message(CANCELED);
-            }
-        })
-        .then(() => prompt.stop())
-        .catch(() => {
-            prompt.stop();
-            message(CANCELED);
-        });
+            });
     });
-};
-
-
-/**
- * Module Constructor
- * @description Internal constructor of the module that is being exported.
- * @param program Class Commander.program reference.
- * @param props Object The CLI props passed from the calling class `arcli.js`.
- * @since 2.0.0
- */
-module.exports = {
-    ACTION,
-    CONFIRM,
-    CONFORM,
-    COMMAND,
-    NAME,
 };

@@ -1,8 +1,7 @@
-const chalk = require('chalk');
-const op = require('object-path');
+const { chalk, op } = arcli;
 
-const NAME = 'reactium';
-const DESC = 'Reactium: Command used to install, update, or empty Reactium.';
+export const NAME = 'reactium';
+const DESC = 'Command used to install, update, or empty Reactium.';
 
 const HELP = props => {
     const actions = Object.keys(props.subcommands[NAME]);
@@ -31,29 +30,25 @@ const HELP = props => {
     console.log('');
 };
 
-const COMMAND = ({ program, props }) => {
+export const COMMAND = ({ program, props }) => {
     const ACT = props.args[3];
     const { subcommands = {} } = props;
 
     if (NAME === props.args[2] && ACT) {
-        if (!op.has(subcommands, `${NAME}.${ACT}`)) {
+        const key = `${NAME}.${ACT}`;
+        if (!subcommands[key]) {
             console.log('');
             console.log(chalk.red('Invalid command:'), NAME, chalk.cyan(ACT));
             console.log('');
             process.exit();
         }
 
-        return subcommands[NAME][ACT]['COMMAND']({ program, props });
+        return subcommands[key]['COMMAND']({ program, props });
     } else {
         return program
             .command(`${NAME} <action>`)
             .description(DESC)
-            .action((action, opt) => {})
+            .action(() => {})
             .on('--help', () => HELP(props));
     }
-};
-
-module.exports = {
-    COMMAND,
-    NAME,
 };

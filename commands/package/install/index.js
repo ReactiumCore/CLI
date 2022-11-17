@@ -4,15 +4,12 @@
  * -----------------------------------------------------------------------------
  */
 
-const path = require('path');
-const chalk = require('chalk');
-const op = require('object-path');
-const GENERATOR = require('./generator');
-const mod = path.dirname(require.main.filename);
-const { message } = require(`${mod}/lib/messenger`);
+import GENERATOR from './generator.js';
 
-const NAME = 'install [name]';
-const DESC = 'Install an Actinium or Reactium Plugin';
+const { message, op } = arcli;
+
+export const NAME = 'install [name]';
+const DESC = 'Install an Actinium or Reactium Plugin.';
 const CANCELED = 'Action canceled!';
 
 const HELP = () =>
@@ -61,7 +58,7 @@ const FLAGS_TO_PARAMS = ({ opt = {} }) =>
         return obj;
     }, {});
 
-const COMMAND = ({ program, props }) =>
+export const COMMAND = ({ program, props }) =>
     program
         .command(NAME)
         .description(DESC)
@@ -71,8 +68,3 @@ const COMMAND = ({ program, props }) =>
             'Install and save dependencies to package.json',
         )
         .on('--help', HELP);
-
-module.exports = {
-    COMMAND,
-    NAME,
-};

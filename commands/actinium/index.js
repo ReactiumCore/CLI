@@ -1,9 +1,8 @@
-import chalk from 'chalk';
-import op from 'object-path';
+const { chalk, op } = arcli;
 
 export const NAME = 'actinium';
 
-export const DESC = 'Actinium: Command used to install or update Actinium.';
+export const DESC = 'Command used to install or update Actinium.';
 
 export const HELP = props => {
     const actions = Object.keys(props.subcommands[NAME]);
@@ -37,14 +36,15 @@ export const COMMAND = ({ program, props }) => {
     const { subcommands = {} } = props;
 
     if (NAME === props.args[2] && ACT) {
-        if (!op.has(subcommands, `${NAME}.${ACT}`)) {
+        const key = `${NAME}.${ACT}`;
+        if (!subcommands[key]) {
             console.log('');
             console.log(chalk.red('Invalid command:'), NAME, chalk.cyan(ACT));
             console.log('');
             process.exit();
         }
 
-        return subcommands[NAME][ACT]['COMMAND']({ program, props });
+        return subcommands[key]['COMMAND']({ program, props });
     } else {
         return program
             .command(`${NAME} <action>`)

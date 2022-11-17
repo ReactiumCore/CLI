@@ -1,46 +1,29 @@
-const path = require('path');
-const mod = path.dirname(require.main.filename);
-const homedir = require('os').homedir();
-const auth = require(`${mod}/lib/auth`);
-const prettier = require('prettier');
-const op = require('object-path');
-const _ = require('underscore');
-const chalk = require('chalk');
-const fs = require('fs-extra');
+import Auth from '../../lib/auth.js';
+import UpdateActions from '../config/set/actions.js';
 
-const { arcli } = global;
+export default spinner => {
+    let sessionToken;
 
-module.exports = spinner => {
+    const { _, chalk, op } = arcli;
+
     const message = text => {
         if (spinner) {
             spinner.text = text;
         }
     };
 
-    let sessionToken;
-
     return {
-        auth: ({ action, params, props }) => {
+        auth: async ({ params, props }) => {
             if (op.get(params, 'username')) {
                 message(`Authenticating${chalk.cyan('...')}`);
             }
 
-            return auth({ params, props }).then(result => {
-                sessionToken = result;
-            });
+            sessionToken = await Auth({ params, props });
         },
-        authUpdateConfig: ({ action, params, props }) => {
-            const configFilePath = path.normalize(
-                path.join(homedir, '.arcli', 'config.json'),
-            );
-
+        authUpdateConfig: async ({ action, params, props }) => {
             let config = op.get(props, 'config', {});
 
             if (op.get(config, 'registry.sessionToken') !== sessionToken) {
-                const { update } = require(`${mod}/commands/config/set/actions`)(
-                    spinner,
-                );
-
                 if (op.get(params, 'server')) {
                     op.set(config, 'registry.server', params.server);
                 }
@@ -48,7 +31,12 @@ module.exports = spinner => {
                 op.set(config, 'registry.sessionToken', sessionToken);
                 arcli.props.config = config;
                 op.set(params, 'newConfig', config);
-                return update({ action: 'update', params, props });
+
+                return UpdateActions.update({
+                    action: 'update',
+                    params,
+                    props,
+                });
             }
         },
     };

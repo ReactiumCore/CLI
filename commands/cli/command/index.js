@@ -1,12 +1,10 @@
-const { message } = arcli;
-const chalk = require('chalk');
-const op = require('object-path');
-const slugify = require('slugify');
-const generator = require('./generator');
+import generator from './generator.js';
+
+const { chalk, op, slugify, message } = arcli;
 
 const NAME = 'commander';
 const CANCELED = 'Command creation canceled!';
-const DESC = 'ARCLI:    Create a CLI function.';
+const DESC = 'Create a CLI function.';
 
 const HELP = () =>
     console.log(`
@@ -254,7 +252,7 @@ const ACTION = async ({ opt, props }) => {
     );
 };
 
-const COMMAND = ({ program, props }) =>
+export const COMMAND = ({ program, props }) =>
     program
         .command(NAME)
         .description(DESC)
@@ -271,7 +269,4 @@ const COMMAND = ({ program, props }) =>
         )
         .on('--help', HELP);
 
-module.exports = {
-    COMMAND,
-    NAME,
-};
+export const ID = NAME;

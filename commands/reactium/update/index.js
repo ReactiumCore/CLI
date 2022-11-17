@@ -3,14 +3,9 @@
  * Imports
  * -----------------------------------------------------------------------------
  */
+import generator from './generator.js';
 
-const path = require('path');
-const chalk = require('chalk');
-const op = require('object-path');
-const inquirer = require('inquirer');
-const generator = require('./generator');
-const mod = path.dirname(require.main.filename);
-const { error, message } = require(`${mod}/lib/messenger`);
+const { chalk, inquirer, message, op } = arcli;
 
 const NAME = 'reactium <update>';
 const DESC = 'Reactium: Update core.';
@@ -75,7 +70,7 @@ const ACTION = async ({ action, opt, props }) => {
         .catch(err => message(op.get(err, 'message', CANCELED)));
 };
 
-const COMMAND = ({ program, props }) =>
+export const COMMAND = ({ program, props }) =>
     program
         .command(NAME)
         .description(DESC)
@@ -86,7 +81,4 @@ const COMMAND = ({ program, props }) =>
         .option('-q, --quick', 'Do not install dependencies.')
         .on('--help', HELP);
 
-module.exports = {
-    COMMAND,
-    ID: NAME,
-};
+export const ID = NAME;

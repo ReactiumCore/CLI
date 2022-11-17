@@ -1,8 +1,6 @@
-import chalk from 'chalk';
-import fs from 'fs-extra';
-import op from 'object-path';
-import inquirer from 'inquirer';
 import generator from './generator.js';
+
+const { chalk, fs, op, inquirer } = arcli;
 
 const NAME = 'actinium <install>';
 const DESC = 'Actinium: Download and install.';

@@ -1,15 +1,18 @@
-const path = require('path');
-const chalk = require('chalk');
-const fs = require('fs-extra');
-const pkg = require('./package');
-const semver = require('semver');
-const op = require('object-path');
-const request = require('request');
-const inquirer = require('inquirer');
-const decompress = require('@atomic-reactor/decompress');
+import pkg from './package.js';
 
-module.exports = spinner => {
+export default spinner => {
     let cancelled = false;
+
+    const {
+        path,
+        chalk,
+        decompress,
+        fs,
+        semver,
+        op,
+        request,
+        inquirer,
+    } = arcli;
 
     const message = text => {
         if (spinner) {
@@ -76,20 +79,14 @@ module.exports = spinner => {
             const { config, cwd } = props;
 
             // Get the updated installed version file
-            const { version: updated } = require(normalize(
-                cwd,
-                'tmp',
-                'update',
-                '.core',
-                'reactium-config',
-            ));
+            const { version: updated } = await import(
+                normalize(cwd, 'tmp', 'update', '.core', 'reactium-config')
+            );
 
             // Get the
-            const { version: current } = require(normalize(
-                cwd,
-                '.core',
-                'reactium-config',
-            ));
+            const { version: current } = import(
+                normalize(cwd, '.core', 'reactium-config')
+            );
 
             const diff = semver.diff(current, updated);
             const warnings = ['major', 'minor'];
@@ -118,7 +115,6 @@ module.exports = spinner => {
         },
 
         core: ({ params, props, action }) => {
-
             if (cancelled === true) return;
 
             const { cwd } = props;
@@ -170,18 +166,14 @@ module.exports = spinner => {
             fs.writeFileSync(gulpFilePath, template);
         },
 
-        files: ({ params, props, action }) => {
+        files: async ({ params, props, action }) => {
             if (cancelled === true) return;
 
             // Add/Remove src files
             const { cwd } = props;
-            const reactium = require(normalize(
-                cwd,
-                'tmp',
-                'update',
-                '.core',
-                'reactium-config',
-            ));
+            const reactium = await import(
+                normalize(cwd, 'tmp', 'update', '.core', 'reactium-config')
+            );
 
             const reactiumVersion = op.get(reactium, 'version');
             const add = op.get(reactium, 'update.files.add') || [];

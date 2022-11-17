@@ -1,11 +1,6 @@
-const path = require('path');
-const chalk = require('chalk');
-const fs = require('fs-extra');
-const op = require('object-path');
-const inquirer = require('inquirer');
-const generator = require('./generator');
-const mod = path.dirname(require.main.filename);
-const { message } = require(`${mod}/lib/messenger`);
+import generator from './generator.js';
+
+const { chalk, fs, op, inquirer, message } = arcli;
 
 const NAME = 'reactium <install>';
 const DESC = 'Reactium: Install from master branch.';
@@ -82,7 +77,7 @@ const ACTION = async ({ action, opt, props }) => {
  * COMMAND Function
  * @description Function that executes program.command()
  */
-const COMMAND = ({ program, props }) => {
+export const COMMAND = ({ program, props }) => {
     return program
         .command(NAME)
         .description(DESC)
@@ -100,7 +95,4 @@ const COMMAND = ({ program, props }) => {
         .on('--help', HELP);
 };
 
-module.exports = {
-    COMMAND,
-    ID: NAME,
-};
+export const ID = NAME;

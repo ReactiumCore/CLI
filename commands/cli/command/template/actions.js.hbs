@@ -1,6 +1,6 @@
-const { chalk } = arcli;
+export default spinner => {
+    const { chalk } = arcli;
 
-module.exports = spinner => {
     const emit = text => {
         if (!spinner) return;
         spinner.text = text;

@@ -1,8 +1,5 @@
-module.exports = spinner => {
-    spinner = spinner || arcli.Spinner;
-
-    const { config, cwd, root } = arcli.props;
-    const { chalk, fs, homedir, normalizePath, op, path } = arcli;
+export default spinner => {
+    const { chalk, fs, homedir, normalizePath } = arcli;
 
     const message = text => {
         if (spinner) {
