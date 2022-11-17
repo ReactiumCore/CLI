@@ -3,6 +3,7 @@
   "version": "3.0.0",
   "description": "A CLI for creating Atomic Reactor Awesomeness",
   "type": "module",
+  "exports": "./arcli-node.js",
   "scripts": {
     "test": "node ./arcli.js",
     "testx": "run-s test:*",
