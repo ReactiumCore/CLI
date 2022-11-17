@@ -28,6 +28,7 @@ import request from 'request';
 import DeleteEmpty from 'delete-empty';
 import ActionSequence from 'action-sequence';
 import inquirer from 'inquirer';
+import prompt from 'prompt';
 import decompress from '@atomic-reactor/decompress';
 import { error, message } from './lib/messenger.js';
 
@@ -204,6 +205,7 @@ const bootstrap = async () => {
         pm2,
         portscanner,
         prettier,
+        prompt,
         props,
         request,
         rootCommands,
