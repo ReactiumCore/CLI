@@ -1,7 +1,11 @@
 import targetApp from '../../../lib/targetApp.js';
 
 export default spinner => {
-    let app, cwd, dir, filepath, name, plugin, sessionToken, tmp, version;
+    let dir, filepath, name, plugin, sessionToken, tmp, version;
+
+    const { cwd } = arcli.props;
+
+    const app = targetApp(cwd);
 
     const {
         _,
@@ -32,12 +36,6 @@ export default spinner => {
 
     return {
         init: ({ params, props }) => {
-            cwd = String(props.cwd)
-                .split('\\')
-                .join('/');
-
-            app = targetApp(cwd);
-
             sessionToken = op.get(props, 'config.registry.sessionToken');
 
             name = op.get(params, 'name');

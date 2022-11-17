@@ -1,14 +1,17 @@
-import path from 'path';
-import chalk from 'chalk';
-import fs from 'fs-extra';
-import semver from 'semver';
-import op from 'object-path';
-import request from 'request';
-import inquirer from 'inquirer';
-import decompress from '@atomic-reactor/decompress';
-import pkg from './package.json' assert { type: 'json'};
+import pkg from './package.js';
 
 export default spinner => {
+    const {
+        path,
+        chalk,
+        fs,
+        semver,
+        op,
+        request,
+        inquirer,
+        decompress,
+    } = arcli;
+
     let cancelled = false;
 
     const message = text => {

@@ -1,15 +1,15 @@
-import ora from 'ora';
 import Actions from './actions.js';
-import ActionSequence from 'action-sequence';
-
-const spinner = ora({
-    spinner: 'dots',
-    color: 'cyan',
-});
-
-const actions = Actions(spinner);
 
 export default ({ params, props }) => {
+    const { ActionSequence, ora } = arcli;
+
+    const spinner = ora({
+        spinner: 'dots',
+        color: 'cyan',
+    });
+
+    const actions = Actions(spinner);
+
     spinner.start('Actinium installing...');
 
     return ActionSequence({

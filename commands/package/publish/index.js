@@ -5,8 +5,19 @@
  */
 import GENERATOR from './generator.js';
 
-const { _, chalk, fs, normalizePath, op, path, prefix, semver } = arcli;
-const { cwd, inquirer } = arcli.props;
+const {
+    _,
+    chalk,
+    inquirer,
+    fs,
+    normalizePath,
+    op,
+    path,
+    prefix,
+    semver,
+} = arcli;
+
+const { cwd } = arcli.props;
 
 const pkgFile = normalizePath(cwd, 'package.json');
 

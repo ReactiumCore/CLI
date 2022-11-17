@@ -1,11 +1,6 @@
-import chalk from 'chalk';
-import fs from 'fs-extra';
-import path from 'node:path';
-import op from 'object-path';
-import request from 'request';
-import decompress from '@atomic-reactor/decompress';
-
 export default spinner => {
+    const { chalk, decompress, fs, op, path, request } = arcli;
+
     const message = text => {
         if (spinner) {
             spinner.text = text;

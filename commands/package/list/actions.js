@@ -1,4 +1,3 @@
-import targetApp from '../../../lib/targetApp.js';
 import compareBuild from 'semver/functions/compare-build.js';
 
 export default spinner => {
@@ -8,20 +7,14 @@ export default spinner => {
         }
     };
 
-    let cwd,
-        sessionToken,
+    let sessionToken,
         plugins = [];
 
-    const { _, chalk, fs, op, path } = arcli;
+    const { _, chalk, op } = arcli;
 
     return {
         init: ({ params, props }) => {
-            cwd = String(props.cwd)
-                .split('\\')
-                .join('/');
-
             // TODO: Filter by application type once the API supports it.
-            app = targetApp(cwd);
 
             sessionToken = op.get(props, 'config.registry.sessionToken');
 
@@ -58,8 +51,6 @@ export default spinner => {
                 });
         },
         table: async () => {
-            
-
             const data = plugins.map(
                 ({ name, version, description = '', updatedAt }) => {
                     const [rev] = Object.values(version)

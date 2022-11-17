@@ -1,11 +1,8 @@
-import path from 'path';
-import fs from 'fs-extra';
-import _ from 'underscore';
-import op from 'object-path';
-import prettier from 'prettier';
-
 export default (props, updatePath) => {
     const { cwd } = props;
+
+    const { path, fs, _, op, prettier } = arcli;
+
     const packageFile = path.normalize(`${cwd}/package.json`);
     const updatePackageJson = path.normalize(`${updatePath}/package.json`);
     const actiniumConfigFile = path.normalize(

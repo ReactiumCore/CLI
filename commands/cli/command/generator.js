@@ -1,8 +1,8 @@
-import ora from 'ora';
 import Actions from './actions.js';
-import ActionSequence from 'action-sequence';
 
 export default ({ params, props }) => {
+    const { ActionSequence, ora } = arcli;
+
     console.log('');
 
     const spinner = ora({
@@ -11,7 +11,9 @@ export default ({ params, props }) => {
     });
 
     spinner.start();
+    
     const actions = Actions(spinner);
+
     return ActionSequence({
         actions,
         options: { params, props },

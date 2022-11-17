@@ -1,6 +1,4 @@
 export default spinner => {
-    spinner = spinner || arcli.Spinner;
-
     const { chalk, fs, homedir, normalizePath } = arcli;
 
     const message = text => {

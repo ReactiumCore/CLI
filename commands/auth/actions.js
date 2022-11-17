@@ -2,18 +2,18 @@ import Auth from '../../../lib/auth.js';
 import UpdateActions from '../../../commands/config/set/actions.js';
 
 export default spinner => {
+    let sessionToken;
+
+    const { _, chalk, op } = arcli;
+
     const message = text => {
         if (spinner) {
             spinner.text = text;
         }
     };
 
-    let sessionToken;
-
-    const { _, chalk, op } = arcli;
-
     return {
-        auth: async ({ action, params, props }) => {
+        auth: async ({ params, props }) => {
             if (op.get(params, 'username')) {
                 message(`Authenticating${chalk.cyan('...')}`);
             }

@@ -3,9 +3,9 @@
  * Imports
  * -----------------------------------------------------------------------------
  */
-import chalk from 'chalk';
-import op from 'object-path';
 import GENERATOR from './generator.js';
+
+const { chalk, op } = arcli;
 
 /**
  * NAME String

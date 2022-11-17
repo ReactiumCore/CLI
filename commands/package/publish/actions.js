@@ -19,7 +19,7 @@ export default spinner => {
 
     const pkgFile = normalizePath(cwd, 'package.json');
 
-    let bytes, filename, filepath, pkgUpdate;
+    let bytes, filename, filepath;
 
     const x = chalk.magenta('✖');
 

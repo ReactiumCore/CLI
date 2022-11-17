@@ -1,19 +1,16 @@
-import ora from 'ora';
-import op from 'object-path';
-import ActionSequence from 'action-sequence';
+import Actions from './actions.js';
+import ActionsUnattended from './actions-unattended.js';
 
-module.exports = async ({ params, props }) => {
+export default async ({ params, props }) => {
+    const { ActionSequence, op, ora } = arcli;
+
     const spinner = ora({ spinner: 'dots', color: 'cyan' });
 
     spinner.start();
 
-    const name = op.get(params, 'name');
-
-    const Actions = name
-        ? await import('./actions.js')
-        : await import('./actions-unattended.js');
-
-    const actions = Actions(spinner);
+    const actions = op.get(params, 'name')
+        ? Actions(spinner)
+        : ActionsUnattended(spinner);
 
     return ActionSequence({ actions, options: { params, props } })
         .then(() => console.log(''))

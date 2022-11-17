@@ -1,5 +1,4 @@
-import chalk from 'chalk';
-import op from 'object-path';
+const { chalk, op } = arcli;
 
 export const NAME = 'actinium';
 

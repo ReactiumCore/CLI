@@ -1,18 +1,17 @@
-import fs from 'fs-extra';
-import chalk from 'chalk';
-import hb from 'handlebars';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 export default spinner => {
+    const { fs, chalk, hb } = arcli;
+
     const message = text => {
         if (!spinner) return;
         spinner.text = text;
     };
 
     const generate = ({ params, templateFile }) => {
-        const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
         // prettier-ignore
         const actionType = params.overwrite === true ? 'overwritting' : 'creating';
 

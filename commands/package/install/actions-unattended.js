@@ -2,10 +2,17 @@ import Actions from './actions.js';
 import targetApp from '../../../lib/targetApp.js';
 
 export default spinner => {
-    let deps, app, cwd, plugins, pluginsDir;
-    const { _, ActionSequence, chalk, fs, op, path } = arcli;
+    let deps, plugins;
 
-    const actions = { ...Actions(spinner) };
+    const { cwd } = arcli.props;
+
+    const { _, ActionSequence, chalk, fs, normalizePath, op, path } = arcli;
+
+    const app = targetApp(cwd);
+
+    const pluginsDir = path.resolve(normalizePath(cwd, app + '_modules'));
+
+    const actions = Actions(spinner);
 
     op.del(actions, 'complete');
     op.del(actions, 'registerPkg');
@@ -17,18 +24,12 @@ export default spinner => {
         }
     };
 
-    const normalize = (...args) => path.normalize(path.join(...args));
-
     return {
-        init: async ({ props }) => {
-            spinner.stop();
-
-            cwd = op.get(props, 'cwd');
-            app = targetApp(cwd);
-            pluginsDir = path.resolve(cwd, app + '_modules');
+        init: () => {
+            if (spinner) spinner.stop();
         },
         plugins: async () => {
-            const pkgPath = normalize(cwd, 'package.json');
+            const pkgPath = normalizePath(cwd, 'package.json');
             const pkg = fs.readJsonSync(pkgPath);
             const depKey = `${app}Dependencies`;
             deps = op.get(pkg, depKey, {});
@@ -70,14 +71,14 @@ export default spinner => {
 
             if (op.get(params, 'save')) {
                 // Kill package-lock.json
-                const packageLockPath = normalize(cwd, 'package-lock.json');
+                const packageLockPath = normalizePath(cwd, 'package-lock.json');
                 fs.removeSync(packageLockPath);
 
                 // Kill node_modules directory
-                const nodeModules = normalize(cwd, 'node_modules');
+                const nodeModules = normalizePath(cwd, 'node_modules');
                 fs.removeSync(nodeModules);
 
-                const packageJsonPath = normalize(cwd, 'package.json');
+                const packageJsonPath = normalizePath(cwd, 'package.json');
                 const pkg = fs.readJsonSync(packageJsonPath);
 
                 for (const i in plugins) {
@@ -86,7 +87,11 @@ export default spinner => {
 
                     const name = nameArr.join('@');
 
-                    const pkgPath = normalize(`${app}_modules`, name, '_npm');
+                    const pkgPath = normalizePath(
+                        `${app}_modules`,
+                        name,
+                        '_npm',
+                    );
                     op.set(pkg, `dependencies.${name}`, `file:${pkgPath}`);
                 }
 
@@ -114,7 +119,7 @@ export default spinner => {
                 const name = plugins[p];
                 message(`Post Install ${chalk.cyan(name)}...`);
 
-                const dir = normalize(pluginsDir, name);
+                const dir = normalizePath(pluginsDir, name);
                 const glob = `${dir}/**/arcli-install-unattended.js`;
                 const actionFiles = arcli.globby(glob);
 
@@ -124,7 +129,7 @@ export default spinner => {
 
                 for (let i = 0; i < actionFiles.length; i++) {
                     const file = actionFiles[i];
-                    const mod = await import(normalize(file));
+                    const mod = await import(normalizePath(file));
                     const acts = mod(spinner, arcli, params, props);
                     Object.keys(acts).forEach(key =>
                         op.set(actions, `postinstall_${i}_${key}`, acts[key]),

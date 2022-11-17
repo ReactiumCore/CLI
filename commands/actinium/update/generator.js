@@ -1,15 +1,15 @@
-import ora from 'ora';
-import Actions from './actions.js'; 
-import ActionSequence from 'action-sequence';
-
+import Actions from './actions.js';
 
 const generator = async ({ params, props }) => {
+    console.log('');
+
+    const { ActionSequence, ora } = arcli;
+
     const spinner = ora({
         spinner: 'dots',
         color: 'cyan',
     });
 
-    console.log('');
     spinner.start();
 
     const actions = Actions(spinner);

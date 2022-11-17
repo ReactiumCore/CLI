@@ -4,9 +4,7 @@
  * -----------------------------------------------------------------------------
  */
 
-import fs from 'fs-extra';
-
-const { chalk, message, op, prettier } = arcli;
+const { chalk, fs, message, op, prettier } = arcli;
 
 /**
  * NAME String

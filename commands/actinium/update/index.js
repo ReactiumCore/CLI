@@ -1,7 +1,6 @@
-import chalk from 'chalk';
-import op from 'object-path';
-import inquirer from 'inquirer';
 import generator from './generator.js';
+
+const { chalk, op, inquirer } = arcli;
 
 const NAME = 'actinium <update>';
 const DESC = 'Actinium: Update core';
