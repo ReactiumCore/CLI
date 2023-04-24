@@ -16,7 +16,6 @@ import moment from 'moment';
 import os from 'os';
 import semver from 'semver';
 import prettier from 'prettier';
-import pm2 from 'pm2';
 import portscanner from 'portscanner';
 import generator from './lib/generator.js';
 import table from 'text-table';
@@ -206,7 +205,6 @@ const bootstrap = async () => {
         normalizePath,
         op,
         ora,
-        pm2,
         portscanner,
         prettier,
         prompt,
