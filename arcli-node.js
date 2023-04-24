@@ -58,8 +58,8 @@ export default async () => {
             }
         }
 
-        // arcli.props.commands = commands;
-        // arcli.props.subcommands = subcommands;
+        arcli.props.commands = commands;
+        arcli.props.subcommands = subcommands;
     };
 
     const attachCommands = ({ program, props, arcli }) => {
