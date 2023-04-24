@@ -1,11 +1,13 @@
-
 import chalk from 'chalk';
 import fs from 'fs-extra';
 import semver from 'semver';
 import path from 'node:path';
 import op from 'object-path';
 import inquirer from 'inquirer';
-import pkg from './package.json' assert { type: 'json'};
+import { fileURLToPath } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const pkg = fs.readJsonSync(path.resolve(__dirname, 'package.json'));
 
 const utils = {
     normalize: (...args) => path.normalize(path.join(process.cwd(), ...args)),

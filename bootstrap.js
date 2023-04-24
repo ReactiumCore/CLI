@@ -28,6 +28,7 @@ import inquirer from 'inquirer';
 import prompt from 'prompt';
 import decompress from '@atomic-reactor/decompress';
 import { error, message } from './lib/messenger.js';
+import pad from './lib/pad.js';
 
 const normalizePath = (...args) => path.normalize(path.join(...args));
 
@@ -39,7 +40,7 @@ const importer = (path, options) => {
     options = options || {}; 
 
     if (String(path).endsWith('.json')) {
-        op.set(options, 'assert.type', 'json')
+        return fs.readJsonSync(path);
     }
 
     return import(path, options);
@@ -205,6 +206,7 @@ const bootstrap = async () => {
         normalizePath,
         op,
         ora,
+        pad,
         portscanner,
         prettier,
         prompt,
@@ -217,6 +219,7 @@ const bootstrap = async () => {
         table,
         tar,
         tmp: normalizePath(homedir, 'tmp'),
+        root,
     };
 
     // Build the props object

@@ -38,6 +38,7 @@ export default async () => {
             try {
                 req = await import(cmd);
             } catch (err) {
+                console.error(err);
                 req = () => {};
             }
 
