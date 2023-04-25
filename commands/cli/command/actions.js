@@ -1,5 +1,5 @@
 export default spinner => {
-    const { chalk, fileURLToPath, fs, hb, path } = arcli;
+    const { chalk, fileURLToPath, fs, handlebars: hb, path } = arcli;
 
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

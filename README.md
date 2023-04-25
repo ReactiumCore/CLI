@@ -172,24 +172,17 @@ _Creates a command that would be run by entering the following: `reactium fubar 
 
 ## Reactium Commands
 
-### `<reactium> <install>`
+### Reactium Install
 
 Downloads and installs Reactium into the current working directory. If the directory is not empty, you will be prompted to overwrite it or cancel the operation.
 
 #### Usage
 
 ```
-$ reactium reactium install
+$ reactium init -t app
 ```
 
 > _The config `reactium.repo` url is used when downloading Reactium._
-
-##### -o, --overwrite
-Overwrite the current working directory if it's not empty.
-
-##### -e, --empty
-Install Reactium without the default demo pages, components, and toolkit.
-
 
 ### `<reactium> <update>`
 Downloads and installs Reactium `.core` and updates to the `package.json` into the current working directory.
@@ -407,20 +400,13 @@ Overwrite the group object,
 ## Actinium Commands
 
 
-### `<actinium> <install>`
+### Actinium Install
 Downloads and installs Actinium into the current working directory. If the directory is not empty, you will be prompted to overwrite it or cancel the operation.
 
 #### Usage
 ```
-$ reactium actinium install
+$ reactium init -t api
 ```
-
-#### Flags:
---overwrite
-
-##### -o, --overwrite
-Overwrite the current working directory if it's not empty.
-
 
 ### `<cloud>`
 Actinium uses The [Parse Platform](https://parseplatform.org/) and this command helps in creating new Parse.Cloud functions.

@@ -2,7 +2,7 @@ import generator from './generator.js';
 
 const { chalk, op, slugify, message } = arcli;
 
-const NAME = 'commander';
+export const NAME = 'commander';
 const CANCELED = 'Command creation canceled!';
 const DESC = 'Create a CLI function.';
 
@@ -268,5 +268,3 @@ export const COMMAND = ({ program, props }) =>
             false,
         )
         .on('--help', HELP);
-
-export const ID = NAME;
