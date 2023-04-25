@@ -15,32 +15,46 @@ $ npm install -g reactium
 ```
 $ reactium <command> [options]
 
+Usage: reactium <command> [options]
+
 Options:
-  -v, --version                 Output the version number.
-  -h, --help                    Output usage information.
+  -v, --version             output the version number
+  -h, --help                display help for command
 
 Commands:
-  config [options]              ARCLI:    Set ARCLI key:value pairs.
-  commander [options]           ARCLI:    Create a CLI function.
-
-  cloud [options]               Actinium: Create a new Parse.Cloud function file.
-  actinium [options] <install>  Actinium: Download and install.
-
-  component [options]           Reactium: Create or replace a component.
-  empty                         Reactium: Removes the default demo, styles, toolkit elements, and assets.
-  reactium <install> [options]  Reactium: Download and install.
-  reactium <update> [options]   Reactium: Update core.
-  rename [options]              Reactium: Rename a component.
-  style [options]               Reactium: Create a style sheet.
-
-  element [action] [options]    Toolkit:  Manage toolkit elements.
-                                          Available actions: create | updated | remove.
-  group [action] [options]      Toolkit:  Manage toolkit groups.
-                                          Available actions: create | updated | remove.
+  init [options]            Initialize a new Reactium project
+  label [options]           Label a directory for use in other commands.
+  update                    Update Reactium / Actinium in current directory.
+  commander [options]       Create a CLI function.
+  config [options]          Set ARCLI key:value pairs.
+  install [options] [name]  Install an Actinium or Reactium Plugin.
+  list                      List arcli packages.
+  publish [options]         Publish an Actinium or Reactium module.
+  uninstall <name>          Uninstall an Actinium or Reactium Plugin.
 ```
 
-
 ## Commands
+
+### Reactium Install
+
+Downloads and installs Reactium into the current working directory. If the directory is not empty, you will be prompted to overwrite it or cancel the operation.
+
+#### Usage
+
+```
+$ reactium init
+```
+
+> _The config `reactium.repo` url is used when downloading Reactium. The config `actinium.repo` url is used when downloading Reactium._
+
+### `<update>`
+Detects if the current directory is Reactium or Actinium project. Downloads and installs Reactium or Actinium `.core` and updates to the `package.json` into the current working directory.
+The current version of your project will be backed up to the `.BACKUP` directory before update.
+
+#### Usage
+```
+$ reactium update
+```
 
 ### `<config>`
 Set or change configuration options.
@@ -172,53 +186,6 @@ _Creates a command that would be run by entering the following: `reactium fubar 
 
 ## Reactium Commands
 
-### Reactium Install
-
-Downloads and installs Reactium into the current working directory. If the directory is not empty, you will be prompted to overwrite it or cancel the operation.
-
-#### Usage
-
-```
-$ reactium init -t app
-```
-
-> _The config `reactium.repo` url is used when downloading Reactium._
-
-### `<reactium> <update>`
-Downloads and installs Reactium `.core` and updates to the `package.json` into the current working directory.
-The current version of your project will be backed up to the `.BACKUP` directory before update.
-
-#### Usage
-```
-$ reactium reactium update
-```
-
-### `<empty>`
-Removes the default demo, styles, toolkit elements, and assets.
-
-#### Usage
-
-```
-$ reactium empty --no-demo
-```
-
-##### -D, --no-demo
-Keep the default demo site and components.
-
-##### -T, --no-toolkit
-Keep the default toolkit elements.
-
-##### -S, --no-style
-Do not empty the ~/src/assets/style/style.scss file.
-
-##### -F, --no-font
-Do not empty the ~/src/assets/fonts directory.
-
-##### -I, --no-images
-Do not empty the ~/src/assets/images directory.
-
-
-
 ### `<component>`
 Create or replace a Reactium component.
 
@@ -249,56 +216,8 @@ Default types: `functional | class`
 ##### --route
 Includes the `route.js` file for a routed component.
 
-##### --redux
-Create a Redux Class component.
-
-_`--redux` must be specified for any of the redux includes to apply._
-
-##### --redux-all
-Include all Redux related files.
-
-##### --actions
-Include Redux `actions.js` file.
-
-##### --actionTypes
-Include Redux `actionTypes.js` file.
-
-##### --reducers
-Include Redux `reducers.js` file.
-
-##### --services
-Include `services.js` file for creating adhoc service calls.
-
 ##### --stylesheet
 Include `_style.scss` file and import into a parent stylesheet.
-
-
-### `<rename>`
-Rename a Reactium component.
-
-#### Usage
-
-```
-$ reactium rename --from 'FooBar' --to 'Fubar' --replace
-```
-
-#### Flags:
---from, --to, --directory, --replace
-
-##### -f, --from
-Component's current name.
-
-##### -t, --to
-Component's new name.
-
-##### -d, --directory
-Component's parent directory.
-
-##### -r, --replace
-Replace the component name in other files.
-Each file is backed up in the `~/.BACKUP` directory.
-
-> _You can use the shortcut `components/`, `common-ui/`, or `cwd/` when specifying the directory._
 
 ### `<style>`
 Create a Reactium or Toolkit stylesheet.
