@@ -1,28 +1,30 @@
-export default (props, updatePath) => {
+export default async ({ props, params }, updatePath) => {
     const { cwd } = props;
+    const { type } = params;
 
-    const { path, fs, _, op, prettier } = arcli;
+    const { _, fs, op, path, prettier } = arcli;
 
     const packageFile = path.normalize(`${cwd}/package.json`);
     const updatePackageJson = path.normalize(`${updatePath}/package.json`);
-    const actiniumConfigFile = path.normalize(
-        `${updatePath}/.core/actinium-config.js`,
+
+    const configFile = path.normalize(
+        `${updatePath}/.core/${type.toLowerCase()}-config.js`,
     );
 
-    let pkg, actiniumConfig, updatePackage;
+    let pkg, config, updatePackage;
 
-    // Read the updated actinium-config.js file
+    // Get the .core/<type>-config.js file;
     try {
         updatePackage = fs.readJsonSync(updatePackageJson);
     } catch (err) {
         updatePackage = {};
     }
 
-    // Read the current actinium-config.js file
     try {
-        actiniumConfig = fs.readJsonSync(actiniumConfigFile);
+        const { default: configObj } = await import(configFile);
+        config = configObj;
     } catch (err) {
-        actiniumConfig = {};
+        config = {};
     }
 
     // Get the cwd package.json
@@ -36,17 +38,13 @@ export default (props, updatePath) => {
     let scripts = op.get(pkg, 'scripts', {});
 
     // Update scripts : remove
-    let removeScripts = op.get(
-        actiniumConfig,
-        'update.package.scripts.remove',
-        [],
-    );
+    let removeScripts = op.get(config, 'update.package.scripts.remove', []);
     removeScripts.forEach(i => {
         delete scripts[i];
     });
 
     // Update scripts : add
-    let addScripts = op.get(actiniumConfig, 'update.package.scripts.add', {});
+    let addScripts = op.get(config, 'update.package.scripts.add', {});
 
     Object.entries(addScripts).forEach(([key, value]) => {
         scripts[key] = value;
@@ -56,16 +54,16 @@ export default (props, updatePath) => {
     pkg['scripts'] = scripts;
 
     const pkeys = _.without(
-        Object.keys(op.get(actiniumConfig, 'update.package')),
+        Object.keys(op.get(config, 'update.package')),
         'scripts',
     );
 
-    // Update package objects
+    // Update package object
     pkeys.forEach(depType => {
         const existingDeps = op.get(pkg, depType, {});
         const addDeps = op.get(updatePackage, depType, {});
         const removeDeps = op
-            .get(actiniumConfig, ['update', 'package', depType, 'remove'], [])
+            .get(config, ['update', 'package', depType, 'remove'], [])
             .concat(Object.keys(addDeps));
 
         pkg[depType] = Object.entries(existingDeps)
@@ -78,10 +76,14 @@ export default (props, updatePath) => {
             }, {});
     });
 
-    // Remove actinium_modules deps so we don't get errors if
-    // someone has culled their actiniumDependencies object
+    // Remove babel config
+    delete pkg.babel;
+
+    // Remove <type>_modules deps so we don't get errors if
+    // someone has culled their <type>Dependencies object
     Object.entries(pkg.dependencies).forEach(([key, val]) => {
-        if (!String(val).startsWith('file:actinium_modules/')) return;
+        if (!String(val).startsWith(`file:${type.toLowerCase()}_modules/`))
+            return;
         delete pkg.dependencies[key];
     });
 
