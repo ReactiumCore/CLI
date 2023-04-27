@@ -65,7 +65,7 @@ export default spinner => {
             });
         },
 
-        unzip: ({ params, props, action }) => {
+        unzip: ({ props }) => {
             const { config, cwd } = props;
 
             message('unpacking...');
@@ -81,7 +81,7 @@ export default spinner => {
         },
 
         confirm: async ({ params, props }) => {
-            const { config, cwd } = props;
+            const { cwd } = props;
             const { type } = params;
 
             // Get the updated installed version file
@@ -126,7 +126,7 @@ export default spinner => {
             cancelled = !resume;
         },
 
-        core: ({ params, props, action }) => {
+        core: ({ props }) => {
             if (cancelled === true) return;
 
             const { cwd } = props;
@@ -141,7 +141,7 @@ export default spinner => {
             fs.copySync(updateDir, coreDir);
         },
 
-        files: async ({ params, props, action }) => {
+        files: async ({ params, props }) => {
             if (cancelled === true) return;
             
             // Add/Remove src files
@@ -188,7 +188,7 @@ export default spinner => {
             });
         },
 
-        package: async ({ params, props, action }) => {
+        package: async ({ params, props }) => {
             if (cancelled === true) return;
 
             message('updating package.json...');
@@ -203,7 +203,7 @@ export default spinner => {
             fs.writeFileSync(oldPackage, newPackage);
         },
 
-        cleanup: ({ params, props, action }) => {
+        cleanup: ({ props }) => {
             const { cwd } = props;
             message('removing temp files...');
             fs.removeSync(normalize(cwd, 'tmp'));
@@ -219,7 +219,7 @@ export default spinner => {
             console.log(`Installing ${chalk.cyan(type)} dependencies...`);
             console.log('');
 
-            return arcli.runCommand('reactium', ['install', '-s']);
+            return arcli.runCommand('reactium', ['install']);
         },
 
         cancelled: () => {

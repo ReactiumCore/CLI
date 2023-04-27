@@ -87,6 +87,11 @@ export default async ({ props, params }, updatePath) => {
         delete pkg.dependencies[key];
     });
 
+    // Create Workspace block
+    if (!op.get(pkg, 'workspaces')) {
+        op.set(pkg, 'workspaces', [`${type}_modules/**/_npm`]);
+    }
+
     // Write the new package.json file.
     const pkgCont = prettier.format(JSON.stringify(pkg), {
         parser: 'json-stringify',
