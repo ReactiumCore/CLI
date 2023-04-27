@@ -79,7 +79,9 @@ export default spinner => {
             }
         },
         fetch: () => {
-            message(`Fetching ${chalk.cyan('plugin')}...`);
+            message(
+                `Fetching ${chalk.cyan('plugin')} ${chalk.magenta(name)}...`,
+            );
 
             return Actinium.Cloud.run(
                 'registry-get',
@@ -88,11 +90,16 @@ export default spinner => {
             )
                 .then(result => {
                     plugin = result;
-                    if (!plugin) throw new Error('Unable to get plugin.');
+                    if (!plugin) {
+                        throw new Error(
+                            `  Unable to get plugin: ${name}@${version}.`,
+                        );
+                    }
                 })
                 .catch(err => {
-                    spinner.fail(err.message);
-                    console.error(err.message);
+                    spinner.fail(`Error fetching ${chalk.cyan('plugin')} ${chalk.magenta(name)}:`);
+                    console.error(chalk.magenta(err.message));
+                    console.log('');
                     process.exit(1);
                 });
         },
@@ -107,7 +114,9 @@ export default spinner => {
                     : _.last(versions);
 
             if (!plugin || !op.get(plugin, 'file')) {
-                console.error('Unable to find plugin version.');
+                spinner.fail(`Error installing ${chalk.cyan(name)}:`);
+                console.error(`  Unable to find plugin version: ${chalk.magenta(version)}`);
+                console.log('');
                 process.exit(1);
             }
 
