@@ -97,7 +97,11 @@ export default spinner => {
                     }
                 })
                 .catch(err => {
-                    spinner.fail(`Error fetching ${chalk.cyan('plugin')} ${chalk.magenta(name)}:`);
+                    spinner.fail(
+                        `Error fetching ${chalk.cyan('plugin')} ${chalk.magenta(
+                            name,
+                        )}:`,
+                    );
                     console.error(chalk.magenta(err.message));
                     console.log('');
                     process.exit(1);
@@ -115,7 +119,11 @@ export default spinner => {
 
             if (!plugin || !op.get(plugin, 'file')) {
                 spinner.fail(`Error installing ${chalk.cyan(name)}:`);
-                console.error(`  Unable to find plugin version: ${chalk.magenta(version)}`);
+                console.error(
+                    `  Unable to find plugin version: ${chalk.magenta(
+                        version,
+                    )}`,
+                );
                 console.log('');
                 process.exit(1);
             }
@@ -190,6 +198,30 @@ export default spinner => {
             op.set(pkg, [`${app}Dependencies`, name], version);
             fs.writeFileSync(pkgjson, JSON.stringify(pkg, null, 2));
         },
+        // npm: async ({ params }) => {
+        //     if (
+        //         op.get(params, 'no-npm') === true ||
+        //         op.get(params, 'unattended') === true
+        //     ) {
+        //         return;
+        //     }
+
+        //     spinner.stopAndPersist({
+        //         text: `Installing ${chalk.cyan(name)} dependencies...`,
+        //         symbol: chalk.cyan('+'),
+        //     });
+
+        //     console.log('');
+
+        //     const pkg = normalize(`${app}_modules`, slugify(name), '_npm');
+        //     try {
+        //         await arcli.runCommand('npm', ['uninstall', pkg]);
+        //         await arcli.runCommand('npm', ['install', pkg]);
+        //     } catch (error) {
+        //         console.error({ error });
+        //         process.exit(1);
+        //     }
+        // },
         npm: async ({ params }) => {
             if (
                 op.get(params, 'no-npm') === true ||
@@ -199,16 +231,15 @@ export default spinner => {
             }
 
             spinner.stopAndPersist({
-                text: `Installing ${chalk.cyan(name)} dependencies...`,
+                text: `Installing ${chalk.cyan('npm')} dependencies...`,
                 symbol: chalk.cyan('+'),
             });
 
             console.log('');
 
-            const pkg = normalize(`${app}_modules`, slugify(name), '_npm');
             try {
-                await arcli.runCommand('npm', ['uninstall', pkg]);
-                await arcli.runCommand('npm', ['install', pkg]);
+                await arcli.runCommand('npm', ['prune']);
+                await arcli.runCommand('npm', ['install']);
             } catch (error) {
                 console.error({ error });
                 process.exit(1);
