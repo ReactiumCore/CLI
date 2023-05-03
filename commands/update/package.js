@@ -89,7 +89,8 @@ export default async ({ props, params }, updatePath) => {
 
     // Create Workspace block
     if (!op.get(pkg, 'workspaces')) {
-        op.set(pkg, 'workspaces', [`${type.toLowerCase()}_modules/**/_npm`]);
+        op.set(pkg, 'workspaces', [`${type.toLowerCase()}_modules/*`]);
+        op.set(pkg, 'workspaces', [`${type.toLowerCase()}_modules/*/*`]);
     }
 
     // Write the new package.json file.

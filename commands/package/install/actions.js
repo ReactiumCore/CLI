@@ -166,13 +166,6 @@ export default spinner => {
                 fs.ensureDirSync(dir);
                 fs.emptyDirSync(dir);
                 fs.moveSync(tmp, dir, { overwrite: true });
-
-                fs.ensureDirSync(normalize(dir, '_npm'));
-                fs.copySync(
-                    normalize(dir, 'package.json'),
-                    normalize(dir, '_npm', 'package.json'),
-                    { overwrite: true },
-                );
             } catch (error) {
                 console.error(error);
                 process.exit(1);
