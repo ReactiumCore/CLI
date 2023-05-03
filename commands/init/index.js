@@ -1,15 +1,19 @@
 import actions from './actions.js';
-
 const { Spinner, chalk, generator, message, op, prefix, flagsToParams } = arcli;
 
-export const NAME = '{{{command}}}';
-const CANCELED = '{{{command}}} canceled!';
-const DESC = 'The description of the command';
+export const NAME = 'init';
+const CANCELED = 'init canceled!';
+const DESC = 'Initialize a new Reactium project';
+
+const TYPES = {
+    app: 'Reactium',
+    api: 'Actinium',
+};
 
 // prettier-ignore
 const HELP = () => console.log(`
 Example:
-  $ arcli {{{command}}} -h
+  $ arcli init -h
 `);
 
 const CONFORM = (input, props) =>
@@ -23,35 +27,45 @@ const CONFORM = (input, props) =>
 
 const PREFLIGHT = ({ msg, params }) => {
     message(msg || 'Preflight checklist:');
-    console.log(JSON.stringify(params, null, 2));
+    console.log(`Preparing to initialize ${TYPES[params.type]}...`);
     console.log('');
 };
 
-const INPUT = ({ inquirer }) =>
-    inquirer.prompt([
+const INPUT = ({ inquirer }, params) => {
+    const validate = val => ['app', 'api'].includes(val);
+
+    return inquirer.prompt([
         {
-            type: 'input',
-            name: 'sample',
+            type: 'list',
+            default: 'app',
+            choices: [
+                { name: 'Reactium (Web Application)', value: 'app' },
+                { name: 'Actinium (Web API)', value: 'api' },
+            ],
+            name: 'type',
             prefix,
-            message: 'Sample Input',
+            message: 'Initialize what type of project?',
             suffix: chalk.magenta(': '),
+            validate,
+            when: !validate(params.type),
         },
     ]);
-
-const CONFIRM = ({ inquirer }) =>
-    inquirer.prompt([
+};
+const CONFIRM = ({ inquirer }, { type }) => {
+    return inquirer.prompt([
         {
             default: false,
             type: 'confirm',
             name: 'confirm',
-            message: 'Proceed?',
+            message: `Initialize ${TYPES[type]} here?`,
             prefix,
             suffix: chalk.magenta(': '),
         },
     ]);
+};
 
 const ACTION = async ({ opt, props }) => {
-    const flags = ['sample'];
+    const flags = ['type'];
 
     let params = flagsToParams({ opt, flags });
 
@@ -62,7 +76,7 @@ const ACTION = async ({ opt, props }) => {
 
     PREFLIGHT({ params });
 
-    const { confirm } = await CONFIRM(props);
+    const { confirm } = await CONFIRM(props, params);
     if (confirm !== true) {
         message(CANCELED);
         return;
@@ -72,15 +86,18 @@ const ACTION = async ({ opt, props }) => {
         actions: actions(Spinner),
         params,
         props,
-    }).catch((err) => message(op.get(err, 'message', CANCELED)));
+    }).catch(err => message(op.get(err, 'message', CANCELED)));
 };
 
 export const COMMAND = ({ program, props }) =>
     program
         .command(NAME)
         .description(DESC)
-        .action((opt) => ACTION({ opt, props }))
-        .option('-s, --sample [sample]', 'Sample parameter.')
+        .action(opt => ACTION({ opt, props }))
+        .option(
+            '-t, --type [flavor]',
+            'Type of project to initialize (app or api)',
+        )
         .on('--help', HELP);
 
 export const ID = NAME;

@@ -32,7 +32,7 @@ export default spinner => {
                 arcli.props.config = config;
                 op.set(params, 'newConfig', config);
 
-                return UpdateActions.update({
+                return UpdateActions(spinner).update({
                     action: 'update',
                     params,
                     props,

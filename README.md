@@ -1,53 +1,67 @@
 
 
 # Atomic Reactor CLI
-A CLI for creating Atomic Reactor Awesomeness!
+A CLI for creating Reactium / Actinium projects.
 
 
 # Installation
 ```
-$ npm install -g @atomic-reactor/cli
+$ npm install -g reactium
 ```
 
 
 # Usage
 
 ```
-$ arcli <command> [options]
+$ reactium <command> [options]
+
+Usage: reactium <command> [options]
 
 Options:
-  -v, --version                 Output the version number.
-  -h, --help                    Output usage information.
+  -v, --version             output the version number
+  -h, --help                display help for command
 
 Commands:
-  config [options]              ARCLI:    Set ARCLI key:value pairs.
-  commander [options]           ARCLI:    Create a CLI function.
-
-  cloud [options]               Actinium: Create a new Parse.Cloud function file.
-  actinium [options] <install>  Actinium: Download and install.
-
-  component [options]           Reactium: Create or replace a component.
-  empty                         Reactium: Removes the default demo, styles, toolkit elements, and assets.
-  reactium <install> [options]  Reactium: Download and install.
-  reactium <update> [options]   Reactium: Update core.
-  rename [options]              Reactium: Rename a component.
-  style [options]               Reactium: Create a style sheet.
-
-  element [action] [options]    Toolkit:  Manage toolkit elements.
-                                          Available actions: create | updated | remove.
-  group [action] [options]      Toolkit:  Manage toolkit groups.
-                                          Available actions: create | updated | remove.
+  init [options]            Initialize a new Reactium project
+  label [options]           Label a directory for use in other commands.
+  update                    Update Reactium / Actinium in current directory.
+  commander [options]       Create a CLI function.
+  config [options]          Set ARCLI key:value pairs.
+  install [options] [name]  Install an Actinium or Reactium Plugin.
+  list                      List arcli packages.
+  publish [options]         Publish an Actinium or Reactium module.
+  uninstall <name>          Uninstall an Actinium or Reactium Plugin.
 ```
 
-
 ## Commands
+
+### Reactium Install
+
+Downloads and installs Reactium into the current working directory. If the directory is not empty, you will be prompted to overwrite it or cancel the operation.
+
+#### Usage
+
+```
+$ reactium init
+```
+
+> _The config `reactium.repo` url is used when downloading Reactium. The config `actinium.repo` url is used when downloading Reactium._
+
+### `<update>`
+Detects if the current directory is Reactium or Actinium project. Downloads and installs Reactium or Actinium `.core` and updates to the `package.json` into the current working directory.
+The current version of your project will be backed up to the `.BACKUP` directory before update.
+
+#### Usage
+```
+$ reactium update
+```
 
 ### `<config>`
 Set or change configuration options.
 
 #### Usage
 ```
-$ arcli config --key 'reactium.repo' --value 'https://github.com/Atomic-Reactor/Reactium/archive/develop.zip'
+$ reactium config --key 'reactium.repo' --value 'https://github.com/Atomic-Reactor/Reactium/archive/develop.zip'
 ```
 
 _The above would set the Reactium install package to the `develop` branch._
@@ -65,7 +79,7 @@ The config object value.
 You can set array values by putting a space between each value.
 
 ```
-$ arcli config --key 'toolkit.types' --value 'atom molecule organism template link page'
+$ reactium config --key 'toolkit.types' --value 'atom molecule organism template link page'
 ```
 
 ###### Default config
@@ -114,7 +128,7 @@ Create custom ARCLI commands.
 
 #### Usage
 ```
-$ arcli commander
+$ reactium commander
 ```
 
 > _You will be prompted for a destination and command name_
@@ -130,7 +144,7 @@ If you're creating a project specific command, use the shortcut: `cwd/` when spe
 
 > _This is the recommended location for custom commands._
 ```
-$ arcli commander --destination 'cwd/my/function'
+$ reactium commander --destination 'cwd/my/function'
 ```
 
 _The boilerplate code for a new ARCLI function will be created in the `~/.cli/commands/my/function` directory._
@@ -140,7 +154,7 @@ If you're creating an application specific command, use the shortcut `app/` when
 
 > Beware: _Application specific commands are only suggested if you're contributing to the application and want those commands pushed out to future versions. For instance if you want to create a new Reactium or Actinium core command and plan on submitting a pull request for your new feature. Otherwise, they will be overwritten when you update your version of Reactium or Actinium._
 ```
-$ arcli commander -d 'app/my/function'
+$ reactium commander -d 'app/my/function'
 ```
 
 _The boilerplate code for a new ARCLI function will be created in the `~/.core/.cli/commands/my/function` directory._
@@ -151,87 +165,33 @@ If you're creating a new ARCLI command, use the shortcut `root/` when specifying
 > Beware: _Root commands are only suggested if you're contributing to ARCLI and plan on submitting a pull request for your new feature. Otherwise, they will be overwritten whenever you update your version of ARCLI._
 
 ```
-$ arcli commander -d 'root/my/function'
+$ reactium commander -d 'root/my/function'
 ```
 
 ##### -c, --command
 The command prompt.
 
 ```
-$ arcli commander --command fubar --destination 'cwd/fubar'
+$ reactium commander --command fubar --destination 'cwd/fubar'
 ```
 
 You can create a command that accepts parameters as well:
 
 ```
-$ arcli commander --command 'fubar test'
+$ reactium commander --command 'fubar test'
 ```
 
-_Creates a command that would be run by entering the following: `arcli fubar test`_
+_Creates a command that would be run by entering the following: `reactium fubar test`_
 
 
 ## Reactium Commands
-
-### `<reactium> <install>`
-
-Downloads and installs Reactium into the current working directory. If the directory is not empty, you will be prompted to overwrite it or cancel the operation.
-
-#### Usage
-
-```
-$ arcli reactium install
-```
-
-> _The config `reactium.repo` url is used when downloading Reactium._
-
-##### -o, --overwrite
-Overwrite the current working directory if it's not empty.
-
-##### -e, --empty
-Install Reactium without the default demo pages, components, and toolkit.
-
-
-### `<reactium> <update>`
-Downloads and installs Reactium `.core` and updates to the `package.json` into the current working directory.
-The current version of your project will be backed up to the `.BACKUP` directory before update.
-
-#### Usage
-```
-$ arcli reactium update
-```
-
-### `<empty>`
-Removes the default demo, styles, toolkit elements, and assets.
-
-#### Usage
-
-```
-$ arcli empty --no-demo
-```
-
-##### -D, --no-demo
-Keep the default demo site and components.
-
-##### -T, --no-toolkit
-Keep the default toolkit elements.
-
-##### -S, --no-style
-Do not empty the ~/src/assets/style/style.scss file.
-
-##### -F, --no-font
-Do not empty the ~/src/assets/fonts directory.
-
-##### -I, --no-images
-Do not empty the ~/src/assets/images directory.
-
-
 
 ### `<component>`
 Create or replace a Reactium component.
 
 #### Usage
 ```
-$ arcli component
+$ reactium component
 ```
 
 #### Flags:
@@ -256,63 +216,15 @@ Default types: `functional | class`
 ##### --route
 Includes the `route.js` file for a routed component.
 
-##### --redux
-Create a Redux Class component.
-
-_`--redux` must be specified for any of the redux includes to apply._
-
-##### --redux-all
-Include all Redux related files.
-
-##### --actions
-Include Redux `actions.js` file.
-
-##### --actionTypes
-Include Redux `actionTypes.js` file.
-
-##### --reducers
-Include Redux `reducers.js` file.
-
-##### --services
-Include `services.js` file for creating adhoc service calls.
-
 ##### --stylesheet
 Include `_style.scss` file and import into a parent stylesheet.
-
-
-### `<rename>`
-Rename a Reactium component.
-
-#### Usage
-
-```
-$ arcli rename --from 'FooBar' --to 'Fubar' --replace
-```
-
-#### Flags:
---from, --to, --directory, --replace
-
-##### -f, --from
-Component's current name.
-
-##### -t, --to
-Component's new name.
-
-##### -d, --directory
-Component's parent directory.
-
-##### -r, --replace
-Replace the component name in other files.
-Each file is backed up in the `~/.BACKUP` directory.
-
-> _You can use the shortcut `components/`, `common-ui/`, or `cwd/` when specifying the directory._
 
 ### `<style>`
 Create a Reactium or Toolkit stylesheet.
 
 #### Usage
 ```
-$ arcli style -d 'cwd/public/assets/style' -f 'my-style.scss' -o
+$ reactium style -d 'cwd/public/assets/style' -f 'my-style.scss' -o
 ```
 
 #### Flags:
@@ -338,11 +250,11 @@ Manage toolkit elements.
 
 #### Usage
 ```
-$ arcli element create
+$ reactium element create
 
-$ arcli element update
+$ reactium element update
 
-$ arcli element remove
+$ reactium element remove
 ```
 
 _If no flags are specified, you will be prompted to input corresponding values._
@@ -385,7 +297,7 @@ Manage toolkit groups. Use this command to move things around in the toolkit man
 #### Usage
 
 ```
-$ arcli group create
+$ reactium group create
 ```
 
 #### Flags:
@@ -407,27 +319,20 @@ Overwrite the group object,
 ## Actinium Commands
 
 
-### `<actinium> <install>`
+### Actinium Install
 Downloads and installs Actinium into the current working directory. If the directory is not empty, you will be prompted to overwrite it or cancel the operation.
 
 #### Usage
 ```
-$ arcli actinium install
+$ reactium init -t api
 ```
-
-#### Flags:
---overwrite
-
-##### -o, --overwrite
-Overwrite the current working directory if it's not empty.
-
 
 ### `<cloud>`
 Actinium uses The [Parse Platform](https://parseplatform.org/) and this command helps in creating new Parse.Cloud functions.
 
 #### Usage
 ```
-$ arcli cloud
+$ reactium cloud
 ```
 
 #### Flags:
@@ -437,20 +342,20 @@ $ arcli cloud
 Parent directory of the Cloud Function.
 
 > _Actinium looks in the `~/src/app/cloud` directory for .js files and loads them as cloud functions._
-> _You can use the `cloud/` shortcut when specifying the destination. Example: `$ arcli element --destination 'cloud/my/function` will put the cloud function in the `~/src/app/cloud/my/function` directory._
+> _You can use the `cloud/` shortcut when specifying the destination. Example: `$ reactium element --destination 'cloud/my/function` will put the cloud function in the `~/src/app/cloud/my/function` directory._
 
 ##### --collection
 The database collection for before/after hooks.
 
 ```
 // Use the Parse.User collection
-$ arcli element --collection '_User'
+$ reactium element --collection '_User'
 ```
 
 ##### --definition
 Parse.Cloud.define() definitions.
 ```
-$ arcli element --definitions 'userSave userDelete'
+$ reactium element --definitions 'userSave userDelete'
 ```
 
 > _Note: you can specify multiple definitions by putting a space between values._

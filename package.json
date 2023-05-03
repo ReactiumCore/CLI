@@ -1,7 +1,7 @@
 {
-  "name": "@atomic-reactor/cli",
-  "version": "3.0.5",
-  "description": "A CLI for creating Atomic Reactor Awesomeness",
+  "name": "reactium",
+  "version": "3.0.18",
+  "description": "A CLI for creating Reactium / Actinium projects.",
   "type": "module",
   "exports": "./arcli-node.js",
   "scripts": {
@@ -25,7 +25,7 @@
     "url": "git+https://github.com/Atomic-Reactor/CLI.git"
   },
   "bin": {
-    "arcli": "arcli.js"
+    "reactium": "arcli.js"
   },
   "keywords": [
     "actinium",

@@ -79,7 +79,9 @@ export default spinner => {
             }
         },
         fetch: () => {
-            message(`Fetching ${chalk.cyan('plugin')}...`);
+            message(
+                `Fetching ${chalk.cyan('plugin')} ${chalk.magenta(name)}...`,
+            );
 
             return Actinium.Cloud.run(
                 'registry-get',
@@ -88,11 +90,20 @@ export default spinner => {
             )
                 .then(result => {
                     plugin = result;
-                    if (!plugin) throw new Error('Unable to get plugin.');
+                    if (!plugin) {
+                        throw new Error(
+                            `  Unable to get plugin: ${name}@${version}.`,
+                        );
+                    }
                 })
                 .catch(err => {
-                    spinner.fail(err.message);
-                    console.error(err.message);
+                    spinner.fail(
+                        `Error fetching ${chalk.cyan('plugin')} ${chalk.magenta(
+                            name,
+                        )}:`,
+                    );
+                    console.error(chalk.magenta(err.message));
+                    console.log('');
                     process.exit(1);
                 });
         },
@@ -107,7 +118,13 @@ export default spinner => {
                     : _.last(versions);
 
             if (!plugin || !op.get(plugin, 'file')) {
-                console.error('Unable to find plugin version.');
+                spinner.fail(`Error installing ${chalk.cyan(name)}:`);
+                console.error(
+                    `  Unable to find plugin version: ${chalk.magenta(
+                        version,
+                    )}`,
+                );
+                console.log('');
                 process.exit(1);
             }
 
@@ -149,13 +166,6 @@ export default spinner => {
                 fs.ensureDirSync(dir);
                 fs.emptyDirSync(dir);
                 fs.moveSync(tmp, dir, { overwrite: true });
-
-                fs.ensureDirSync(normalize(dir, '_npm'));
-                fs.copySync(
-                    normalize(dir, 'package.json'),
-                    normalize(dir, '_npm', 'package.json'),
-                    { overwrite: true },
-                );
             } catch (error) {
                 console.error(error);
                 process.exit(1);
@@ -181,6 +191,30 @@ export default spinner => {
             op.set(pkg, [`${app}Dependencies`, name], version);
             fs.writeFileSync(pkgjson, JSON.stringify(pkg, null, 2));
         },
+        // npm: async ({ params }) => {
+        //     if (
+        //         op.get(params, 'no-npm') === true ||
+        //         op.get(params, 'unattended') === true
+        //     ) {
+        //         return;
+        //     }
+
+        //     spinner.stopAndPersist({
+        //         text: `Installing ${chalk.cyan(name)} dependencies...`,
+        //         symbol: chalk.cyan('+'),
+        //     });
+
+        //     console.log('');
+
+        //     const pkg = normalize(`${app}_modules`, slugify(name), '_npm');
+        //     try {
+        //         await arcli.runCommand('npm', ['uninstall', pkg]);
+        //         await arcli.runCommand('npm', ['install', pkg]);
+        //     } catch (error) {
+        //         console.error({ error });
+        //         process.exit(1);
+        //     }
+        // },
         npm: async ({ params }) => {
             if (
                 op.get(params, 'no-npm') === true ||
@@ -190,16 +224,15 @@ export default spinner => {
             }
 
             spinner.stopAndPersist({
-                text: `Installing ${chalk.cyan(name)} dependencies...`,
+                text: `Installing ${chalk.cyan('npm')} dependencies...`,
                 symbol: chalk.cyan('+'),
             });
 
             console.log('');
 
-            const pkg = normalize(`${app}_modules`, slugify(name), '_npm');
             try {
-                await arcli.runCommand('npm', ['uninstall', pkg]);
-                await arcli.runCommand('npm', ['install', pkg]);
+                await arcli.runCommand('npm', ['prune']);
+                await arcli.runCommand('npm', ['install']);
             } catch (error) {
                 console.error({ error });
                 process.exit(1);

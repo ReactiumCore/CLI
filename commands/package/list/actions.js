@@ -15,7 +15,6 @@ export default spinner => {
     return {
         init: ({ params, props }) => {
             // TODO: Filter by application type once the API supports it.
-
             sessionToken = op.get(props, 'config.registry.sessionToken');
 
             const appID = op.get(
@@ -36,13 +35,15 @@ export default spinner => {
 
         fetch: async ({ action, params, props }) => {
             message(`Fetching ${chalk.cyan('plugins')}...`);
-
+            const options = (sessionToken && { sessionToken }) || {};
             const q = new Actinium.Query('Registry');
             await q
-                .find(sessionToken && { sessionToken })
+                .limit(1000) // for now
+                .find(options)
                 .then(response => response.map(p => p.toJSON()))
                 .then(data => {
                     plugins = data;
+                    console.log(data)
                 })
                 .catch(err => {
                     spinner.fail(err.message);

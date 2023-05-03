@@ -188,7 +188,7 @@ export default spinner => {
             const file = await new Actinium.File(
                 `${checksum}.tgz`,
                 filedataArray,
-            ).save();
+            ).save({ sessionToken });
 
             message(`publishing ${chalk.cyan(filename)}...`);
 
@@ -199,9 +199,11 @@ export default spinner => {
                 organization: op.get(params, 'organization'),
                 private: op.get(params, 'private'),
                 version: String(pkg.version),
+                latest: String(pkg.version),
+                description: op.get(pkg, 'description'),
             };
 
-            const result = await Actinium.Cloud.run('registry-publish', data, {
+            await Actinium.Cloud.run('registry-publish', data, {
                 sessionToken,
             }).catch(err => {
                 spinner.stop();

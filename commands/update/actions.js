@@ -1,18 +1,29 @@
 import pkg from './package.js';
 
+const PAYLOAD = {
+    Reactium: [
+        'config.reactium.repo',
+        'https://github.com/Atomic-Reactor/Reactium/archive/master.zip',
+    ],
+    Actinium: [
+        'config.actinium.repo',
+        'https://github.com/Atomic-Reactor/Actinium/archive/master.zip',
+    ],
+};
+
 export default spinner => {
+    let cancelled = false;
+
     const {
         path,
         chalk,
+        decompress,
         fs,
         semver,
         op,
         request,
         inquirer,
-        decompress,
     } = arcli;
-
-    let cancelled = false;
 
     const message = text => {
         if (spinner) {
@@ -24,32 +35,26 @@ export default spinner => {
 
     return {
         download: ({ params, props, action }) => {
+            const { cwd } = props;
+            const { tag, type } = params;
+
             message('downloading payload, this may take awhile...');
 
-            const { cwd } = props;
-            const { tag } = params;
-
-            // Create the tmp directory.
+            // Create the tmp directory if it doesn't exist.
             fs.ensureDirSync(normalize(cwd, 'tmp', 'update'));
 
             // Get the download url
-            let URL = String(
-                op.get(
-                    props,
-                    'config.actinium.repo',
-                    'https://github.com/Atomic-Reactor/Actinium/archive/master.zip',
-                ),
-            );
+            let URL = String(op.get(props, ...PAYLOAD[type]));
             if (tag && tag !== 'latest' && URL.endsWith('/master.zip')) {
                 URL = URL.replace('/master.zip', `/refs/tags/${tag}.zip`);
             }
 
-            // Download the most recent version of actinium
+            // Download the most recent version of reactium
             return new Promise((resolve, reject) => {
                 request(URL)
                     .pipe(
                         fs.createWriteStream(
-                            normalize(cwd, 'tmp', 'update', 'actinium.zip'),
+                            normalize(cwd, 'tmp', 'payload.zip'),
                         ),
                     )
                     .on('error', error => {
@@ -60,12 +65,12 @@ export default spinner => {
             });
         },
 
-        unzip: ({ params, props, action }) => {
-            message('unpacking...');
-
+        unzip: ({ props }) => {
             const { config, cwd } = props;
 
-            const zipFile = normalize(cwd, 'tmp', 'update', 'actinium.zip');
+            message('unpacking...');
+
+            const zipFile = normalize(cwd, 'tmp', 'payload.zip');
             const updateDir = normalize(cwd, 'tmp', 'update');
 
             // Create the update directory
@@ -75,26 +80,27 @@ export default spinner => {
             return decompress(zipFile, updateDir, { strip: 1 });
         },
 
-        confirm: async ({ props }) => {
-            const { config, cwd } = props;
+        confirm: async ({ params, props }) => {
+            const { cwd } = props;
+            const { type } = params;
 
             // Get the updated installed version file
-            const { version: updated } = require(normalize(
-                cwd,
-                'tmp',
-                'update',
-                '.core',
-                'actinium-config',
-            ));
+            const { default: updated } = await import(
+                normalize(
+                    cwd,
+                    'tmp',
+                    'update',
+                    '.core',
+                    `${type.toLowerCase()}-config.js`,
+                )
+            );
 
             // Get the
-            const { version: current } = require(normalize(
-                cwd,
-                '.core',
-                'actinium-config',
-            ));
+            const { default: current } = await import(
+                normalize(cwd, '.core', `${type.toLowerCase()}-config.js`)
+            );
 
-            const diff = semver.diff(current, updated);
+            const diff = semver.diff(current.version, updated.version);
             const warnings = ['major', 'minor'];
 
             if (!warnings.includes(diff)) return;
@@ -120,12 +126,12 @@ export default spinner => {
             cancelled = !resume;
         },
 
-        core: ({ params, props, action }) => {
+        core: ({ props }) => {
             if (cancelled === true) return;
 
-            message('updating core...');
-
             const { cwd } = props;
+
+            message('updating core...');
 
             const coreDir = normalize(cwd, '.core');
             const updateDir = normalize(cwd, 'tmp', 'update', '.core');
@@ -135,21 +141,25 @@ export default spinner => {
             fs.copySync(updateDir, coreDir);
         },
 
-        files: ({ params, props, action }) => {
+        files: async ({ params, props }) => {
             if (cancelled === true) return;
-
+            
             // Add/Remove src files
+            const { type } = params;
             const { cwd } = props;
-            const actinium = require(normalize(
-                cwd,
-                'tmp',
-                'update',
-                '.core',
-                'actinium-config',
-            ));
-            const actiniumVersion = op.get(actinium, 'version');
-            const add = op.get(actinium, 'update.files.add') || [];
-            const remove = op.get(actinium, 'update.files.remove') || [];
+            const { default: project } = await import(
+                normalize(
+                    cwd,
+                    'tmp',
+                    'update',
+                    '.core',
+                    `${type.toLowerCase()}-config.js`,
+                )
+            );
+
+            const projectVersion = op.get(project, 'version');
+            const add = op.get(project, 'update.files.add') || [];
+            const remove = op.get(project, 'update.files.remove') || [];
 
             if (add.length < 1 && remove.length < 1) return;
             message('updating files...');
@@ -157,10 +167,10 @@ export default spinner => {
             // Remove files from src
             remove
                 .filter(({ version }) =>
-                    semver.satisfies(actiniumVersion, version),
+                    semver.satisfies(projectVersion, version),
                 )
                 .forEach(({ source }) => {
-                    source = normalize(cwd, src);
+                    source = normalize(cwd, source);
                     if (fs.existsSync(source)) {
                         fs.removeSync(source);
                     }
@@ -168,7 +178,7 @@ export default spinner => {
 
             // Add files to src
             add.filter(({ version }) =>
-                semver.satisfies(actiniumVersion, version),
+                semver.satisfies(projectVersion, version),
             ).forEach(({ destination, overwrite, source }) => {
                 destination = normalize(cwd, destination);
                 source = normalize(cwd, source);
@@ -178,33 +188,38 @@ export default spinner => {
             });
         },
 
-        package: ({ params, props, action }) => {
+        package: async ({ params, props }) => {
             if (cancelled === true) return;
 
             message('updating package.json...');
 
             const { cwd } = props;
-            const newPackage = pkg(props, normalize(cwd, 'tmp', 'update'));
+            const newPackage = await pkg(
+                { props, params },
+                normalize(cwd, 'tmp', 'update'),
+            );
             const oldPackage = normalize(cwd, 'package.json');
 
             fs.writeFileSync(oldPackage, newPackage);
         },
 
-        cleanup: ({ params, props, action }) => {
+        cleanup: ({ props }) => {
             const { cwd } = props;
             message('removing temp files...');
             fs.removeSync(normalize(cwd, 'tmp'));
         },
 
-        deps: ({ props }) => {
-            if (cancelled) return;
+        deps: ({ params }) => {
+            const { quick, type } = params;
+
+            if (cancelled || quick) return;
             if (spinner) spinner.stop();
 
             console.log('');
-            console.log(`Installing ${chalk.cyan('Actinium')} dependencies...`);
+            console.log(`Installing ${chalk.cyan(type)} dependencies...`);
             console.log('');
 
-            return arcli.runCommand('arcli', ['install', '-s']);
+            return arcli.runCommand('reactium', ['install']);
         },
 
         cancelled: () => {

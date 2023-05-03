@@ -1,15 +1,25 @@
 import actions from './actions.js';
 
-const { Spinner, chalk, generator, message, op, prefix, flagsToParams } = arcli;
+const {
+    fs,
+    Spinner,
+    chalk,
+    generator,
+    message,
+    op,
+    prefix,
+    flagsToParams,
+    path,
+} = arcli;
 
-export const NAME = '{{{command}}}';
-const CANCELED = '{{{command}}} canceled!';
-const DESC = 'The description of the command';
+export const NAME = 'update';
+const CANCELED = 'update canceled!';
+const DESC = 'Update Reactium / Actinium in current directory.';
 
 // prettier-ignore
 const HELP = () => console.log(`
 Example:
-  $ arcli {{{command}}} -h
+  $ arcli update -h
 `);
 
 const CONFORM = (input, props) =>
@@ -20,12 +30,6 @@ const CONFORM = (input, props) =>
 
         return output;
     }, {});
-
-const PREFLIGHT = ({ msg, params }) => {
-    message(msg || 'Preflight checklist:');
-    console.log(JSON.stringify(params, null, 2));
-    console.log('');
-};
 
 const INPUT = ({ inquirer }) =>
     inquirer.prompt([
@@ -50,18 +54,35 @@ const CONFIRM = ({ inquirer }) =>
         },
     ]);
 
-const ACTION = async ({ opt, props }) => {
-    const flags = ['sample'];
+const DETECT = async ({ props, params }) => {
+    const { cwd } = props;
 
+    const reactiumConfigFile = path.normalize(
+        `${cwd}/.core/reactium-config.js`,
+    );
+
+    const actiniumConfigFile = path.normalize(
+        `${cwd}/.core/actinium-config.js`,
+    );
+
+    if (fs.existsSync(reactiumConfigFile)) params.type = 'Reactium';
+    if (fs.existsSync(actiniumConfigFile)) params.type = 'Actinium';
+
+    if (!params.type) throw new Error('No project found');
+};
+
+const ACTION = async ({ opt, props }) => {
+    const flags = ['type'];
     let params = flagsToParams({ opt, flags });
 
-    const userInput = await INPUT(props, params);
-    Object.entries(userInput).forEach(([key, val]) => (params[key] = val));
+    try {
+        await DETECT({ props, params });
+    } catch (error) {
+        console.error(error.message);
+        process.exit(1);
+    }
 
-    params = CONFORM(params, props);
-
-    PREFLIGHT({ params });
-
+    console.log(`Update ${params.type}?`);
     const { confirm } = await CONFIRM(props);
     if (confirm !== true) {
         message(CANCELED);
@@ -72,15 +93,14 @@ const ACTION = async ({ opt, props }) => {
         actions: actions(Spinner),
         params,
         props,
-    }).catch((err) => message(op.get(err, 'message', CANCELED)));
+    }).catch(err => message(op.get(err, 'message', CANCELED)));
 };
 
 export const COMMAND = ({ program, props }) =>
     program
         .command(NAME)
         .description(DESC)
-        .action((opt) => ACTION({ opt, props }))
-        .option('-s, --sample [sample]', 'Sample parameter.')
+        .action(opt => ACTION({ opt, props }))
         .on('--help', HELP);
 
 export const ID = NAME;

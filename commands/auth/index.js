@@ -3,9 +3,9 @@
  * Imports
  * -----------------------------------------------------------------------------
  */
-import GENERATOR from './generator.js';
+import actions from './actions.js';
 
-const { chalk, op } = arcli;
+const { Spinner, message, chalk, op, generator } = arcli;
 
 /**
  * NAME String
@@ -14,7 +14,7 @@ const { chalk, op } = arcli;
  * @see https://www.npmjs.com/package/commander#command-specific-options
  * @since 2.0.0
  */
-const NAME = 'auth';
+export const NAME = 'auth';
 
 /**
  * DESC String
@@ -140,14 +140,13 @@ const ACTION = ({ opt, props }) => {
 
             resolve();
         });
-    })
-        .then(() => GENERATOR({ params, props }))
-        .then(() => prompt.stop())
-        .then(() => console.log(''))
-        .catch(err => {
-            prompt.stop();
-            arcli.message(op.get(err, 'message', op.get(err, 'msg', CANCELED)));
-        });
+    }).then(() => {
+        return generator({
+            actions: actions(Spinner),
+            params,
+            props,
+        }).catch(err => message(op.get(err, 'message', CANCELED)));
+    });
 };
 
 export const COMMAND = ({ program, props }) =>
@@ -161,5 +160,3 @@ export const COMMAND = ({ program, props }) =>
         .option('-p, --password [password]', 'Password')
         .option('-s, --server [server]', 'Server URL')
         .on('--help', HELP);
-
-export const ID = NAME;

@@ -44,7 +44,7 @@ const ACTION = ({ name, opt, props }) => {
         );
 };
 
-const FLAGS = ['save'];
+const FLAGS = [];
 
 const FLAGS_TO_PARAMS = ({ opt = {} }) =>
     FLAGS.reduce((obj, key) => {
@@ -63,8 +63,4 @@ export const COMMAND = ({ program, props }) =>
         .command(NAME)
         .description(DESC)
         .action((name, opt) => ACTION({ name, opt, props }))
-        .option(
-            '-s, --save [save]',
-            'Install and save dependencies to package.json',
-        )
         .on('--help', HELP);

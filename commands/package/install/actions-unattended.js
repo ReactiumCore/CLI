@@ -63,43 +63,11 @@ export default spinner => {
             if (op.get(params, 'no-npm') === true) return;
 
             spinner.stopAndPersist({
-                text: `Installing npm dependencies...`,
+                text: `Installing ${chalk.cyan('npm')} dependencies...`,
                 symbol: chalk.cyan('+'),
             });
 
             console.log('');
-
-            if (op.get(params, 'save')) {
-                // Kill package-lock.json
-                const packageLockPath = normalizePath(cwd, 'package-lock.json');
-                fs.removeSync(packageLockPath);
-
-                // Kill node_modules directory
-                const nodeModules = normalizePath(cwd, 'node_modules');
-                fs.removeSync(nodeModules);
-
-                const packageJsonPath = normalizePath(cwd, 'package.json');
-                const pkg = fs.readJsonSync(packageJsonPath);
-
-                for (const i in plugins) {
-                    const nameArr = plugins[i].split('@');
-                    nameArr.pop();
-
-                    const name = nameArr.join('@');
-
-                    const pkgPath = normalizePath(
-                        `${app}_modules`,
-                        name,
-                        '_npm',
-                    );
-                    op.set(pkg, `dependencies.${name}`, `file:${pkgPath}`);
-                }
-
-                // Update the package.json file
-                fs.writeFileSync(packageJsonPath, JSON.stringify(pkg, null, 2));
-            }
-
-            spinner.stop();
 
             // Run npm install
             try {

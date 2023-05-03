@@ -1,3 +1,19 @@
+const TYPES = {
+    app: 'Reactium',
+    api: 'Actinium',
+};
+
+const PAYLOAD = {
+    app: [
+        'config.reactium.repo',
+        'https://github.com/Atomic-Reactor/Reactium/archive/master.zip',
+    ],
+    api: [
+        'config.actinium.repo',
+        'https://github.com/Atomic-Reactor/Actinium/archive/master.zip',
+    ]
+};
+
 export default spinner => {
     const { path, chalk, decompress, fs, op, request } = arcli;
 
@@ -12,7 +28,7 @@ export default spinner => {
     return {
         download: ({ params, props, action }) => {
             const { cwd } = props;
-            const { tag } = params;
+            const { type, tag } = params;
 
             message('downloading payload, this may take awhile...');
 
@@ -23,8 +39,7 @@ export default spinner => {
             let URL = String(
                 op.get(
                     props,
-                    'config.reactium.repo',
-                    'https://github.com/Atomic-Reactor/Reactium/archive/master.zip',
+                    ...PAYLOAD[type]
                 ),
             );
             if (tag && tag !== 'latest' && URL.endsWith('/master.zip')) {
@@ -36,7 +51,7 @@ export default spinner => {
                 request(URL)
                     .pipe(
                         fs.createWriteStream(
-                            normalize(cwd, 'tmp', 'reactium.zip'),
+                            normalize(cwd, 'tmp', 'package.zip'),
                         ),
                     )
                     .on('error', error => {
@@ -53,7 +68,7 @@ export default spinner => {
 
             message('unpacking...');
 
-            const zipFile = normalize(cwd, 'tmp', 'reactium.zip');
+            const zipFile = normalize(cwd, 'tmp', 'package.zip');
 
             return decompress(zipFile, cwd, { strip: 1 });
         },
@@ -89,9 +104,9 @@ export default spinner => {
             if (params.quick) return;
             if (spinner) spinner.stop();
             console.log('');
-            console.log(`Installing ${chalk.cyan('Reactium')} dependencies...`);
+            console.log(`Installing ${chalk.cyan(TYPES[params.type])} dependencies...`);
             console.log('');
-            return arcli.runCommand('arcli', ['install', '-s']);
+            return arcli.runCommand('arcli', ['install']);
         },
     };
 };

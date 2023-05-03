@@ -3,9 +3,8 @@
  * Imports
  * -----------------------------------------------------------------------------
  */
-import GENERATOR from './generator.js';
-
-const { message, op } = arcli;
+import actions from './actions.js';
+const { message, op, generator, Spinner, chalk } = arcli;
 
 /**
  * NAME String
@@ -55,13 +54,11 @@ Example:
 const ACTION = ({ props }) => {
     let params = {};
 
-    return GENERATOR({ params, props })
-        .then(() => {
-            console.log('');
-        })
-        .catch(err => {
-            message(op.get(err, 'message', CANCELED));
-        });
+    return generator({
+        actions: actions(Spinner),
+        params,
+        props,
+    }).catch(err => message(op.get(err, 'message', CANCELED)));
 };
 
 /**
