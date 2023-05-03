@@ -188,7 +188,7 @@ export default spinner => {
             const file = await new Actinium.File(
                 `${checksum}.tgz`,
                 filedataArray,
-            ).save();
+            ).save({ sessionToken });
 
             message(`publishing ${chalk.cyan(filename)}...`);
 
