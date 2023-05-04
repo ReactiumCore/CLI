@@ -1,5 +1,6 @@
 import fs from 'fs-extra';
 import path from 'node:path';
+import op from 'object-path';
 
 export const normalize = (...args) => path.normalize(path.join(...args));
 
@@ -32,6 +33,31 @@ export const detect = async ({ props, params }) => {
     params.type = projectType;
     params.originalConfigFile = configFile;
 
+    // Attempt to determine from package.json
+    if (!projectType) {
+        try {
+            const pkgJson = fs.readJSONSync(path.resolve(cwd, 'package.json'));
+            if (
+                op
+                    .get(pkgJson, 'workspaces', [])
+                    .find(ws => /reactium_modules/.test(ws))
+            )
+                return [
+                    'Reactium',
+                    `${cwd}/reactium_modules/@atomic-reactor/reactium-core/reactium-config.js`,
+                ];
+            if (
+                op
+                    .get(pkgJson, 'workspaces', [])
+                    .find(ws => /reactium_modules/.test(ws))
+            )
+                return [
+                    'Actinium',
+                    `${cwd}/actinium_modules/@atomic-reactor/actinium-core/actinium-config.js`,
+                ];
+        } catch (error) {}
+    }
+
     return [projectType, configFile];
 };
 
@@ -39,11 +65,6 @@ export const getUpdatedConfig = ({ props, params }, updatePath) => {
     const { cwd } = props;
     const { type, updateBaseDir } = params;
     const typeSlug = type.toLowerCase();
-
-    // TODO: Remove after @atomic-reactor/reactium-core
-    if (type === 'Reactium') {
-        return normalize(updateBaseDir, '.core', `${typeSlug}-config.js`);
-    }
 
     return normalize(
         cwd,

@@ -24,15 +24,6 @@ This will install any previously installed plugins registered in the package.jso
 `);
 
 const ACTION = ({ name, opt, props }) => {
-    if (name) {
-        let [app, tag] = name.split('@');
-
-        if (app === 'actinium' || app === 'reactium') {
-            tag = tag || 'latest';
-            return arcli.runCommand('arcli', [app, 'install', '-t', tag, '-e']);
-        }
-    }
-
     const ovr = FLAGS_TO_PARAMS({ opt });
 
     const params = { ...ovr, name };

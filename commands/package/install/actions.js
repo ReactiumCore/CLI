@@ -36,7 +36,7 @@ export default spinner => {
 
     return {
         init: async ({ params, props }) => {
-            const [type] = await detect({params, props});
+            const [type] = await detect({params, props});            
             app = type.toLowerCase();
 
             sessionToken = op.get(props, 'config.registry.sessionToken');
@@ -194,30 +194,6 @@ export default spinner => {
             op.set(pkg, [`${app}Dependencies`, name], version);
             fs.writeFileSync(pkgjson, JSON.stringify(pkg, null, 2));
         },
-        // npm: async ({ params }) => {
-        //     if (
-        //         op.get(params, 'no-npm') === true ||
-        //         op.get(params, 'unattended') === true
-        //     ) {
-        //         return;
-        //     }
-
-        //     spinner.stopAndPersist({
-        //         text: `Installing ${chalk.cyan(name)} dependencies...`,
-        //         symbol: chalk.cyan('+'),
-        //     });
-
-        //     console.log('');
-
-        //     const pkg = normalize(`${app}_modules`, slugify(name), '_npm');
-        //     try {
-        //         await arcli.runCommand('npm', ['uninstall', pkg]);
-        //         await arcli.runCommand('npm', ['install', pkg]);
-        //     } catch (error) {
-        //         console.error({ error });
-        //         process.exit(1);
-        //     }
-        // },
         npm: async ({ params }) => {
             if (
                 op.get(params, 'no-npm') === true ||

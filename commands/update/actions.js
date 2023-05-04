@@ -69,15 +69,12 @@ export default spinner => {
                     });
                 })
                 .then(async res => {
-                    // TODO: Remove this restriction after @atomic-reactor/reactium-core
-                    if (params.type === 'Actinium') {
-                        message('downloading core, this may take awhile...');
+                    message('downloading core, this may take awhile...');
 
-                        await arcli.runCommand('reactium', [
-                            'install',
-                            `@atomic-reactor/${params.type.toLowerCase()}-core`,
-                        ]);
-                    }
+                    await arcli.runCommand('reactium', [
+                        'install',
+                        `@atomic-reactor/${params.type.toLowerCase()}-core`,
+                    ]);
 
                     return res;
                 });
@@ -148,13 +145,6 @@ export default spinner => {
             // Old Core locationo
             const coreDir = normalize(cwd, '.core');
             fs.emptyDirSync(coreDir);
-
-            // TODO: Temporary until @atomic-reactor/reactium-core
-            if (params.type === 'Reactium') {
-                const updateDir = normalize(cwd, 'tmp', 'update', '.core');
-                fs.ensureDirSync(coreDir);
-                fs.copySync(updateDir, coreDir);
-            }
         },
 
         files: async ({ params, props }) => {

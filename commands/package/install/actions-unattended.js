@@ -1,5 +1,5 @@
 import Actions from './actions.js';
-import targetApp from '../../../lib/targetApp.js';
+import { detect } from '../../update/package.js';
 
 export default spinner => {
     let deps, plugins;
@@ -8,7 +8,7 @@ export default spinner => {
 
     const { _, ActionSequence, chalk, fs, normalizePath, op, path } = arcli;
 
-    const app = targetApp(cwd);
+    let app;
 
     const pluginsDir = path.resolve(normalizePath(cwd, app + '_modules'));
 
@@ -25,7 +25,10 @@ export default spinner => {
     };
 
     return {
-        init: () => {
+        init: async ({ params, props }) => {
+            const [type] = await detect({params, props});            
+            app = type.toLowerCase();
+
             if (spinner) spinner.stop();
         },
         plugins: async () => {
