@@ -1,4 +1,4 @@
-import pkg from './package.js';
+import pkg, { normalize, getUpdatedConfig } from './package.js';
 
 const PAYLOAD = {
     Reactium: [
@@ -31,8 +31,6 @@ export default spinner => {
         }
     };
 
-    const normalize = (...args) => path.normalize(path.join(...args));
-
     return {
         download: ({ params, props, action }) => {
             const { cwd } = props;
@@ -50,19 +48,39 @@ export default spinner => {
             }
 
             // Download the most recent version of reactium
-            return new Promise((resolve, reject) => {
-                request(URL)
-                    .pipe(
-                        fs.createWriteStream(
-                            normalize(cwd, 'tmp', 'payload.zip'),
-                        ),
-                    )
-                    .on('error', error => {
-                        console.log(error);
-                        process.exit();
-                    })
-                    .on('close', () => resolve({ action, status: 200 }));
-            });
+            const payloadStream = fs.createWriteStream(
+                normalize(cwd, 'tmp', 'payload.zip'),
+            );
+            return arcli.axios
+                .get(URL, { responseType: 'stream' })
+                .then(({ data }) => {
+                    return new Promise((resolve, reject) => {
+                        data.pipe(payloadStream);
+
+                        data.on('error', error => {
+                            console.log(error);
+                            reject(error);
+                            process.exit(1);
+                        });
+
+                        data.on('close', () =>
+                            resolve({ action, status: 200 }),
+                        );
+                    });
+                })
+                .then(async res => {
+                    // TODO: Remove this restriction after @atomic-reactor/reactium-core
+                    if (params.type === 'Actinium') {
+                        message('downloading core, this may take awhile...');
+
+                        await arcli.runCommand('reactium', [
+                            'install',
+                            `@atomic-reactor/${params.type.toLowerCase()}-core`,
+                        ]);
+                    }
+
+                    return res;
+                });
         },
 
         unzip: ({ props }) => {
@@ -82,23 +100,17 @@ export default spinner => {
 
         confirm: async ({ params, props }) => {
             const { cwd } = props;
-            const { type } = params;
+            const { type, originalConfigFile } = params;
 
             // Get the updated installed version file
             const { default: updated } = await import(
-                normalize(
-                    cwd,
-                    'tmp',
-                    'update',
-                    '.core',
-                    `${type.toLowerCase()}-config.js`,
-                )
+                getUpdatedConfig({ params, props })
             );
+            params.project = updated;
 
-            // Get the
-            const { default: current } = await import(
-                normalize(cwd, '.core', `${type.toLowerCase()}-config.js`)
-            );
+            // Get the current configig
+            const { default: current } = await import(originalConfigFile);
+            params.currentConfig = current;
 
             const diff = semver.diff(current.version, updated.version);
             const warnings = ['major', 'minor'];
@@ -126,36 +138,33 @@ export default spinner => {
             cancelled = !resume;
         },
 
-        core: ({ props }) => {
+        core: ({ params, props }) => {
             if (cancelled === true) return;
 
             const { cwd } = props;
 
             message('updating core...');
 
+            // Old Core locationo
             const coreDir = normalize(cwd, '.core');
-            const updateDir = normalize(cwd, 'tmp', 'update', '.core');
-
-            fs.ensureDirSync(coreDir);
             fs.emptyDirSync(coreDir);
-            fs.copySync(updateDir, coreDir);
+
+            // TODO: Temporary until @atomic-reactor/reactium-core
+            if (params.type === 'Reactium') {
+                const updateDir = normalize(cwd, 'tmp', 'update', '.core');
+                fs.ensureDirSync(coreDir);
+                fs.copySync(updateDir, coreDir);
+            }
         },
 
         files: async ({ params, props }) => {
             if (cancelled === true) return;
-            
+
             // Add/Remove src files
-            const { type } = params;
+            const { type, project } = params;
             const { cwd } = props;
-            const { default: project } = await import(
-                normalize(
-                    cwd,
-                    'tmp',
-                    'update',
-                    '.core',
-                    `${type.toLowerCase()}-config.js`,
-                )
-            );
+
+            params.updateBaseDir = normalize(cwd, 'tmp', 'update');
 
             const projectVersion = op.get(project, 'version');
             const add = op.get(project, 'update.files.add') || [];

@@ -1,3 +1,56 @@
+import fs from 'fs-extra';
+import path from 'node:path';
+
+export const normalize = (...args) => path.normalize(path.join(...args));
+
+export const detect = async ({ props, params }) => {
+    const { cwd } = props;
+
+    const fileDetect = {
+        Reactium: [
+            `${cwd}/.core/reactium-config.js`, // old
+            `${cwd}/reactium_modules/@atomic-reactor/reactium-core/reactium-config.js`, // new
+        ],
+        Actinium: [
+            `${cwd}/.core/actinium-config.js`, // old
+            `${cwd}/actinium_modules/@atomic-reactor/actinium-core/actinium-config.js`, // new
+        ],
+    };
+
+    const [projectType, configFile] =
+        Object.entries(fileDetect)
+            .map(([type, paths = []]) => {
+                const found = paths.find(fs.existsSync);
+                if (found) {
+                    return [type, found];
+                }
+
+                return false;
+            })
+            .find(Boolean) || [];
+
+    params.type = projectType;
+    params.originalConfigFile = configFile;
+
+    return [projectType, configFile];
+};
+
+export const getUpdatedConfig = ({ props, params }, updatePath) => {
+    const { cwd } = props;
+    const { type, updateBaseDir } = params;
+    const typeSlug = type.toLowerCase();
+
+    // TODO: Remove after @atomic-reactor/reactium-core
+    if (type === 'Reactium') {
+        return normalize(updateBaseDir, '.core', `${typeSlug}-config.js`);
+    }
+
+    return normalize(
+        cwd,
+        `${typeSlug}_modules/@atomic-reactor/${typeSlug}-core/${typeSlug}-config.js`,
+    );
+};
+
 export default async ({ props, params }, updatePath) => {
     const { cwd } = props;
     const { type } = params;
@@ -88,10 +141,10 @@ export default async ({ props, params }, updatePath) => {
     });
 
     // Create Workspace block
-    if (!op.get(pkg, 'workspaces')) {
-        op.set(pkg, 'workspaces', [`${type.toLowerCase()}_modules/*`]);
-        op.set(pkg, 'workspaces', [`${type.toLowerCase()}_modules/*/*`]);
-    }
+    op.set(pkg, 'workspaces', [
+        `${type.toLowerCase()}_modules/*`,
+        `${type.toLowerCase()}_modules/*/*`,
+    ]);
 
     // Write the new package.json file.
     const pkgCont = prettier.format(JSON.stringify(pkg), {

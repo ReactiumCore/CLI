@@ -1,4 +1,5 @@
 import actions from './actions.js';
+import { detect } from './package.js';
 
 const {
     fs,
@@ -54,29 +55,13 @@ const CONFIRM = ({ inquirer }) =>
         },
     ]);
 
-const DETECT = async ({ props, params }) => {
-    const { cwd } = props;
-
-    const reactiumConfigFile = path.normalize(
-        `${cwd}/.core/reactium-config.js`,
-    );
-
-    const actiniumConfigFile = path.normalize(
-        `${cwd}/.core/actinium-config.js`,
-    );
-
-    if (fs.existsSync(reactiumConfigFile)) params.type = 'Reactium';
-    if (fs.existsSync(actiniumConfigFile)) params.type = 'Actinium';
-
-    if (!params.type) throw new Error('No project found');
-};
-
 const ACTION = async ({ opt, props }) => {
     const flags = ['type'];
     let params = flagsToParams({ opt, flags });
 
     try {
-        await DETECT({ props, params });
+        const [ type ] = await detect({ props, params });
+        if (!type) throw new Error('No project found');
     } catch (error) {
         console.error(error.message);
         process.exit(1);

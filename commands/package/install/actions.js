@@ -1,11 +1,9 @@
-import targetApp from '../../../lib/targetApp.js';
+import { detect } from '../../update/package.js';
 
 export default spinner => {
     let dir, filepath, name, plugin, sessionToken, tmp, version;
 
     const { cwd } = arcli.props;
-
-    const app = targetApp(cwd);
 
     const {
         _,
@@ -34,8 +32,13 @@ export default spinner => {
 
     const normalize = (...args) => path.normalize(path.join(...args));
 
+    let app;
+
     return {
-        init: ({ params, props }) => {
+        init: async ({ params, props }) => {
+            const [type] = await detect({params, props});
+            app = type.toLowerCase();
+
             sessionToken = op.get(props, 'config.registry.sessionToken');
 
             name = op.get(params, 'name');
