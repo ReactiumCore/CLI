@@ -81,9 +81,7 @@ export default async ({ props, params }, updatePath) => {
     const packageFile = path.normalize(`${cwd}/package.json`);
     const updatePackageJson = path.normalize(`${updatePath}/package.json`);
 
-    const configFile = path.normalize(
-        `${updatePath}/.core/${type.toLowerCase()}-config.js`,
-    );
+    const configFile = params.originalConfigFile;
 
     let pkg, config, updatePackage;
 
