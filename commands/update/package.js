@@ -40,7 +40,8 @@ export const detect = async ({ props, params }) => {
             if (
                 op
                     .get(pkgJson, 'workspaces', [])
-                    .find(ws => /reactium_modules/.test(ws))
+                    .find(ws => /reactium_modules/.test(ws)) ||
+                op.has(pkgJson, 'reactiumDependencies')
             )
                 return [
                     'Reactium',
@@ -49,7 +50,8 @@ export const detect = async ({ props, params }) => {
             if (
                 op
                     .get(pkgJson, 'workspaces', [])
-                    .find(ws => /reactium_modules/.test(ws))
+                    .find(ws => /actinium_modules/.test(ws)) ||
+                op.has(pkgJson, 'actiniumDependencies')
             )
                 return [
                     'Actinium',
