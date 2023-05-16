@@ -174,19 +174,6 @@ export default spinner => {
                 process.exit(1);
             }
         },
-        static: () => {
-            spinner.stop();
-            fs.ensureDirSync(normalize(dir, '_static'));
-
-            const assets = globby([path.join(dir, '/**/assets/**')]);
-            assets.forEach(file => {
-                let newFile = file.split('/assets/').pop();
-                newFile = normalize(dir, '_static', 'assets', newFile);
-                fs.ensureDirSync(path.dirname(newFile));
-                fs.moveSync(file, newFile, { overwrite: true });
-            });
-            deleteEmpty(dir);
-        },
         registerPkg: () => {
             message(`Registering plugin...`);
             const pkgjson = normalize(cwd, 'package.json');
