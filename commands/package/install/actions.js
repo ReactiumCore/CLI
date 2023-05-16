@@ -183,7 +183,7 @@ export default spinner => {
                 let newFile = file.split('/assets/').pop();
                 newFile = normalize(dir, '_static', 'assets', newFile);
                 fs.ensureDirSync(path.dirname(newFile));
-                fs.moveSync(file, newFile);
+                fs.moveSync(file, newFile, { overwrite: true });
             });
             deleteEmpty(dir);
         },
