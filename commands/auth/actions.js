@@ -14,6 +14,8 @@ export default spinner => {
 
     return {
         auth: async ({ params, props }) => {
+            if (spinner) spinner.stop();
+
             if (op.get(params, 'username')) {
                 message(`Authenticating${chalk.cyan('...')}`);
             }

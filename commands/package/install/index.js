@@ -44,7 +44,7 @@ const ACTION = ({ name, opt, props }) => {
         );
 };
 
-const FLAGS = [];
+const FLAGS = ['heroku'];
 
 const FLAGS_TO_PARAMS = ({ opt = {} }) =>
     FLAGS.reduce((obj, key) => {
@@ -63,4 +63,9 @@ export const COMMAND = ({ program, props }) =>
         .command(NAME)
         .description(DESC)
         .action((name, opt) => ACTION({ name, opt, props }))
+        .option(
+            '--heroku [heroku]',
+            'Indicate if the deployment server is heroku',
+        )
+
         .on('--help', HELP);

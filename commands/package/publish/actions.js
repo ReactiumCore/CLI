@@ -40,7 +40,6 @@ export default spinner => {
     return {
         init: ({ params }) => {
             const { appID, serverURL } = params;
-
             Actinium.initialize(appID);
             Actinium.serverURL = serverURL;
         },
@@ -57,11 +56,8 @@ export default spinner => {
             const canPublish = op.get(result, 'enabled', false);
 
             if (canPublish !== true) {
-                const errorMsg = `${chalk.magenta(
-                    'Error:',
-                )} unable to publish ${chalk.cyan(name)}@${chalk.cyan(
-                    version,
-                )}}`;
+                // prettier-ignore
+                const errorMsg = `${chalk.magenta('Error:')} unable to publish ${chalk.cyan(name)}@${chalk.cyan(version)}`;
 
                 spinner.fail(errorMsg);
                 exit();
@@ -77,12 +73,12 @@ export default spinner => {
             const actionFiles = globby([`${cwd}/**/arcli-publish.js`]);
             if (actionFiles.length < 1 || !Array.isArray(actionFiles)) return;
 
-            const actions = {}; 
+            const actions = {};
 
             for (let i = 0; i < actionFiles.length; i++) {
-                const filePath = actionFiles[i]; 
+                const filePath = actionFiles[i];
                 const mod = await import(normalize(filePath));
-                const acts = mod(spinner); 
+                const acts = mod(spinner);
                 Object.keys(acts).forEach(key =>
                     op.set(actions, `prepublish_${i}_${key}`, acts[key]),
                 );

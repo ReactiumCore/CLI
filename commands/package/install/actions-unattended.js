@@ -56,8 +56,10 @@ export default (spinner, app) => {
                 symbol: chalk.green('✓'),
             });
         },
-        npm: async ({ params, props }) => {
-            if (op.get(params, 'no-npm') === true) return;
+        npm: async ({ params }) => {
+            if (op.get(params, 'no-npm') === true || op.get(params, 'heroku')) {
+                return;
+            }
 
             spinner.stopAndPersist({
                 text: `Installing ${chalk.cyan('npm')} dependencies...`,
