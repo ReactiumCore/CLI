@@ -1,11 +1,9 @@
 import targetApp from '../../../lib/targetApp.js';
 
-export default spinner => {
+export default (spinner, app) => {
     let dir, filepath, name, plugin, sessionToken, tmp, version;
 
     const { cwd } = arcli.props;
-
-    const app = targetApp(cwd);
 
     const {
         _,
@@ -36,6 +34,8 @@ export default spinner => {
 
     return {
         init: ({ params, props }) => {
+            app = app || targetApp(cwd);
+
             sessionToken = op.get(props, 'config.registry.sessionToken');
 
             name = op.get(params, 'name');
@@ -191,30 +191,6 @@ export default spinner => {
             op.set(pkg, [`${app}Dependencies`, name], version);
             fs.writeFileSync(pkgjson, JSON.stringify(pkg, null, 2));
         },
-        // npm: async ({ params }) => {
-        //     if (
-        //         op.get(params, 'no-npm') === true ||
-        //         op.get(params, 'unattended') === true
-        //     ) {
-        //         return;
-        //     }
-
-        //     spinner.stopAndPersist({
-        //         text: `Installing ${chalk.cyan(name)} dependencies...`,
-        //         symbol: chalk.cyan('+'),
-        //     });
-
-        //     console.log('');
-
-        //     const pkg = normalize(`${app}_modules`, slugify(name), '_npm');
-        //     try {
-        //         await arcli.runCommand('npm', ['uninstall', pkg]);
-        //         await arcli.runCommand('npm', ['install', pkg]);
-        //     } catch (error) {
-        //         console.error({ error });
-        //         process.exit(1);
-        //     }
-        // },
         npm: async ({ params }) => {
             if (
                 op.get(params, 'no-npm') === true ||

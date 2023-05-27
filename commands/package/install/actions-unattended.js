@@ -1,21 +1,12 @@
 import Actions from './actions.js';
 import targetApp from '../../../lib/targetApp.js';
 
-export default spinner => {
+export default (spinner, app) => {
     let deps, plugins;
 
     const { cwd } = arcli.props;
 
     const { _, ActionSequence, chalk, fs, normalizePath, op, path } = arcli;
-
-    const app = targetApp(cwd);
-
-    const pluginsDir = path.resolve(normalizePath(cwd, app + '_modules'));
-
-    const actions = Actions(spinner);
-
-    op.del(actions, 'complete');
-    op.del(actions, 'registerPkg');
 
     const message = text => {
         if (spinner) {
@@ -27,6 +18,7 @@ export default spinner => {
     return {
         init: () => {
             if (spinner) spinner.stop();
+            app = app || targetApp(cwd);
         },
         plugins: async () => {
             const pkgPath = normalizePath(cwd, 'package.json');
@@ -44,6 +36,11 @@ export default spinner => {
             for (const i in plugins) {
                 const name = plugins[i];
                 message(`Downloading ${chalk.cyan(name)}...`);
+
+                const actions = Actions(spinner, app);
+
+                op.del(actions, 'complete');
+                op.del(actions, 'registerPkg');
 
                 await ActionSequence({
                     actions,
@@ -82,6 +79,9 @@ export default spinner => {
         postinstall: async ({ params, props }) => {
             if (op.get(params, 'no-npm') === true) return;
             const plugins = Object.keys(deps);
+            const pluginsDir = path.resolve(
+                normalizePath(cwd, app + '_modules'),
+            );
 
             for (const p in plugins) {
                 const name = plugins[p];
