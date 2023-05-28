@@ -2,10 +2,9 @@ export default spinner => {
     const { chalk, fs, homedir, normalizePath } = arcli;
 
     const message = text => {
-        if (spinner) {
-            if (!spinner.isSpinning) spinner.start();
-            spinner.text = text;
-        }
+        if (!spinner) return;
+        if (!spinner.isSpinning) spinner.start();
+        spinner.text = text;
     };
 
     const now = Date.now();
@@ -21,7 +20,7 @@ export default spinner => {
             fs.copySync(file, backupFile);
         },
 
-        update: ({ params, props, action }) => {
+        update: ({ params }) => {
             message(`updating ${chalk.magenta('config.json')}...`);
 
             const { newConfig } = params;

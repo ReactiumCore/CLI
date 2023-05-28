@@ -1,44 +1,71 @@
-import Auth from '../../lib/auth.js';
-import UpdateActions from '../config/set/actions.js';
+import Auth, { AuthUpdate, AuthValidated } from '../../lib/auth.js';
 
 export default spinner => {
-    let sessionToken;
+    let config, isAuth, isValid;
 
     const { _, chalk, op } = arcli;
 
     const message = text => {
-        if (spinner) {
-            spinner.text = text;
-        }
+        if (!spinner) return;
+        spinner.start();
+        spinner.text = text;
+    };
+
+    const error = text => {
+        if (!spinner) return;
+        spinner.start();
+        spinner.fail(text);
+    };
+
+    const complete = text => {
+        if (!spinner) return;
+        spinner.start();
+        spinner.succeed(text);
     };
 
     return {
-        auth: async ({ params, props }) => {
-            if (spinner) spinner.stop();
+        init: ({ params }) => {
+            config = { ...arcli.props.config };
+            isAuth = op.get(params, 'username') && op.get(params, 'password');
+        },
+        clear: ({ params }) => {
+            if (op.get(params, 'clear')) {
+                op.del(config, 'registry.sessionToken');
 
-            if (op.get(params, 'username')) {
-                message(`Authenticating${chalk.cyan('...')}`);
+                message(`Clearing session token${chalk.cyan('...')}`);
+
+                AuthUpdate({ config });
+
+                complete('Cleared session token!');
+            }
+        },
+        validate: async ({ params }) => {
+            if (op.get(params, 'clear') === true) {
+                isValid = false;
+                error('Invalid session token');
+                return;
             }
 
-            sessionToken = await Auth({ params, props });
+            isValid = await AuthValidated({ params });
+            if (isValid === true) complete('Authenticated');
+            else if (!isAuth) error('Invalid session token');
         },
-        authUpdateConfig: async ({ action, params, props }) => {
-            let config = op.get(props, 'config', {});
+        auth: async ({ params }) => {
+            if (!isAuth || isValid) return;
 
-            if (op.get(config, 'registry.sessionToken') !== sessionToken) {
-                if (op.get(params, 'server')) {
-                    op.set(config, 'registry.server', params.server);
-                }
+            message(`Authenticating${chalk.cyan('...')}`);
 
-                op.set(config, 'registry.sessionToken', sessionToken);
-                arcli.props.config = config;
-                op.set(params, 'newConfig', config);
+            const sessionToken = await Auth({ params });
 
-                return UpdateActions(spinner).update({
-                    action: 'update',
-                    params,
-                    props,
-                });
+            if (_.isString(sessionToken)) {
+                AuthUpdate({ params: { sessionToken } });
+                complete('Authenticated');
+            } else {
+                const err =
+                    op.get(sessionToken, 'msg') ||
+                    op.get(sessionToken, 'message');
+
+                error(err);
             }
         },
     };

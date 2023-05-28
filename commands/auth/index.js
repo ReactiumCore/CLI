@@ -5,40 +5,17 @@
  */
 import actions from './actions.js';
 
-const { Spinner, message, chalk, op, generator } = arcli;
+const { Spinner, chalk, generator, message, op, prefix } = arcli;
 
-/**
- * NAME String
- * @description Constant defined as the command name. Value passed to the commander.command() function.
- * @example $ arcli publish
- * @see https://www.npmjs.com/package/commander#command-specific-options
- * @since 2.0.0
- */
+const suffix = chalk.magenta(':');
+
 export const NAME = 'auth';
 
-/**
- * DESC String
- * @description Constant defined as the command description. Value passed to
- * the commander.desc() function. This string is also used in the --help flag output.
- * @see https://www.npmjs.com/package/commander#automated---help
- * @since 2.0.0
- */
 const DESC = 'Actinium authenticator';
 
-/**
- * CANCELED String
- * @description Message sent when the command is canceled
- * @since 2.0.0
- */
 const CANCELED = 'Auth canceled!';
 
-/**
- * conform(input:Object) Function
- * @description Reduces the input object.
- * @param input Object The key value pairs to reduce.
- * @since 2.0.0
- */
-const CONFORM = ({ input }) =>
+const CONFORM = input =>
     Object.keys(input).reduce((obj, key) => {
         let val = input[key];
         switch (key) {
@@ -49,30 +26,16 @@ const CONFORM = ({ input }) =>
         return obj;
     }, {});
 
-/**
- * HELP Function
- * @description Function called in the commander.on('--help', callback) callback.
- * @see https://www.npmjs.com/package/commander#automated---help
- * @since 2.0.0
- */
 const HELP = () =>
     console.log(`
 Example:
-  $ arcli auth -u Bob -p MyP455VV0RD!
+  $ reactium auth -u Bob -p MyP455VV0RD!
+  $ reactium auth -c
+  $ reactium auth --unattended
 `);
 
-/**
- * FLAGS
- * @description Array of flags passed from the commander options.
- * @since 2.0.18
- */
-const FLAGS = ['app', 'clear', 'username', 'password', 'server'];
+const FLAGS = ['app', 'clear', 'username', 'password', 'server', 'unattended'];
 
-/**
- * FLAGS_TO_PARAMS Function
- * @description Create an object used by the prompt.override property.
- * @since 2.0.18
- */
 const FLAGS_TO_PARAMS = ({ opt = {} }) =>
     FLAGS.reduce((obj, key) => {
         let val = opt[key];
@@ -85,68 +48,52 @@ const FLAGS_TO_PARAMS = ({ opt = {} }) =>
         return obj;
     }, {});
 
-/**
- * SCHEMA Function
- * @description used to describe the input for the prompt function.
- * @see https://www.npmjs.com/package/prompt
- * @since 2.0.0
- */
-const SCHEMA = () => ({
-    properties: {
-        username: {
-            description: chalk.white('Username:'),
-            required: true,
-        },
-        password: {
-            description: chalk.white('Password:'),
-            hidden: true,
-            message: 'Password is a required parameter',
-            replace: '*',
-            required: true,
-        },
-    },
-});
+const INPUT = ({ inquirer }, params) => {
+    if (op.get(params, 'unattended') === true) return params;
 
-/**
- * ACTION Function
- * @description Function used as the commander.action() callback.
- * @see https://www.npmjs.com/package/commander
- * @param opt Object The commander options passed into the function.
- * @param props Object The CLI props passed from the calling class `orcli.js`.
- * @since 2.0.0
- */
-const ACTION = ({ opt, props }) => {
-    const { prompt } = props;
+    const clear = op.get(params, 'clear');
 
+    return inquirer.prompt(
+        [
+            {
+                prefix,
+                suffix,
+                type: 'input',
+                name: 'username',
+                message: 'Username',
+                when: !clear && !op.get(params, 'username'),
+            },
+            {
+                prefix,
+                suffix,
+                type: 'password',
+                name: 'password',
+                message: 'Password',
+                when: !clear && !op.get(params, 'password'),
+            },
+        ],
+        params,
+    );
+};
+
+const ACTION = async ({ opt, props }) => {
     const ovr = FLAGS_TO_PARAMS({ opt });
-
-    prompt.override = ovr;
-    prompt.start();
-
     let params = { ...ovr };
 
-    const schema = SCHEMA({ params, props });
+    const userInput = await INPUT(props, params);
+    Object.entries(userInput).forEach(([key, val]) => (params[key] = val));
 
-    return new Promise((resolve, reject) => {
-        prompt.get(schema, (err, input = {}) => {
-            if (err) {
-                prompt.stop();
-                reject(`${NAME} ${err.message}`);
-                return;
-            }
+    params = CONFORM(params);
 
-            input = { ...ovr, ...input };
-            params = CONFORM({ input, props });
-
-            resolve();
-        });
-    }).then(() => {
-        return generator({
-            actions: actions(Spinner),
-            params,
-            props,
-        }).catch(err => message(op.get(err, 'message', CANCELED)));
+    await generator({
+        actions: actions(Spinner),
+        params,
+        props,
+    }).catch(err => {
+        message(op.get(err, 'message', CANCELED));
     });
+
+    console.log('');
 };
 
 export const COMMAND = ({ program, props }) =>
@@ -154,9 +101,16 @@ export const COMMAND = ({ program, props }) =>
         .command(NAME)
         .description(DESC)
         .action(opt => ACTION({ opt, props }))
-        .option('-a, --app [app]', 'App ID')
-        .option('-c, --clear [clear]', 'Clear sessionToken')
         .option('-u, --username [username]', 'Username')
         .option('-p, --password [password]', 'Password')
-        .option('-s, --server [server]', 'Server URL')
+        .option('-a, --app [app]', 'Actinium app ID')
+        .option('-s, --server [server]', 'Actinium server URL')
+        .option(
+            '--unattended [unattended]',
+            'Used to validate an existing Actinium session',
+        )
+        .option(
+            '-c, --clear [clear]',
+            'Used to clear an existing Actinium session',
+        )
         .on('--help', HELP);
