@@ -1,6 +1,6 @@
 {
   "name": "reactium",
-  "version": "3.0.22",
+  "version": "3.0.23",
   "description": "A CLI for creating Reactium / Actinium projects.",
   "type": "module",
   "exports": "./arcli-node.js",
