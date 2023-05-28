@@ -1,4 +1,5 @@
 import bytesToSize from '../../../lib/bytesToSize.js';
+import { Session } from '../../../lib/auth.js';
 
 export default spinner => {
     const {
@@ -19,7 +20,7 @@ export default spinner => {
 
     const pkgFile = normalizePath(cwd, 'package.json');
 
-    let bytes, filename, filepath;
+    let bytes, filename, filepath, sessionToken;
 
     const x = chalk.magenta('✖');
 
@@ -38,13 +39,10 @@ export default spinner => {
     };
 
     return {
-        init: ({ params }) => {
-            const { appID, serverURL } = params;
-            Actinium.initialize(appID);
-            Actinium.serverURL = serverURL;
+        init: () => {
+            sessionToken = Session();
         },
         validate: async ({ params, props }) => {
-            const { sessionToken } = params;
             const { name, version } = params.pkg;
 
             const result = await Actinium.Cloud.run(
@@ -166,7 +164,7 @@ export default spinner => {
             console.log('');
         },
         publish: async ({ params }) => {
-            const { pkg, sessionToken } = params;
+            const { pkg } = params;
 
             message(`processing ${chalk.cyan(filename)}...`);
 

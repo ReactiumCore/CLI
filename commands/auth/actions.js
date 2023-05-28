@@ -24,11 +24,11 @@ export default spinner => {
     };
 
     return {
-        init: ({ params }) => {
+        authInit: ({ params }) => {
             config = { ...arcli.props.config };
             isAuth = op.get(params, 'username') && op.get(params, 'password');
         },
-        clear: ({ params }) => {
+        authClear: ({ params }) => {
             if (op.get(params, 'clear')) {
                 op.del(config, 'registry.sessionToken');
 
@@ -39,7 +39,7 @@ export default spinner => {
                 complete('Cleared session token!');
             }
         },
-        validate: async ({ params }) => {
+        authValidate: async ({ params }) => {
             if (op.get(params, 'clear') === true) {
                 isValid = false;
                 error('Invalid session token');

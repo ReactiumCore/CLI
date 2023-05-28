@@ -1,7 +1,8 @@
 import targetApp from '../../../lib/targetApp.js';
+import { ActiniumInit, Session } from '../../../lib/auth.js';
 
 export default (spinner, app) => {
-    let dir, filepath, name, plugin, sessionToken, tmp, version;
+    let config, dir, filepath, name, plugin, sessionToken, tmp, version;
 
     const { cwd } = arcli.props;
 
@@ -33,10 +34,12 @@ export default (spinner, app) => {
     const normalize = (...args) => path.normalize(path.join(...args));
 
     return {
-        init: ({ params, props }) => {
+        prep: async ({ params }) => {
             app = app || targetApp(cwd);
 
-            sessionToken = op.get(props, 'config.registry.sessionToken');
+            config = arcli.props.config;
+
+            sessionToken = Session();
 
             name = op.get(params, 'name');
 
@@ -54,19 +57,16 @@ export default (spinner, app) => {
             // Ensure module dir
             fs.ensureDirSync(normalize(cwd, app + '_modules'));
 
-            const appID = op.get(
-                props,
-                'config.registry.app',
-                'ReactiumRegistry',
-            );
-            const serverURL = op.get(
-                props,
-                'config.registry.server',
-                'https://v1.reactium.io/api',
-            );
-
-            Actinium.serverURL = serverURL;
-            Actinium.initialize(appID);
+        },
+        init: ({ params }) => {
+            ActiniumInit({
+                app: op.get(params, 'app', op.get(config, 'registry.app')),
+                server: op.get(
+                    params,
+                    'server',
+                    op.get(config, 'registry.server'),
+                ),
+            });
         },
         check: () => {
             if (!app) {

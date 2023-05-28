@@ -44,7 +44,7 @@ const ACTION = ({ name, opt, props }) => {
         );
 };
 
-const FLAGS = ['heroku'];
+const FLAGS = ['app', 'heroku', 'server'];
 
 const FLAGS_TO_PARAMS = ({ opt = {} }) =>
     FLAGS.reduce((obj, key) => {
@@ -63,6 +63,8 @@ export const COMMAND = ({ program, props }) =>
         .command(NAME)
         .description(DESC)
         .action((name, opt) => ACTION({ name, opt, props }))
+        .option('-a, --app [app]', 'Actinium app ID')
+        .option('-s, --server [server]', 'Actinium server URL')
         .option(
             '--heroku [heroku]',
             'Indicate if the deployment server is heroku',
