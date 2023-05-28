@@ -1,12 +1,13 @@
 export default spinner => {
     let config, isAuth, isValid;
 
-    const { _, Auth, AuthUpdate, AuthValidated, chalk, op, useSpinner } = arcli;
+    const { _, AuthRestore, Auth, AuthUpdate, AuthValidated, chalk, op, useSpinner } = arcli;
 
     const { complete, error, message } = useSpinner(spinner);
 
     return {
         authInit: ({ params }) => {
+            if (op.get(params, 'restore')) AuthRestore();
             config = { ...arcli.props.config };
             isAuth = op.get(params, 'username') && op.get(params, 'password');
         },

@@ -11,7 +11,8 @@ const suffix = chalk.magenta(':');
 
 export const NAME = 'auth';
 
-const DESC = 'Actinium authenticator';
+const DESC =
+    'Actinium authenticator.\nAuthenticate against the Reactium Registry or your own custom Actinium server.';
 
 const CANCELED = 'Auth canceled!';
 
@@ -28,13 +29,39 @@ const CONFORM = input =>
 
 const HELP = () =>
     console.log(`
-Example:
-  $ reactium auth -u Bob -p MyP455VV0RD!
+${chalk.magenta('Authenticate')}
+  $ reactium auth
+  $ reactium auth -u Bob -p 'MyP455VV0RD!'
+
+${chalk.magenta('Validated a session')}
+  $ reactium auth -v
+
+${chalk.magenta('Authenticate against a custom Actinium server')}
+  $ reactium auth -s 'https://my-actinium/api' -a 'MyActinium'
+
+  ${chalk.cyan(
+      '* Note:',
+  )} this will save the app and server values to the config.json and will be used in subsequent auth commands.
+  
+${chalk.magenta('Restore the default app and server values to the config.json')}
+  $ reactium auth -r
+  $ reactium auth -r -u Bob -p 'MyP455VV0RD!'
+
+  ${chalk.cyan('* Note:')} this will invalidate the current session.
+
+${chalk.magenta('Clear the current session')}
   $ reactium auth -c
-  $ reactium auth --unattended
 `);
 
-const FLAGS = ['app', 'clear', 'username', 'password', 'server', 'unattended'];
+const FLAGS = [
+    'app',
+    'clear',
+    'password',
+    'restore',
+    'server',
+    'username',
+    'validate',
+];
 
 const FLAGS_TO_PARAMS = ({ opt = {} }) =>
     FLAGS.reduce((obj, key) => {
@@ -49,7 +76,7 @@ const FLAGS_TO_PARAMS = ({ opt = {} }) =>
     }, {});
 
 const INPUT = ({ inquirer }, params) => {
-    if (op.get(params, 'unattended') === true) return params;
+    if (op.get(params, 'validate') === true) return params;
 
     const clear = op.get(params, 'clear');
 
@@ -101,16 +128,21 @@ export const COMMAND = ({ program, props }) =>
         .command(NAME)
         .description(DESC)
         .action(opt => ACTION({ opt, props }))
+        .option(
+            '-V, --validate [validate]',
+            'Validate an existing Actinium session',
+        )
         .option('-u, --username [username]', 'Username')
         .option('-p, --password [password]', 'Password')
         .option('-a, --app [app]', 'Actinium app ID')
         .option('-s, --server [server]', 'Actinium server URL')
         .option(
-            '--unattended [unattended]',
-            'Used to validate an existing Actinium session',
+            '-r, --restore [restore]',
+            'Restore the --app and --server values to the default',
         )
         .option(
             '-c, --clear [clear]',
             'Used to clear an existing Actinium session',
         )
+
         .on('--help', HELP);
