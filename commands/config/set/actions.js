@@ -1,11 +1,7 @@
 export default spinner => {
-    const { chalk, fs, homedir, normalizePath } = arcli;
+    const { chalk, fs, homedir, normalizePath, useSpinner } = arcli;
 
-    const message = text => {
-        if (!spinner) return;
-        if (!spinner.isSpinning) spinner.start();
-        spinner.text = text;
-    };
+    const { message } = useSpinner(spinner);
 
     const now = Date.now();
     const file = normalizePath(homedir, '.arcli', 'config.json');

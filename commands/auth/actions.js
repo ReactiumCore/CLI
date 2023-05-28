@@ -1,27 +1,9 @@
-import Auth, { AuthUpdate, AuthValidated } from '../../lib/auth.js';
-
 export default spinner => {
     let config, isAuth, isValid;
 
-    const { _, chalk, op } = arcli;
+    const { _, Auth, AuthUpdate, AuthValidated, chalk, op, useSpinner } = arcli;
 
-    const message = text => {
-        if (!spinner) return;
-        spinner.start();
-        spinner.text = text;
-    };
-
-    const error = text => {
-        if (!spinner) return;
-        spinner.start();
-        spinner.fail(text);
-    };
-
-    const complete = text => {
-        if (!spinner) return;
-        spinner.start();
-        spinner.succeed(text);
-    };
+    const { complete, error, message } = useSpinner(spinner);
 
     return {
         authInit: ({ params }) => {

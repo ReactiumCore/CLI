@@ -1,6 +1,3 @@
-import targetApp from '../../../lib/targetApp.js';
-import { ActiniumInit, Session } from '../../../lib/auth.js';
-
 export default (spinner, app) => {
     let config, dir, filepath, name, plugin, sessionToken, tmp, version;
 
@@ -8,6 +5,7 @@ export default (spinner, app) => {
 
     const {
         _,
+        ActiniumInit,
         ActionSequence,
         chalk,
         deleteEmpty,
@@ -16,15 +14,13 @@ export default (spinner, app) => {
         op,
         path,
         request,
+        Session,
         tar,
+        targetApp,
+        useSpinner,
     } = arcli;
 
-    const message = text => {
-        if (spinner) {
-            spinner.start();
-            spinner.text = text;
-        }
-    };
+    const { complete, error, info, message } = useSpinner(spinner);
 
     const slugify = str =>
         String(str)
@@ -56,7 +52,6 @@ export default (spinner, app) => {
 
             // Ensure module dir
             fs.ensureDirSync(normalize(cwd, app + '_modules'));
-
         },
         init: ({ params }) => {
             ActiniumInit({
@@ -70,7 +65,7 @@ export default (spinner, app) => {
         },
         check: () => {
             if (!app) {
-                spinner.fail(
+                error(
                     `Current working directory ${chalk.cyan(
                         cwd,
                     )} is not an Actinium or Reactium project`,
@@ -92,16 +87,14 @@ export default (spinner, app) => {
                     plugin = result;
                     if (!plugin) {
                         throw new Error(
-                            `  Unable to get plugin: ${name}@${version}.`,
+                            `  Error fetching ${chalk.cyan(
+                                'plugin',
+                            )} ${name}@{${version}}:`,
                         );
                     }
                 })
                 .catch(err => {
-                    spinner.fail(
-                        `Error fetching ${chalk.cyan('plugin')} ${chalk.magenta(
-                            name,
-                        )}:`,
-                    );
+                    error(err.message);
                     console.error(chalk.magenta(err.message));
                     console.log('');
                     process.exit(1);
@@ -118,8 +111,8 @@ export default (spinner, app) => {
                     : _.last(versions);
 
             if (!plugin || !op.get(plugin, 'file')) {
-                spinner.fail(`Error installing ${chalk.cyan(name)}:`);
-                console.error(
+                error(`Error installing ${chalk.cyan(name)}:`);
+                error(
                     `  Unable to find plugin version: ${chalk.magenta(
                         version,
                     )}`,
@@ -167,7 +160,7 @@ export default (spinner, app) => {
                 fs.emptyDirSync(dir);
                 fs.moveSync(tmp, dir, { overwrite: true });
             } catch (error) {
-                console.error(error);
+                error(error);
                 process.exit(1);
             }
         },
@@ -199,7 +192,7 @@ export default (spinner, app) => {
                 return;
             }
 
-            spinner.stopAndPersist({
+            info({
                 text: `Installing ${chalk.cyan('npm')} dependencies...`,
                 symbol: chalk.cyan('+'),
             });
@@ -240,12 +233,7 @@ export default (spinner, app) => {
         },
         complete: () => {
             console.log('');
-            if (spinner) {
-                spinner.start();
-                spinner.succeed(
-                    `Installed ${chalk.cyan(`${name}@${version}`)}`,
-                );
-            }
+            complete(`Installed ${chalk.cyan(`${name}@${version}`)}`);
         },
     };
 };

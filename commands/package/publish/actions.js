@@ -1,11 +1,12 @@
 import bytesToSize from '../../../lib/bytesToSize.js';
-import { AuthValidated, Session } from '../../../lib/auth.js';
 
 export default spinner => {
     const {
         _,
         Actinium,
         ActionSequence,
+        AuthValidated,
+        Session,
         chalk,
         crypto,
         fs,
@@ -14,6 +15,7 @@ export default spinner => {
         op,
         path,
         tar,
+        useSpinner,
     } = arcli;
 
     const { cwd } = arcli.props;
@@ -26,35 +28,7 @@ export default spinner => {
 
     const normalize = normalizePath;
 
-    const message = text => {
-        if (!spinner) return;
-        spinner.start();
-        spinner.text = text;
-    };
-
-    const error = text => {
-        if (!spinner) return;
-        spinner.start();
-        spinner.fail(text);
-    };
-
-    const complete = text => {
-        if (!spinner) return;
-        spinner.start();
-        spinner.succeed(text);
-    };
-
-    const info = (text, symbol) => {
-        if (!spinner) return;
-        symbol = symbol || chalk.cyan('i');
-        spinner.start();
-        spinner.stopAndPersist({ symbol, text });
-    };
-
-    const exit = () => {
-        console.log('');
-        process.exit(1);
-    };
+    const { complete, error, exit, info, message } = useSpinner(spinner);
 
     return {
         init: async ({ params }) => {
@@ -138,11 +112,7 @@ export default spinner => {
             if (!params.authorized) return;
             const { pkg, tmpDir } = params;
 
-            info({
-                symbol: chalk.cyan('+'),
-                text: `packaging ${chalk.cyan(pkg.name)}...`,
-            });
-            info();
+            info(`packaging ${chalk.cyan(pkg.name)}...`, chalk.cyan('+'));
             console.log('');
 
             filename = ['reactium-module', 'tgz'].join('.');
