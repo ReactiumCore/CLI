@@ -13,8 +13,6 @@ export default async ({ params, props }) => {
 
     const authorized = await AuthValidated(params);
 
-    params.authorized = authorized;
-
     const actions = !authorized
         ? { ...AuthActions(spinner), ...Actions(spinner) }
         : Actions(spinner);

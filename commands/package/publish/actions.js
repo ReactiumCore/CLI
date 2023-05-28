@@ -1,5 +1,5 @@
 import bytesToSize from '../../../lib/bytesToSize.js';
-import { Session } from '../../../lib/auth.js';
+import { AuthValidated, Session } from '../../../lib/auth.js';
 
 export default spinner => {
     const {
@@ -27,10 +27,28 @@ export default spinner => {
     const normalize = normalizePath;
 
     const message = text => {
-        if (spinner) {
-            if (!spinner.isSpinning) spinner.start();
-            spinner.text = text;
-        }
+        if (!spinner) return;
+        spinner.start();
+        spinner.text = text;
+    };
+
+    const error = text => {
+        if (!spinner) return;
+        spinner.start();
+        spinner.fail(text);
+    };
+
+    const complete = text => {
+        if (!spinner) return;
+        spinner.start();
+        spinner.succeed(text);
+    };
+
+    const info = (text, symbol) => {
+        if (!spinner) return;
+        symbol = symbol || chalk.cyan('i');
+        spinner.start();
+        spinner.stopAndPersist({ symbol, text });
     };
 
     const exit = () => {
@@ -39,10 +57,19 @@ export default spinner => {
     };
 
     return {
-        init: () => {
-            sessionToken = Session();
+        init: async ({ params }) => {
+            params.authorized = await AuthValidated(params);
+            if (!params.authorized) {
+                error('permission denied');
+                exit();
+                return;
+            }
         },
-        validate: async ({ params, props }) => {
+        validate: async ({ params }) => {
+            if (!params.authorized) return;
+
+            sessionToken = Session();
+
             const { name, version } = params.pkg;
 
             const result = await Actinium.Cloud.run(
@@ -57,15 +84,17 @@ export default spinner => {
                 // prettier-ignore
                 const errorMsg = `${chalk.magenta('Error:')} unable to publish ${chalk.cyan(name)}@${chalk.cyan(version)}`;
 
-                spinner.fail(errorMsg);
+                error(errorMsg);
                 exit();
             }
         },
         package: ({ params }) => {
+            if (!params.authorized) return;
             message(`updating ${chalk.cyan('package.json')}...`);
             fs.writeFileSync(pkgFile, JSON.stringify(params.pkg, null, 2));
         },
         prepublish: async ({ params, props }) => {
+            if (!params.authorized) return;
             spinner.stop();
 
             const actionFiles = globby([`${cwd}/**/arcli-publish.js`]);
@@ -86,14 +115,12 @@ export default spinner => {
                 actions,
                 options: { params, props },
             }).catch(err => {
-                spinner.stopAndPersist({
-                    symbol: x,
-                    text: `Prepublish Error: ${err}`,
-                });
+                error(`Prepublish Error: ${err}`);
                 exit();
             });
         },
         tmp: ({ params }) => {
+            if (!params.authorized) return;
             const { tmpDir } = params;
 
             if (!spinner.isSpinning) spinner.start();
@@ -108,12 +135,14 @@ export default spinner => {
             });
         },
         compress: ({ params }) => {
+            if (!params.authorized) return;
             const { pkg, tmpDir } = params;
 
-            spinner.stopAndPersist({
+            info({
                 symbol: chalk.cyan('+'),
                 text: `packaging ${chalk.cyan(pkg.name)}...`,
             });
+            info();
             console.log('');
 
             filename = ['reactium-module', 'tgz'].join('.');
@@ -164,6 +193,7 @@ export default spinner => {
             console.log('');
         },
         publish: async ({ params }) => {
+            if (!params.authorized) return;
             const { pkg } = params;
 
             message(`processing ${chalk.cyan(filename)}...`);
@@ -205,10 +235,12 @@ export default spinner => {
             });
         },
         cleanup: ({ params }) => {
+            if (!params.authorized) return;
             fs.removeSync(params.tmpDir);
         },
         complete: ({ params }) => {
-            spinner.succeed(
+            if (!params.authorized) return;
+            complete(
                 `published ${chalk.cyan(params.pkg.name)} v${chalk.cyan(
                     params.pkg.version,
                 )}`,
