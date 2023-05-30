@@ -29,6 +29,9 @@ import prompt from 'prompt';
 import decompress from '@atomic-reactor/decompress';
 import { error, message } from './lib/messenger.js';
 import pad from './lib/pad.js';
+import * as AuthSDK from './lib/auth.js'; 
+import { useSpinner } from './lib/useSpinner.js';
+import targetApp from './lib/targetApp.js';
 
 const normalizePath = (...args) => path.normalize(path.join(...args));
 
@@ -179,6 +182,7 @@ const bootstrap = async () => {
 
     global.arcli = {
         _,
+        ...AuthSDK,
         ActionSequence,
         Actinium,
         Spinner,
@@ -212,14 +216,16 @@ const bootstrap = async () => {
         prompt,
         props,
         request,
+        root,
         rootCommands,
         runCommand,
         semver,
         slugify,
         table,
         tar,
+        targetApp,
         tmp: normalizePath(homedir, 'tmp'),
-        root,
+        useSpinner,
     };
 
     // Build the props object

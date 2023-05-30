@@ -6,27 +6,26 @@ export default spinner => {
 
     const { cwd } = arcli.props;
 
-    const { _, ActionSequence, chalk, fs, normalizePath, op, path } = arcli;
+    const {
+        _,
+        ActionSequence,
+        chalk,
+        fs,
+        normalizePath,
+        op,
+        path,
+        useSpinner,
+    } = arcli;
 
     let app;
 
     const pluginsDir = path.resolve(normalizePath(cwd, app + '_modules'));
 
-    const actions = Actions(spinner);
-
-    op.del(actions, 'complete');
-    op.del(actions, 'registerPkg');
-
-    const message = text => {
-        if (spinner) {
-            spinner.start();
-            spinner.text = text;
-        }
-    };
+    const { complete, info, message, stop } = useSpinner(spinner);
 
     return {
         init: async ({ params, props }) => {
-            const [type] = await detect({params, props});            
+            const [type] = await detect({ params, props });
             app = type.toLowerCase();
 
             if (spinner) spinner.stop();
@@ -44,6 +43,11 @@ export default spinner => {
             plugins.sort();
         },
         download: async ({ params, props }) => {
+            const actions = Actions(spinner);
+
+            op.del(actions, 'complete');
+            op.del(actions, 'registerPkg');
+
             for (const i in plugins) {
                 const name = plugins[i];
                 message(`Downloading ${chalk.cyan(name)}...`);
@@ -57,33 +61,29 @@ export default spinner => {
                 });
             }
 
-            spinner.stopAndPersist({
-                text: `Downloaded ${chalk.cyan('plugins')}`,
-                symbol: chalk.green('✓'),
-            });
+            complete(`Downloaded ${chalk.cyan('plugins')}`);
         },
-        npm: async ({ params, props }) => {
-            if (op.get(params, 'no-npm') === true) return;
+        npm: async ({ params }) => {
+            if (op.get(params, 'npm') !== true) return;
 
-            spinner.stopAndPersist({
-                text: `Installing ${chalk.cyan('npm')} dependencies...`,
-                symbol: chalk.cyan('+'),
-            });
-
-            console.log('');
+            info(
+                `Installing ${chalk.cyan('npm')} dependencies...`,
+                chalk.cyan('+'),
+            );
 
             // Run npm install
             try {
+                stop();
                 await arcli.runCommand('npm', ['prune']);
                 await arcli.runCommand('npm', ['install']);
                 console.log('');
             } catch (error) {
-                console.error(error);
+                error(error);
                 process.exit(1);
             }
         },
         postinstall: async ({ params, props }) => {
-            if (op.get(params, 'no-npm') === true) return;
+            if (op.get(params, 'npm') !== true) return;
             const plugins = Object.keys(deps);
 
             for (const p in plugins) {
@@ -115,8 +115,6 @@ export default spinner => {
 
         complete: () => {
             if (plugins.length > 0) spinner.succeed(`Installed:`);
-            else spinner.succeed('complete!');
-
             plugins.forEach(plugin => console.log('   ', chalk.cyan(plugin)));
         },
     };

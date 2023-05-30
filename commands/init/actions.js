@@ -106,7 +106,7 @@ export default spinner => {
             console.log('');
             console.log(`Installing ${chalk.cyan(TYPES[params.type])} dependencies...`);
             console.log('');
-            return arcli.runCommand('arcli', ['install']);
+            return arcli.runCommand('reactium', ['install']);
         },
     };
 };

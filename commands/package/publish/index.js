@@ -4,6 +4,7 @@
  * -----------------------------------------------------------------------------
  */
 import GENERATOR from './generator.js';
+import { AuthValidated, Session } from '../../../lib/auth.js';
 
 const {
     _,
@@ -167,14 +168,15 @@ PROMPT.TMPDIR = params => {
     return params;
 };
 
-PROMPT.AUTH = async (params, props) => {
-    const sessionToken = op.get(props, 'config.registry.sessionToken');
-    const appID = op.get(props, 'config.registry.app', 'ReactiumRegistry');
-    const serverURL = op.get(
-        props,
-        'config.registry.server',
-        'https://v1.reactium.io/api',
-    );
+PROMPT.AUTH = async params => {
+    const config = arcli.props.config;
+    params.app =
+        op.get(params, 'app') ||
+        op.get(config, 'registry.app', 'ReactiumRegistry');
+    params.server =
+        op.get(params, 'server') || op.get(config, 'registry.server');
+
+    params.authorized = await AuthValidated(params);
 
     const { username, password } = await inquirer.prompt(
         [
@@ -183,22 +185,19 @@ PROMPT.AUTH = async (params, props) => {
                 name: 'username',
                 type: 'input',
                 message: 'Username:',
-                when: !sessionToken,
+                when: !params.authorized,
             },
             {
                 prefix,
                 name: 'password',
                 type: 'password',
                 message: 'Password:',
-                when: !sessionToken,
+                when: !params.authorized,
             },
         ],
         params,
     );
 
-    params.appID = appID;
-    params.serverURL = serverURL;
-    params.sessionToken = sessionToken;
     params.username = username;
     params.password = password;
 
