@@ -1,29 +1,26 @@
 import { detect } from '../../update/package.js';
 
 export default spinner => {
-    let dir, filepath, name, plugin, sessionToken, tmp, version;
+    let app, config, dir, filepath, name, plugin, sessionToken, tmp, version;
 
     const { cwd } = arcli.props;
 
     const {
         _,
+        ActiniumInit,
         ActionSequence,
+        Session,
         chalk,
-        deleteEmpty,
         fs,
         globby,
         op,
         path,
         request,
         tar,
+        useSpinner,
     } = arcli;
 
-    const message = text => {
-        if (spinner) {
-            spinner.start();
-            spinner.text = text;
-        }
-    };
+    const { complete, error, info, message, stop } = useSpinner(spinner);
 
     const slugify = str =>
         String(str)
@@ -32,14 +29,15 @@ export default spinner => {
 
     const normalize = (...args) => path.normalize(path.join(...args));
 
-    let app;
-
     return {
         init: async ({ params, props }) => {
-            const [type] = await detect({params, props});            
+            const [type] = await detect({ params, props });
+
+            config = arcli.props.config;
+
             app = type.toLowerCase();
 
-            sessionToken = op.get(props, 'config.registry.sessionToken');
+            sessionToken = Session();
 
             name = op.get(params, 'name');
 
@@ -57,23 +55,18 @@ export default spinner => {
             // Ensure module dir
             fs.ensureDirSync(normalize(cwd, app + '_modules'));
 
-            const appID = op.get(
-                props,
-                'config.registry.app',
-                'ReactiumRegistry',
-            );
-            const serverURL = op.get(
-                props,
-                'config.registry.server',
-                'https://v1.reactium.io/api',
-            );
-
-            Actinium.serverURL = serverURL;
-            Actinium.initialize(appID);
+            ActiniumInit({
+                app: op.get(params, 'app', op.get(config, 'registry.app')),
+                server: op.get(
+                    params,
+                    'server',
+                    op.get(config, 'registry.server'),
+                ),
+            });
         },
         check: () => {
             if (!app) {
-                spinner.fail(
+                error(
                     `Current working directory ${chalk.cyan(
                         cwd,
                     )} is not an Actinium or Reactium project`,
@@ -100,12 +93,12 @@ export default spinner => {
                     }
                 })
                 .catch(err => {
-                    spinner.fail(
+                    error(
                         `Error fetching ${chalk.cyan('plugin')} ${chalk.magenta(
                             name,
                         )}:`,
                     );
-                    console.error(chalk.magenta(err.message));
+                    error(chalk.magenta(err.message));
                     console.log('');
                     process.exit(1);
                 });
@@ -121,8 +114,8 @@ export default spinner => {
                     : _.last(versions);
 
             if (!plugin || !op.get(plugin, 'file')) {
-                spinner.fail(`Error installing ${chalk.cyan(name)}:`);
-                console.error(
+                error(`Error installing ${chalk.cyan(name)}:`);
+                error(
                     `  Unable to find plugin version: ${chalk.magenta(
                         version,
                     )}`,
@@ -170,7 +163,7 @@ export default spinner => {
                 fs.emptyDirSync(dir);
                 fs.moveSync(tmp, dir, { overwrite: true });
             } catch (error) {
-                console.error(error);
+                error(error);
                 process.exit(1);
             }
         },
@@ -183,16 +176,17 @@ export default spinner => {
         },
         npm: async ({ params }) => {
             if (
-                op.get(params, 'no-npm') === true ||
+                op.get(params, 'npm') !== true ||
                 op.get(params, 'unattended') === true
             ) {
                 return;
             }
 
-            spinner.stopAndPersist({
-                text: `Installing ${chalk.cyan('npm')} dependencies...`,
-                symbol: chalk.cyan('+'),
-            });
+            info(
+                `Installing ${chalk.cyan('npm')} dependencies...`,
+                chalk.cyan('+'),
+            );
+            stop();
 
             console.log('');
 
@@ -200,16 +194,12 @@ export default spinner => {
                 await arcli.runCommand('npm', ['prune']);
                 await arcli.runCommand('npm', ['install']);
             } catch (error) {
-                console.error({ error });
+                error({ error });
                 process.exit(1);
             }
         },
         postinstall: async ({ params, props }) => {
-            if (
-                op.get(params, 'no-npm') === true ||
-                op.get(params, 'unattended') === true
-            )
-                return;
+            if (op.get(params, 'unattended') === true) return;
 
             const actionFiles = globby([`${dir}/**/arcli-install.js`]);
             if (actionFiles.length < 1) return;
@@ -230,12 +220,7 @@ export default spinner => {
         },
         complete: () => {
             console.log('');
-            if (spinner) {
-                spinner.start();
-                spinner.succeed(
-                    `Installed ${chalk.cyan(`${name}@${version}`)}`,
-                );
-            }
+            complete(`Installed ${chalk.cyan(`${name}@${version}`)}`);
         },
     };
 };

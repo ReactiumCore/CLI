@@ -35,7 +35,7 @@ const ACTION = ({ name, opt, props }) => {
         );
 };
 
-const FLAGS = [];
+const FLAGS = ['app', 'npm', 'server'];
 
 const FLAGS_TO_PARAMS = ({ opt = {} }) =>
     FLAGS.reduce((obj, key) => {
@@ -54,4 +54,7 @@ export const COMMAND = ({ program, props }) =>
         .command(NAME)
         .description(DESC)
         .action((name, opt) => ACTION({ name, opt, props }))
+        .option('-a, --app [app]', 'Actinium app ID')
+        .option('-s, --server [server]', 'Actinium server URL')
+        .option('--no-npm [npm]', 'Skip the `npm install`')
         .on('--help', HELP);

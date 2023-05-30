@@ -5,6 +5,8 @@ export default spinner => {
         _,
         Actinium,
         ActionSequence,
+        AuthValidated,
+        Session,
         chalk,
         crypto,
         fs,
@@ -13,39 +15,38 @@ export default spinner => {
         op,
         path,
         tar,
+        useSpinner,
     } = arcli;
 
     const { cwd } = arcli.props;
 
     const pkgFile = normalizePath(cwd, 'package.json');
 
-    let bytes, filename, filepath;
-
-    const x = chalk.magenta('✖');
+    let authorized, bytes, filename, filepath, sessionToken;
 
     const normalize = normalizePath;
 
-    const message = text => {
-        if (spinner) {
-            if (!spinner.isSpinning) spinner.start();
-            spinner.text = text;
-        }
-    };
-
-    const exit = () => {
-        console.log('');
-        process.exit(1);
-    };
+    const { complete, error, exit, info, message, start, stop } = useSpinner(
+        spinner,
+    );
 
     return {
-        init: ({ params }) => {
-            const { appID, serverURL } = params;
+        init: async ({ params }) => {
+            authorized =
+                op.get(params, 'authorized') || (await AuthValidated(params));
 
-            Actinium.initialize(appID);
-            Actinium.serverURL = serverURL;
+            if (!authorized) {
+                error('permission denied');
+                exit();
+                return;
+            }
+        },
+        bail: () => {
+            if (!authorized) exit();
         },
         validate: async ({ params, props }) => {
-            const { sessionToken } = params;
+            sessionToken = Session();
+
             const { name, version } = params.pkg;
 
             const result = await Actinium.Cloud.run(
@@ -63,7 +64,7 @@ export default spinner => {
                     version,
                 )}}`;
 
-                spinner.fail(errorMsg);
+                error(errorMsg);
                 exit();
             }
         },
@@ -72,17 +73,17 @@ export default spinner => {
             fs.writeFileSync(pkgFile, JSON.stringify(params.pkg, null, 2));
         },
         prepublish: async ({ params, props }) => {
-            spinner.stop();
+            stop();
 
             const actionFiles = globby([`${cwd}/**/arcli-publish.js`]);
             if (actionFiles.length < 1 || !Array.isArray(actionFiles)) return;
 
-            const actions = {}; 
+            const actions = {};
 
             for (let i = 0; i < actionFiles.length; i++) {
-                const filePath = actionFiles[i]; 
+                const filePath = actionFiles[i];
                 const mod = await import(normalize(filePath));
-                const acts = mod(spinner); 
+                const acts = mod(spinner);
                 Object.keys(acts).forEach(key =>
                     op.set(actions, `prepublish_${i}_${key}`, acts[key]),
                 );
@@ -92,17 +93,14 @@ export default spinner => {
                 actions,
                 options: { params, props },
             }).catch(err => {
-                spinner.stopAndPersist({
-                    symbol: x,
-                    text: `Prepublish Error: ${err}`,
-                });
+                error(`Prepublish Error: ${err}`);
                 exit();
             });
         },
         tmp: ({ params }) => {
             const { tmpDir } = params;
 
-            if (!spinner.isSpinning) spinner.start();
+            start();
 
             fs.ensureDirSync(tmpDir);
             fs.emptyDirSync(tmpDir);
@@ -116,10 +114,8 @@ export default spinner => {
         compress: ({ params }) => {
             const { pkg, tmpDir } = params;
 
-            spinner.stopAndPersist({
-                symbol: chalk.cyan('+'),
-                text: `packaging ${chalk.cyan(pkg.name)}...`,
-            });
+            info(`packaging ${chalk.cyan(pkg.name)}...`);
+
             console.log('');
 
             filename = ['reactium-module', 'tgz'].join('.');
@@ -160,13 +156,7 @@ export default spinner => {
             const { size } = fs.statSync(filepath);
 
             console.log('');
-            console.log(
-                chalk.cyan('+'),
-                'compressed',
-                bytesToSize(bytes),
-                '→',
-                bytesToSize(size),
-            );
+            info('compressed', bytesToSize(bytes), '→', bytesToSize(size));
             console.log('');
         },
         publish: async ({ params }) => {
@@ -214,7 +204,7 @@ export default spinner => {
             fs.removeSync(params.tmpDir);
         },
         complete: ({ params }) => {
-            spinner.succeed(
+            complete(
                 `published ${chalk.cyan(params.pkg.name)} v${chalk.cyan(
                     params.pkg.version,
                 )}`,

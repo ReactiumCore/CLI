@@ -1,8 +1,8 @@
 import Actions from './actions.js';
 import AuthActions from '../../../commands/auth/actions.js';
 
-export default ({ params, props }) => {
-    const { ActionSequence, ora } = arcli;
+export default async ({ params, props }) => {
+    const { ActionSequence, AuthValidated, ora } = arcli;
 
     const spinner = ora({ spinner: 'dots', color: 'cyan' });
 
@@ -10,9 +10,11 @@ export default ({ params, props }) => {
 
     spinner.start();
 
-    const authActions = AuthActions(spinner);
-    const cmdActions = Actions(spinner);
-    const actions = { ...authActions, ...cmdActions };
+    const authorized = await AuthValidated(params);
+
+    const actions = !authorized
+        ? { ...AuthActions(spinner), ...Actions(spinner) }
+        : Actions(spinner);
 
     return ActionSequence({ actions, options: { params, props } })
         .then(() => {
