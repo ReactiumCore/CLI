@@ -46,6 +46,7 @@ export default spinner => {
         },
         validate: async ({ params, props }) => {
             sessionToken = Session();
+            params.sessionToken = sessionToken;
 
             const { name, version } = params.pkg;
 
