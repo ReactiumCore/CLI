@@ -151,7 +151,9 @@ const bootstrap = async () => {
             .split(/[\\\/]/g)
             .join(path.posix.sep);
 
-    const rootCommands = () => globby(normalizeCommandPath('[root]/commands'));
+    const rootCommands = () => globby(normalizeCommandPath('[root]/commands'))
+        // fix volume paths on Windows
+        .map(p => p.replace(/^([a-z]{1}):/i, '/$1:'));
 
     const flagsToParams = ({ opt = {}, flags }) =>
         flags.reduce((obj, key) => {
@@ -177,7 +179,9 @@ const bootstrap = async () => {
             .map(dir => normalizeCommandPath(dir));
 
         const deep = op.get(config, 'depth', 25);
-        return globby(globs, { deep });
+        return globby(globs, { deep })
+            // fix volume paths on Windows
+            .map(p => p.replace(/^([a-z]{1}):/i, '/$1:'));
     };
 
     global.arcli = {
