@@ -95,7 +95,7 @@ export default async ({ props, params }, updatePath) => {
     }
 
     try {
-        const { default: configObj } = await import(configFile);
+        const { default: configObj } = await import(`file://${configFile}`);
         config = configObj;
     } catch (err) {
         config = {};

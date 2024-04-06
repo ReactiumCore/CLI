@@ -46,7 +46,7 @@ const importer = (path, options) => {
         return fs.readJsonSync(path);
     }
 
-    return import(path, options);
+    return import(`file://${path}`, options);
 }
 
 const bootstrap = async () => {

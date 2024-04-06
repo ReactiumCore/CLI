@@ -101,12 +101,14 @@ export default spinner => {
 
             // Get the updated installed version file
             const { default: updated } = await import(
-                getUpdatedConfig({ params, props })
+                `file://${getUpdatedConfig({ params, props })}`
             );
             params.project = updated;
 
             // Get the current configig
-            const { default: current } = await import(originalConfigFile);
+            const { default: current } = await import(
+                `file://${originalConfigFile}`
+            );
             params.currentConfig = current;
 
             const diff = semver.diff(current.version, updated.version);
@@ -209,16 +211,20 @@ export default spinner => {
         },
 
         deps: ({ params }) => {
-            const { quick, type } = params;
+            try {
+                const { quick, type } = params;
 
-            if (cancelled || quick) return;
-            if (spinner) spinner.stop();
+                if (cancelled || quick) return;
+                if (spinner) spinner.stop();
 
-            console.log('');
-            console.log(`Installing ${chalk.cyan(type)} dependencies...`);
-            console.log('');
+                console.log('');
+                console.log(`Installing ${chalk.cyan(type)} dependencies...`);
+                console.log('');
 
-            return arcli.runCommand('reactium', ['install']);
+                return arcli.runCommand('reactium', ['install']);
+            } catch (msg) {
+                console.error(msg);
+            }
         },
 
         cancelled: () => {
