@@ -36,7 +36,7 @@ export default async () => {
             const cmd = globs[i];
 
             try {
-                req = await import(cmd);
+                req = await import(`file://${cmd}`);
             } catch (err) {
                 console.error(err);
                 req = () => {};

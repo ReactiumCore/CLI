@@ -208,7 +208,7 @@ export default spinner => {
 
             for (let i = 0; i < actionFiles.length; i++) {
                 const file = actionFiles[i];
-                const mod = await import(normalize(file));
+                const mod = await import(`file://${normalize(file)}`);
                 const acts = mod(spinner, arcli, params, props);
                 Object.keys(acts).forEach(key =>
                     op.set(actions, `postinstall_${i}_${key}`, acts[key]),

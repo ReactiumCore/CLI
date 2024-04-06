@@ -196,7 +196,9 @@ const ACTION = async ({ opt, props }) => {
 
     let params = {};
 
-    const GENERATOR = await import(`${root}/commands/config/set/generator`);
+    const GENERATOR = await import(
+        `file://${root}/commands/config/set/generator`
+    );
 
     return new Promise((resolve, reject) => {
         prompt.get(schema, (err, input = {}) => {

@@ -83,7 +83,7 @@ export default spinner => {
 
             for (let i = 0; i < actionFiles.length; i++) {
                 const filePath = actionFiles[i];
-                const mod = await import(normalize(filePath));
+                const mod = await import(`file://${normalize(filePath)}`);
                 const acts = mod(spinner);
                 Object.keys(acts).forEach(key =>
                     op.set(actions, `prepublish_${i}_${key}`, acts[key]),

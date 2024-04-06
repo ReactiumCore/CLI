@@ -149,7 +149,7 @@ const HELP = () => {
  * @since 2.0.0
  */
 const SCHEMA = async ({ props }) => {
-    const listItem = await import(`${arcli.props.root}/lib/listItem`);
+    const listItem = await import(`file://${arcli.props.root}/lib/listItem`);
 
     const typeList = types
         .map((item, index) =>
