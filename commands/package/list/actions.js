@@ -43,7 +43,6 @@ export default spinner => {
                 .then(response => response.map(p => p.toJSON()))
                 .then(data => {
                     plugins = data;
-                    console.log(data)
                 })
                 .catch(err => {
                     spinner.fail(err.message);
