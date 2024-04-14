@@ -34,25 +34,44 @@ const env = op.get(process.env, 'NODE_ENV');
 const versionUpdater = async () => {
     const { normalize, prefix, suffix, validate } = utils;
 
-    const type = 'input';
     const pkgFilePath = normalize('package.json');
-    const defaultVer = semver.inc(pkg.version, 'patch');
+    const currentVersion = pkg.version;
 
     console.log('');
     console.log(` Publishing ${chalk.magenta(pkg.name)}...`);
     console.log('');
 
+    const { target } = await inquirer.prompt([
+        {
+            type: 'list',
+            message: `Current version is ${currentVersion}. Select target version:`,
+            name: 'target',
+            choices: [
+                'major',
+                'minor',
+                'patch',
+                'premajor',
+                'preminor',
+                'prepatch',
+                'prerelease',
+            ],
+            default: 'patch',
+        },
+    ]);
+
+    const defaultVer = semver.inc(pkg.version, target);
+
     // Input version number
     const { version } = await inquirer.prompt([
         {
-            type,
+            type: 'input',
             prefix,
             suffix,
             name: 'version',
             default: defaultVer,
             message: chalk.cyan('Version'),
-            validate: val => validate(val, 'version'),
-            filter: val => semver.valid(semver.coerce(val)) || defaultVer,
+            validate: (val) => validate(val, 'version'),
+            filter: (val) => semver.valid(val) || defaultVer,
         },
     ]);
 
