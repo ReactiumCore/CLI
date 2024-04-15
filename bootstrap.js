@@ -19,7 +19,7 @@ import prettier from 'prettier';
 import portscanner from 'portscanner';
 import generator from './lib/generator.js';
 import table from 'text-table';
-import tar from 'tar';
+import * as tar from 'tar';
 import slugify from 'slugify';
 import request from 'request';
 import DeleteEmpty from 'delete-empty';
