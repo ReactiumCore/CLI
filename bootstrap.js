@@ -1,7 +1,7 @@
 import ora from 'ora';
 import Actinium from 'parse/node.js';
 import handlebars from 'handlebars';
-import Hook from '@atomic-reactor/reactium-sdk-core/lib/sdks/hook/index.js';
+import * as SDK from '@atomic-reactor/reactium-sdk-core/core';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
@@ -21,7 +21,6 @@ import generator from './lib/generator.js';
 import table from 'text-table';
 import * as tar from 'tar';
 import slugify from 'slugify';
-import request from 'request';
 import DeleteEmpty from 'delete-empty';
 import ActionSequence from 'action-sequence';
 import inquirer from 'inquirer';
@@ -33,6 +32,7 @@ import * as AuthSDK from './lib/auth.js';
 import { useSpinner } from './lib/useSpinner.js';
 import targetApp from './lib/targetApp.js';
 
+const Hook = SDK.Hook;
 const normalizePath = (...args) => path.normalize(path.join(...args));
 
 const root = path.dirname(fileURLToPath(import.meta.url));
@@ -219,7 +219,6 @@ const bootstrap = async () => {
         prettier,
         prompt,
         props,
-        request,
         root,
         rootCommands,
         runCommand,
@@ -230,6 +229,7 @@ const bootstrap = async () => {
         targetApp,
         tmp: normalizePath(homedir, 'tmp'),
         useSpinner,
+        SDK,
     };
 
     // Build the props object

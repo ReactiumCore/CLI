@@ -15,7 +15,7 @@ export default spinner => {
         globby,
         op,
         path,
-        request,
+        axios,
         tar,
         useSpinner,
     } = arcli;
@@ -138,10 +138,15 @@ export default spinner => {
 
             // Pipe download to tmp path
             return new Promise((resolve, reject) =>
-                request(plugin.file.url())
-                    .pipe(fs.createWriteStream(filepath))
-                    .on('error', error => reject(error))
-                    .on('close', () => resolve({ action, status: 200 })),
+                axios(plugin.file.url(), { responseType: 'stream' }).then(
+                    ({ data }) => {
+                        data.pipe(fs.createWriteStream(filepath))
+                            .on('error', error => reject(error))
+                            .on('close', () =>
+                                resolve({ action, status: 200 }),
+                            );
+                    },
+                ),
             );
         },
         extract: async () => {

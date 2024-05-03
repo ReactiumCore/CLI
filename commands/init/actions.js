@@ -15,7 +15,7 @@ const PAYLOAD = {
 };
 
 export default spinner => {
-    const { path, chalk, decompress, fs, op, request } = arcli;
+    const { path, chalk, decompress, fs, op, axios } = arcli;
 
     const message = text => {
         if (spinner) {
@@ -48,8 +48,8 @@ export default spinner => {
 
             // Download
             return new Promise((resolve, reject) => {
-                request(URL)
-                    .pipe(
+                axios(URL, { responseType: 'stream' }).then(({ data }) => {
+                    data.pipe(
                         fs.createWriteStream(
                             normalize(cwd, 'tmp', 'package.zip'),
                         ),
@@ -60,6 +60,7 @@ export default spinner => {
                         process.exit();
                     })
                     .on('close', () => resolve({ action, status: 200 }));
+                })
             });
         },
 
