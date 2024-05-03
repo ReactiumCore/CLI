@@ -21,7 +21,6 @@ export default spinner => {
         fs,
         semver,
         op,
-        request,
         inquirer,
     } = arcli;
 
