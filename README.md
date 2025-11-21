@@ -48,7 +48,10 @@ $ reactium init
 > _The config `reactium.repo` url is used when downloading Reactium. The config `actinium.repo` url is used when downloading Reactium._
 
 ### `<update>`
-Detects if the current directory is Reactium or Actinium project. Downloads and installs Reactium or Actinium `.core` and updates to the `package.json` into the current working directory.
+Detects if the current directory is a Reactium or Actinium project and updates the framework core dependencies in `package.json`.
+
+**Note**: Modern Reactium projects use the `@atomic-reactor/reactium-core` plugin installed in `reactium_modules/` via workspace dependencies. Some legacy projects may use a `.core` directory structure. The update command handles both architectures appropriately.
+
 The current version of your project will be backed up to the `.BACKUP` directory before update.
 
 #### Usage
@@ -92,8 +95,8 @@ $ reactium config --key 'toolkit.types' --value 'atom molecule organism template
   },
   "commands": [
     "[root]/commands",                      // Resolves to the ~/global/node_modules/ARCLI/commands directory. Used for global commands.
-    "[cwd]/.core/.cli/commands",            // Resolves to the ~/project/.core/.cli/commands directory. Used for application core commands.
-    "[cwd]/.cli/commands"                   // Resolves to the ~/project/.cli/commands directory. Used for project specific commands.
+    "[cwd]/.core/.cli/commands",            // Resolves to the ~/project/.core/.cli/commands directory. Used for legacy core commands.
+    "[cwd]/.cli/commands",                  // Resolves to the ~/project/.cli/commands directory. Used for project specific commands.
     "[cwd]/node_modules/**/.cli/commands"   // Resolves to any .cli/commands directories in the ~/project/node_modules directory.
   ],
   "reactium": {
@@ -152,12 +155,12 @@ _The boilerplate code for a new ARCLI function will be created in the `~/.cli/co
 
 If you're creating an application specific command, use the shortcut `app/` when specifying the destination.
 
-> Beware: _Application specific commands are only suggested if you're contributing to the application and want those commands pushed out to future versions. For instance if you want to create a new Reactium or Actinium core command and plan on submitting a pull request for your new feature. Otherwise, they will be overwritten when you update your version of Reactium or Actinium._
+> Beware: _Application specific commands are only suggested if you're contributing to framework core. In modern Reactium projects, core commands are in the `reactium_modules/@atomic-reactor/reactium-core/.cli/commands/` directory. Legacy projects may use `~/.core/.cli/commands/`. These will be overwritten when you update the framework._
 ```
 $ reactium commander -d 'app/my/function'
 ```
 
-_The boilerplate code for a new ARCLI function will be created in the `~/.core/.cli/commands/my/function` directory._
+_The boilerplate code for a new ARCLI function will be created in the appropriate core commands directory for your project structure._
 
 
 If you're creating a new ARCLI command, use the shortcut `root/` when specifying the destination.
