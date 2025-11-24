@@ -10,9 +10,7 @@ const HELP = () =>
     console.log(`
 Shortcuts:
   When creating a command, there are 3 --destination shortcuts available:
-  ${chalk.cyan('cwd/')} | ${chalk.cyan('app/')} | ${chalk.cyan(
-        'core/',
-    )} | ${chalk.cyan('root/')}
+  ${chalk.cyan('cwd/')} | ${chalk.cyan('app/')} | ${chalk.cyan('root/')}
 
     ${chalk.cyan('cwd/')}
       Creates a command in the ${chalk.cyan(
@@ -40,19 +38,6 @@ Shortcuts:
           Should you update the framework core, your commands will be overwritten.
           It is recommended to only place commands in the app directory if you are contributing to Reactium or Actinium core.
 
-    ${chalk.cyan('core/')}
-      Creates a command in the ${chalk.cyan(
-          '~/project-root/.core/.cli/commands',
-      )} directory:
-        $ arcli commander --command 'fubar' --destination '${chalk.cyan(
-            'core/',
-        )}fubar'
-
-        ${chalk.cyan(
-            '* Note:',
-        )} this option should only be used when creating Actinium and Reactium source functions.
-
-
     ${chalk.cyan('root/')}
       Creates a command in the ${chalk.cyan(
           '~/home/.arcli/commands',
@@ -73,7 +58,6 @@ const formatDestination = (val, props) => {
     const replacers = [
         [/^~\/|^\/cwd\/|^cwd\//i, `${cwd}/.cli/commands/`],
         [/^\/app\/|^app\//i, `${cwd}/src/app/.cli/commands/`],
-        [/^\/core\/|^core\//i, `${cwd}/.core/.cli/commands/`],
         [/^\/root\/|^root\//i, `${root}/commands/`],
     ];
 
@@ -247,7 +231,7 @@ const ACTION = async ({ opt, props }) => {
         return;
     }
 
-    return generator({ params, props }).catch(err =>
+    return generator({ params, props }).catch((err) =>
         message(op.get(err, 'message', CANCELED)),
     );
 };
@@ -256,7 +240,7 @@ export const COMMAND = ({ program, props }) =>
     program
         .command(NAME)
         .description(DESC)
-        .action(opt => ACTION({ opt, props }))
+        .action((opt) => ACTION({ opt, props }))
         .option(
             '-d, --destination [destination]',
             'Path where the command is saved',
